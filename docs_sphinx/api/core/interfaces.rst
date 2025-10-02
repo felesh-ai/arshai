@@ -2,30 +2,25 @@
 Interfaces
 ==========
 
-The interfaces module defines the contracts that all components must implement.
+The interfaces module defines the contracts that all components must implement. These interfaces enable you to create custom components that integrate seamlessly with Arshai's three-layer architecture.
 
-Agent Interfaces
-================
+Core Design Philosophy
+======================
+
+Arshai uses Python protocols to define interfaces, providing:
+
+- **Duck typing with type safety** - No forced inheritance
+- **Multiple protocol implementation** - Components can implement multiple interfaces
+- **Easy testing** - Simple to create mocks and test doubles
+- **Clear contracts** - Explicit method signatures and behavior
+
+Layer 1: LLM Client Interfaces
+===============================
 
 .. currentmodule:: arshai.core.interfaces
 
-.. autoclass:: IAgent
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. autoclass:: IAgentInput
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. autoclass:: IAgentConfig
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-LLM Interfaces
-==============
+LLM Provider Interface
+----------------------
 
 .. autoclass:: ILLM
    :members:
@@ -42,26 +37,49 @@ LLM Interfaces
    :undoc-members:
    :show-inheritance:
 
-Tool Interfaces
-===============
+Layer 2: Agent Interfaces
+==========================
 
-.. autoclass:: ITool
+Agent Core Interface
+--------------------
+
+.. autoclass:: IAgent
    :members:
    :undoc-members:
    :show-inheritance:
 
-Memory Interfaces
-=================
-
-.. autoclass:: IMemoryManager
+.. autoclass:: IAgentInput
    :members:
    :undoc-members:
    :show-inheritance:
+
+Layer 3: System Interfaces
+===========================
 
 Workflow Interfaces
-===================
+-------------------
 
-.. autoclass:: IWorkflow
+.. autoclass:: IWorkflowState
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: IUserContext
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: IWorkflowOrchestrator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: IWorkflowConfig
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: INode
    :members:
    :undoc-members:
    :show-inheritance:
@@ -71,31 +89,55 @@ Workflow Interfaces
    :undoc-members:
    :show-inheritance:
 
-Document Processing Interfaces
-==============================
+Memory Management Interface
+---------------------------
 
-.. autoclass:: IDocument
+.. autoclass:: IMemoryManager
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. autoclass:: IFileLoader
+.. autoclass:: IWorkingMemory
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. autoclass:: ITextSplitter
+.. autoclass:: ConversationMemoryType
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. autoclass:: ITextProcessor
+.. autoclass:: IMemoryInput
    :members:
    :undoc-members:
    :show-inheritance:
 
-Embedding & Vector Interfaces
-=============================
+Supporting Interfaces
+======================
+
+Document Processing
+-------------------
+
+.. autoclass:: Document
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Data Transfer Objects
+---------------------
+
+.. autoclass:: IDTO
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: IStreamDTO
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Vector Database & Embeddings
+-----------------------------
 
 .. autoclass:: IEmbedding
    :members:
@@ -107,38 +149,29 @@ Embedding & Vector Interfaces
    :undoc-members:
    :show-inheritance:
 
-.. autoclass:: IReranker
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
-Search Interfaces
-=================
+Creating Custom Interfaces
+===========================
 
-.. autoclass:: IWebSearch
-   :members:
-   :undoc-members:
-   :show-inheritance:
+When creating your own interfaces, follow these patterns:
 
-.. autoclass:: ISearchClient
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. code-block:: python
 
-Other Interfaces
-================
-
-.. autoclass:: ISpeech
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. autoclass:: INotification
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. autoclass:: IDatabaseClient
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   from typing import Protocol
+   from arshai.core.interfaces import IDTO
+   
+   # Define your interface
+   class IMyCustomComponent(Protocol):
+       async def process(self, input: IDTO) -> IDTO:
+           """Process input and return result."""
+           ...
+   
+   # Implement the interface
+   class MyCustomComponent:
+       async def process(self, input: IDTO) -> IDTO:
+           # Your implementation
+           return result
+   
+   # Use with type safety
+   def use_component(component: IMyCustomComponent):
+       return component.process(input_data)

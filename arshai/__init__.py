@@ -14,16 +14,13 @@ __all__ = [
     "load_config",
     # Interfaces  
     "IAgent",
-    "IAgentConfig",
     "IAgentInput",
-    "IAgentOutput",
     "IWorkflow",
     "IWorkflowState",
     "ITool",
     "IMemoryManager", 
     "ILLM",
     # Implementations
-    "ConversationAgent",
     "WorkflowRunner",
     "BaseWorkflowConfig",
 ]
@@ -38,8 +35,7 @@ def __getattr__(name):
         except ImportError as e:
             raise ImportError(f"Cannot import load_config: {e}")
     
-    elif name in ["IAgent", "IAgentConfig", "IAgentInput", "IAgentOutput", 
-                  "IWorkflow", "IWorkflowState", "ITool", "IMemoryManager", "ILLM"]:
+    elif name in ["IAgent", "IAgentInput", "IWorkflow", "IWorkflowState", "ITool", "IMemoryManager", "ILLM"]:
         try:
             from arshai.core.interfaces import __dict__ as interfaces
             if name in interfaces:
@@ -48,13 +44,6 @@ def __getattr__(name):
                 raise ImportError(f"Interface {name} not found")
         except ImportError as e:
             raise ImportError(f"Cannot import interface {name}: {e}")
-    
-    elif name == "ConversationAgent":
-        try:
-            from arshai.agents.conversation import ConversationAgent
-            return ConversationAgent
-        except ImportError as e:
-            raise ImportError(f"Cannot import ConversationAgent: {e}")
     
     elif name == "WorkflowRunner":
         try:

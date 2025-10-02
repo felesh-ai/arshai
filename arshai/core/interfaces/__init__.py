@@ -24,7 +24,7 @@ from .idocument import Document
 # Other interfaces
 from .iembedding import IEmbedding
 from .ivector_db_client import IVectorDBClient
-from .isearch_client import ISearchClient
+#   # REMOVED - interface no longer exists
 from .idto import IDTO, IStreamDTO
 
 # All available interfaces
@@ -42,7 +42,7 @@ __all__ = [
     # Document
     "Document",
     # Other
-    "IEmbedding", "IVectorDBClient", "ISearchClient", "IDTO", "IStreamDTO",
+    "IEmbedding", "IVectorDBClient", "IDTO", "IStreamDTO",
 ]
 
 # Backward compatibility

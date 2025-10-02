@@ -1,7 +1,6 @@
-from typing import Dict, List, Optional, Any, Type, Callable
+from typing import Dict, List, Optional, Any, Type, Callable, Protocol
 from pydantic import Field
 from .idto import IDTO
-from .idatabase_client import IDatabaseClient
 
 
 class IVectorDBConfig(IDTO):
@@ -30,11 +29,20 @@ class ICollectionConfig(IDTO):
     schema_model: Optional[Type[IDTO]] = Field(default=None, description="Optional Pydantic model for schema validation")
     is_hybrid: bool = Field(default=False, description="Whether to enable hybrid search capabilities")
 
-class IVectorDBClient(IDatabaseClient):
+class IVectorDBClient(Protocol):
     """
     Interface for vector database clients.
-    Extends the base database client interface with vector-specific operations.
+    Combines general database operations with vector-specific operations.
     """
+    
+    def __init__(self, config: Any) -> None:
+        """
+        Initialize the vector database client with configuration.
+        
+        Args:
+            config: Configuration for database connection
+        """
+        ...
     
     def connect(self) -> None:
         """
@@ -45,6 +53,55 @@ class IVectorDBClient(IDatabaseClient):
     def disconnect(self) -> None:
         """
         Close the vector database connection.
+        """
+        ...
+    
+    def query(self, query_params: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """
+        Execute a query against the database.
+        
+        Args:
+            query_params: Query parameters
+            
+        Returns:
+            List of result records
+        """
+        ...
+    
+    def insert(self, data: Dict[str, Any]) -> bool:
+        """
+        Insert data into the database.
+        
+        Args:
+            data: Data to insert
+            
+        Returns:
+            Success status
+        """
+        ...
+    
+    def update(self, query_params: Dict[str, Any], data: Dict[str, Any]) -> bool:
+        """
+        Update records in the database.
+        
+        Args:
+            query_params: Query parameters to identify records
+            data: Data to update
+            
+        Returns:
+            Success status
+        """
+        ...
+    
+    def delete(self, query_params: Dict[str, Any]) -> bool:
+        """
+        Delete records from the database.
+        
+        Args:
+            query_params: Query parameters to identify records
+            
+        Returns:
+            Success status
         """
         ...
     
