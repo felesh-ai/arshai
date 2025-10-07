@@ -563,7 +563,7 @@ After mastering these concepts:
 
 1. **Build Systems**: Learn to compose agents in :doc:`../framework/building-systems/index`
 2. **Explore Examples**: See more patterns in :doc:`../framework/agents/examples/index`
-3. **Testing Strategies**: Deep dive into :doc:`../framework/agents/examples/06-testing-agents`
+3. **Advanced Tools**: Enable agents with tools in :doc:`../framework/agents/tools-and-callables`
 4. **Production Deployment**: Consider scaling, monitoring, and maintenance
 
 Remember: The framework provides building blocks - you create the solution!

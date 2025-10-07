@@ -66,23 +66,23 @@ Arshai follows a clean architecture approach with interface-first design princip
 
 ```
 arshai/
-├── seedwork/            # Core domain interfaces (Domain Layer)
-│   └── interfaces/      # Protocol classes defining contracts
-├── src/                 # Implementation code (Infrastructure Layer)
-│   ├── agents/          # Agent implementations
-│   ├── llms/            # LLM client implementations
-│   ├── memory/          # Memory management implementations
-│   ├── tools/           # Tool implementations
-│   ├── document_loaders/ # Document loader implementations
-│   ├── embeddings/      # Embedding model implementations
-│   ├── rerankers/       # Reranker implementations
-│   ├── speech/          # Speech processing implementations
-│   ├── websearch/       # Web search implementations
-│   ├── factories/       # Component factories
-│   ├── config/          # Configuration management
-│   ├── workflows/       # Workflow orchestration 
-│   └── utils/           # Utility functions and helpers
+├── core/                # Core domain layer
+│   └── interfaces/      # Protocol classes defining contracts (Domain Layer)
+├── agents/              # Agent implementations
+├── llms/                # LLM client implementations
+├── memory/              # Memory management implementations
+├── clients/             # External client integrations
+├── embeddings/          # Embedding model implementations
+├── rerankers/           # Reranker implementations
+├── web_search/          # Web search implementations
+├── vector_db/           # Vector database implementations
+├── config/              # Configuration management
+├── workflows/           # Workflow orchestration
+├── observability/       # OpenTelemetry and monitoring
+├── extensions/          # Framework extensions
+├── utils/               # Utility functions and helpers
 ├── examples/            # Usage examples (Application Layer)
+├── docs_sphinx/         # Sphinx technical documentation
 └── tests/               # Test suite
 ```
 
@@ -91,7 +91,7 @@ arshai/
 ```
 ┌──────────────────┐                     ┌──────────────────┐
 │    Interfaces    │                     │ Implementations  │
-│   (seedwork)     │─────implements─────▶│     (src)        │
+│ (core/interfaces)│─────implements─────▶│    (arshai/)     │
 └──────────────────┘                     └──────────────────┘
          ▲                                       │
          │                                       │
@@ -101,7 +101,7 @@ arshai/
 
 ### Design Principles
 
-1. **Interface-First Design**: Always define interfaces in `seedwork/interfaces` before implementation
+1. **Interface-First Design**: Always define interfaces in `arshai/core/interfaces/` before implementation
 2. **Dependency Inversion**: Depend on abstractions, not concrete implementations
 3. **Direct Instantiation**: Use direct instantiation for custom components
 4. **Factory Pattern**: Use factories only for predefined components
@@ -131,12 +131,12 @@ arshai/
 
 5. **Run type checking**:
    ```bash
-   poetry run mypy src seedwork
+   poetry run mypy arshai/
    ```
 
 6. **Verify documentation**:
    ```bash
-   poetry run pydocstyle src seedwork
+   poetry run pydocstyle arshai/
    ```
 
 7. **Commit your changes** with a clear and descriptive commit message:
@@ -170,7 +170,7 @@ poetry run isort .
 All code should use type annotations. We use `mypy` for static type checking:
 
 ```bash
-poetry run mypy src seedwork
+poetry run mypy arshai/
 ```
 
 ### Protocol Classes
@@ -237,7 +237,7 @@ def example_function(param1: str, param2: int) -> bool:
 
 ```bash
 # Run tests with coverage report
-poetry run pytest --cov=src --cov=seedwork
+poetry run pytest --cov=arshai
 ```
 
 ### Test Types
@@ -260,12 +260,12 @@ The recommended pattern for developing new components is:
                ▼
 ┌─────────────────────────┐
 │ Define Interface in     │
-│ seedwork/interfaces     │
+│ arshai/core/interfaces/ │
 └───────────┬─────────────┘
             │
             ▼
 ┌─────────────────────────┐
-│ Implement in src/       │
+│ Implement in arshai/    │
 └───────────┬─────────────┘
             │
             ▼
@@ -291,15 +291,15 @@ The recommended pattern for developing new components is:
 
 ### Adding a New LLM Provider
 
-1. Create a new file in `src/llms/` that implements the `ILLM` protocol
-2. Register the new provider in `src/factories/llm_factory.py`
-3. Update the settings handling in `src/config/settings.py` if needed
+1. Create a new file in `arshai/llms/` that implements the `ILLM` protocol
+2. Register the new provider in the Settings factory if needed
+3. Update the settings handling in `arshai/config/settings.py` if needed
 4. Write tests for the new provider
 5. Add example usage
 
 ```python
 # 1. Implement the ILLM protocol
-from seedwork.interfaces.illm import ILLM, ILLMConfig
+from arshai.core.interfaces.illm import ILLM, ILLMConfig
 
 class NewLLMProvider(ILLM):
     """Implementation of the ILLM protocol for a new provider."""
@@ -326,15 +326,15 @@ LLMFactory.register("new_provider", NewLLMProvider)
 
 ### Adding a New Agent Type
 
-1. Create a new file in `src/agents/` that implements the `IAgent` protocol
-2. Register the new agent type in `src/factories/agent_factory.py`
-3. Update the settings handling in `src/config/settings.py` if needed
+1. Create a new file in `arshai/agents/` that implements the `IAgent` protocol
+2. Register the new agent type in the Settings factory if needed
+3. Update the settings handling in `arshai/config/settings.py` if needed
 4. Write tests for the new agent
 5. Add example usage
 
 ```python
 # 1. Implement the IAgent protocol
-from seedwork.interfaces.iagent import IAgent, IAgentConfig, IAgentInput, IAgentOutput
+from arshai.core.interfaces.iagent import IAgent, IAgentConfig, IAgentInput, IAgentOutput
 
 class NewAgent(IAgent):
     """A new agent implementation."""

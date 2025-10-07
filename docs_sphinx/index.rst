@@ -105,61 +105,56 @@ Documentation
    :maxdepth: 2
    :caption: Getting Started
 
-   getting-started/installation
+   getting-started/index
    getting-started/quickstart
-   getting-started/first-agent
+   getting-started/comprehensive-guide
 
 .. toctree::
    :maxdepth: 2
-   :caption: Architecture & Philosophy
+   :caption: Philosophy
 
-   architecture/architecture
-   architecture/developer-authority
-   architecture/design-decisions
-   architecture/tools-and-callables
+   philosophy/index
+   philosophy/introduction
+   philosophy/three-layer-architecture
+   philosophy/developer-authority
+   philosophy/design-decisions
 
 .. toctree::
    :maxdepth: 2
-   :caption: Three-Layer Architecture
+   :caption: Framework (Core)
 
-   architecture/layer1-llm-clients
-   architecture/layer2-agents
-   architecture/layer3-systems
-   
+   framework/index
+   framework/llm-clients/index
+   framework/agents/index
+   framework/building-systems/index
+
 .. toctree::
    :maxdepth: 2
-   :caption: Building Components
+   :caption: Implementations (Reference)
 
-   guides/implementing-llm-clients
-   guides/creating-agents
-   guides/building-systems
-   guides/custom-interfaces
+   implementations/index
+   implementations/agents/index
+   implementations/orchestration/index
+   implementations/memory/index
+   implementations/components/index
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Tutorials
+
+   tutorials/index
 
 .. toctree::
    :maxdepth: 2
    :caption: API Reference
 
-   api/index
+   reference/index
 
 .. toctree::
    :maxdepth: 2
-   :caption: Examples & Patterns
+   :caption: Extending
 
-   examples/basic-patterns
-   examples/advanced-systems
-   examples/custom-components
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Deployment
-
-   deployment/index
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contributing
-
-   contributing/documentation
+   extending/index
 
 Links
 =====

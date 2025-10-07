@@ -729,12 +729,12 @@ Next Steps
 
 After mastering agent composition:
 
-1. **Implement Testing**: :doc:`06-testing-agents` - Test complex multi-agent systems
+1. **Implement Testing**: Test complex multi-agent systems with unit and integration tests
 2. **Build Production Systems**: Apply composition patterns to real-world problems
 3. **Optimize Performance**: Implement caching and parallel execution strategies
 4. **Monitor Systems**: Add observability to composition systems
 
 **Related Documentation:**
-- :doc:`../agent-patterns` - Additional patterns for agent design
-- :doc:`../creating-agents` - Building agents for composition
-- :doc:`../tools-and-callables` - Understanding the coordination mechanism
+- :doc:`../agents/agent-patterns` - Additional patterns for agent design
+- :doc:`../agents/creating-agents` - Building agents for composition
+- :doc:`../agents/tools-and-callables` - Understanding the coordination mechanism

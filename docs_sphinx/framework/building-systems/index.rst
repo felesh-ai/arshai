@@ -6,10 +6,9 @@ Layer 3 provides the framework for composing agents into complete agentic system
 .. toctree::
    :maxdepth: 2
    :caption: System Building Patterns
-   
+
    composition-patterns
    building-agentic-systems
-   interfaces
 
 Core Philosophy
 ---------------
@@ -324,7 +323,7 @@ Next Steps
 
 - **Study Patterns**: Deep dive into :doc:`composition-patterns`
 - **Learn System Building**: Explore :doc:`building-agentic-systems`
-- **Understand Interfaces**: Review :doc:`interfaces`
+- **See Examples**: Check :doc:`../../implementations/orchestration/index` for reference implementations
 - **Build Your System**: Apply these patterns to your use case
 
 Key Takeaway
