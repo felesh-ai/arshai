@@ -92,53 +92,6 @@ class IWorkingMemory(IDTO):
         """Create working memory state from stored dictionary format"""
         return cls(working_memory=data["working_memory"])
 
-
-class IStreamWorkingMemory(IStreamDTO):
-    """
-    Maintains the assistant's working memory during conversations.
-    
-    Contains a single structured string field that encompasses all Working Memory components
-    in a format optimized for LLM understanding and processing.
-    """
-    
-    working_memory: str = Field(
-        description="""
-        A structured string containing all Working Memory components.
-
-        Each section should be clearly delineated and formatted in a way that's natural for LLM processing.
-        Updates should maintain this structure while updating relevant sections.
-        """
-    )
-
-    @classmethod
-    def initialize_memory(cls) -> 'IStreamWorkingMemory':
-        """Create a new working memory state with initial values"""
-        initial_working_memory = """
-        ### USER CONTEXT:
-        New user with no established profile yet. No specific preferences or requirements identified.
-
-        ### CONVERSATION FLOW:
-        Conversation just initiated. No previous interactions or context available.
-
-        ### CURRENT FOCUS:
-        Awaiting user's initial message to determine conversation direction and goals.
-
-        ### INTERACTION TONE:
-        Neutral, professional tone. Ready to adapt to user's communication style and needs.
-        """
-        return cls(working_memory=initial_working_memory.strip())
-    
-    def to_dict(self) -> Dict:
-        """Convert the working memory state to dictionary format for storage"""
-        return {
-            "working_memory": self.working_memory
-        }
-    
-    @classmethod
-    def from_dict(cls, data: Dict) -> 'IStreamWorkingMemory':
-        """Create working memory state from stored dictionary format"""
-        return cls(working_memory=data["working_memory"])
-
 class IMemoryInput(IDTO):
     """
     Represents the input for memory operations.

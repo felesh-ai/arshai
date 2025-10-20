@@ -1,8 +1,8 @@
 .. Arshai documentation master file
 
-================================
-Arshai: AI Agent Framework
-================================
+==============================
+Arshai Documentation
+==============================
 
 .. image:: https://img.shields.io/pypi/v/arshai.svg
    :target: https://pypi.org/project/arshai/
@@ -12,48 +12,41 @@ Arshai: AI Agent Framework
    :target: https://pypi.org/project/arshai/
    :alt: Python versions
 
-.. image:: https://img.shields.io/github/license/nimunzn/arshai.svg
-   :target: https://github.com/nimunzn/arshai/blob/main/LICENSE
+.. image:: https://img.shields.io/github/license/felesh-ai/arshai.svg
+   :target: https://github.com/felesh-ai/arshai/blob/main/LICENSE
    :alt: License
 
-Arshai is a powerful, extensible framework for building conversational AI systems with advanced agent capabilities, workflow orchestration, and memory management.
+**Arshai** is an AI framework built on a clean three-layer architecture that provides direct control over components through explicit instantiation and dependency injection. It empowers developers to build AI systems without hidden abstractions or forced patterns.
 
-✨ **Key Features**
-==================
+Core Features
+=============
 
-🤖 **Agent Framework**
-   Create intelligent conversational agents with advanced memory management and tool integration
+**Three-Layer Architecture**
+   Clean separation with Layer 1 (LLM Clients), Layer 2 (Agents), and Layer 3 (Agentic Systems) providing progressive developer authority
 
-🔄 **Workflow Orchestration** 
-   Design complex multi-agent systems with directed graph workflows
+**Interface-Driven Design**
+   Protocol-based interfaces that define clear contracts, enabling you to implement and integrate any component that respects the structure
 
-🧠 **Memory Management**
-   Sophisticated conversation memory with multiple storage options (Redis, in-memory)
+**Direct Instantiation Philosophy**
+   You create, configure, and control all components explicitly - no hidden factories, no magic configuration, no framework lock-in
 
-🛠️ **Tool Integration**
-   Extend agent capabilities with custom tools and external integrations
+**Developer Authority**
+   Complete control over component lifecycle, dependencies, and behavior through explicit composition and dependency injection
 
-🔌 **Plugin System**
-   Extensible architecture with hooks for customization and plugin development
-
-🔗 **LLM Integration**
-   Connect with leading LLM providers (OpenAI, Azure OpenAI) with consistent APIs
-
-📚 **RAG Capabilities**
-   Build powerful retrieval-augmented generation systems with document processing
-
-⚡ **Quick Start**
-================
+Quick Start
+===========
 
 Installation
 ------------
 
 .. code-block:: bash
 
-   pip install arshai[openai]
+   pip install arshai
 
-Basic Usage - Direct Instantiation
------------------------------------
+Three-Layer Example
+-------------------
+
+Arshai's power comes from its three-layer architecture where you build exactly what you need:
 
 .. code-block:: python
 
@@ -63,115 +56,118 @@ Basic Usage - Direct Instantiation
    from arshai.agents.base import BaseAgent
    from arshai.core.interfaces.iagent import IAgentInput
 
-   # Set your API key
-   os.environ["OPENAI_API_KEY"] = "your-api-key-here"
-
-   # Create LLM client directly (Layer 1)
-   llm_config = ILLMConfig(
-       model="gpt-4o",
-       temperature=0.7
-   )
+   # Layer 1: LLM Client - You create and configure
+   os.environ["OPENAI_API_KEY"] = "your-api-key"
+   llm_config = ILLMConfig(model="gpt-4", temperature=0.7)
    llm_client = OpenAIClient(llm_config)
 
-   # Create agent directly (Layer 2)
-   class SimpleAgent(BaseAgent):
+   # Layer 2: Agent - You implement your logic
+   class MyCustomAgent(BaseAgent):
        async def process(self, input: IAgentInput) -> str:
+           # Your business logic here
            llm_input = ILLMInput(
                system_prompt=self.system_prompt,
-               user_message=input.message
+               user_message=f"Process this: {input.message}"
            )
            result = await self.llm_client.chat(llm_input)
            return result['llm_response']
 
-   # Use your agent
-   agent = SimpleAgent(
-       llm_client=llm_client, 
-       system_prompt="You are a helpful assistant."
-   )
+   # Layer 3: System - You orchestrate components
+   class MyAISystem:
+       def __init__(self):
+           # You control component creation
+           self.agent = MyCustomAgent(
+               llm_client=llm_client,
+               system_prompt="You are a helpful assistant"
+           )
+       
+       async def handle_request(self, message: str) -> str:
+           # You control the flow
+           return await self.agent.process(IAgentInput(message=message))
 
-   # Process a message
-   response = await agent.process(
-       IAgentInput(message="Hello! How can you help me?")
-   )
-   
-   print(f"Agent: {response}")
+   # Usage - You're in complete control
+   system = MyAISystem()
+   response = await system.handle_request("Hello!")
 
-📖 **Documentation**
-===================
+The Framework Philosophy
+------------------------
+
+**You're the Architect**: Arshai provides interfaces and building blocks, but you decide how to use them, when to use them, and whether to use them at all.
+
+**No Hidden Magic**: Every component is created explicitly by you. No factories, no global state, no configuration files that hide behavior.
+
+**Interface Respect**: Any component you build that implements our interfaces works seamlessly with the framework.
+
+Documentation
+=============
 
 .. toctree::
    :maxdepth: 2
    :caption: Getting Started
 
-   getting-started/installation
+   getting-started/index
    getting-started/quickstart
-   getting-started/first-agent
+   getting-started/comprehensive-guide
 
 .. toctree::
    :maxdepth: 2
-   :caption: Three-Layer Architecture
+   :caption: Philosophy
 
-   layer-guides/layer1-llm-clients
-   layer-guides/layer2-agents
-   layer-guides/layer3-systems
-   
+   philosophy/index
+   philosophy/introduction
+   philosophy/three-layer-architecture
+   philosophy/developer-authority
+   philosophy/design-decisions
+
 .. toctree::
    :maxdepth: 2
-   :caption: Components & Tools
+   :caption: Framework (Core)
 
-   components/memory
-   components/tools
-   components/extensions
+   framework/index
+   framework/llm-clients/index
+   framework/agents/index
+   framework/building-systems/index
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Implementations (Reference)
+
+   implementations/index
+   implementations/agents/index
+   implementations/orchestration/index
+   implementations/memory/index
+   implementations/components/index
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Tutorials
+
+   tutorials/index
 
 .. toctree::
    :maxdepth: 2
    :caption: API Reference
 
-   api/index
+   reference/index
 
 .. toctree::
    :maxdepth: 2
-   :caption: Migration
+   :caption: Extending
 
-   migration/from-v0.1
-   migration/petrochemical-rag
-   migration/breaking-changes
+   extending/index
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Examples
-
-   examples/basic-usage
-   examples/advanced-workflows
-   examples/plugins
-   examples/integrations
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Deployment
-
-   deployment/index
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contributing
-
-   contributing/development
-   contributing/testing
-   contributing/documentation
-   contributing/release-process
-
-🔗 **Links**
-============
+Links
+=====
 
 * **PyPI**: https://pypi.org/project/arshai/
-* **GitHub**: https://github.com/nimunzn/arshai
-* **Issues**: https://github.com/nimunzn/arshai/issues
+* **GitHub**: https://github.com/felesh-ai/arshai
+* **Documentation**: https://felesh-ai.github.io/arshai/
+* **Issues**: https://github.com/felesh-ai/arshai/issues
 
-📄 **License**
-==============
+License
+=======
 
-This project is licensed under the MIT License - see the `LICENSE <https://github.com/nimunzn/arshai/blob/main/LICENSE>`_ file for details.
+This project is licensed under the MIT License - see the `LICENSE <https://github.com/felesh-ai/arshai/blob/main/LICENSE>`_ file for details.
 
 Indices and tables
 ==================

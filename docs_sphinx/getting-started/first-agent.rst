@@ -1,489 +1,626 @@
-=======================
-Building Your First Agent
-=======================
+Build Your First Custom Agent
+==============================
 
-This tutorial will guide you through creating a more sophisticated AI agent with tools, memory, and custom behavior.
+This guide walks you through creating a custom agent from scratch, demonstrating the power of direct instantiation and the three-layer architecture.
 
-Overview
-========
+What We'll Build
+----------------
 
-We'll build a research assistant agent that can:
+We'll create a **Smart Assistant Agent** that:
 
-- Search the web for information
-- Remember conversation context
-- Provide structured responses
-- Use custom tools
+- Analyzes user requests for complexity
+- Routes simple requests to fast processing
+- Uses tools for complex requests
+- Returns structured responses with metadata
 
-Setting Up the Environment
-==========================
+Prerequisites
+-------------
 
-First, ensure you have the necessary dependencies:
+- Arshai installed: ``pip install arshai[openai]``
+- OpenAI API key: ``export OPENAI_API_KEY="sk-..."``
+- Basic understanding of core concepts from :doc:`quickstart`
 
-.. code-block:: bash
+Step 1: Set Up the Environment
+-------------------------------
 
-   pip install arshai[all]
-
-And set up your API keys:
-
-.. code-block:: bash
-
-   export OPENAI_API_KEY="your-openai-api-key"
-   # Optional: for Redis memory
-   export REDIS_URL="redis://localhost:6379"
-
-Step 1: Basic Agent with Direct Instantiation
-============================================
-
-Let's create a research agent using direct instantiation:
+First, let's create our project structure and imports:
 
 .. code-block:: python
 
-   import os
+   # smart_agent.py
    import asyncio
+   import os
+   from datetime import datetime
+   from typing import Dict, Any, List
+   from enum import Enum
+
+   # Arshai imports - Layer 1 (LLM Clients)
    from arshai.llms.openai import OpenAIClient
    from arshai.core.interfaces.illm import ILLMConfig, ILLMInput
+
+   # Arshai imports - Layer 2 (Agents)
    from arshai.agents.base import BaseAgent
    from arshai.core.interfaces.iagent import IAgentInput
 
-   class ResearchAgent(BaseAgent):
-       """A professional research assistant."""
-       
-       async def process(self, input: IAgentInput) -> str:
-           llm_input = ILLMInput(
-               system_prompt=self.system_prompt,
-               user_message=input.message
-           )
-           result = await self.llm_client.chat(llm_input)
-           return result['llm_response']
+   print("✅ Imports successful")
 
-   def create_research_agent():
-       # Set API key
-       os.environ["OPENAI_API_KEY"] = "your-openai-api-key"
-       
-       # Create LLM client (Layer 1)
-       llm_config = ILLMConfig(
-           model="gpt-4o",
-           temperature=0.7,
-           max_tokens=2000
-       )
-       llm_client = OpenAIClient(llm_config)
-       
-       # Create research agent (Layer 2)
-       system_prompt = '''
-       You are a professional research assistant with the following capabilities:
-       
-       1. Web search for current information
-       2. Analysis and synthesis of multiple sources  
-       3. Clear, structured responses with citations
-       4. Maintaining conversation context
-       
-       Always:
-       - Provide accurate, well-researched information
-       - Cite your sources when using web search
-       - Ask clarifying questions when requests are ambiguous
-       - Maintain a professional but friendly tone
-       '''
-       
-       agent = ResearchAgent(
-           llm_client=llm_client,
-           system_prompt=system_prompt.strip()
-       )
-       
-       return agent
+Step 2: Design Your Agent
+--------------------------
 
-   # Create the agent
-   agent = create_research_agent()
-
-Step 2: Adding Web Search with Function Calling
-===============================================
-
-Now let's add web search capabilities using direct instantiation:
+Before coding, let's design our agent's behavior:
 
 .. code-block:: python
 
-   from arshai.tools import WebSearchTool
+   class RequestComplexity(Enum):
+       """Complexity levels for user requests."""
+       SIMPLE = "simple"      # Basic questions, greetings
+       MODERATE = "moderate"  # Requires some analysis
+       COMPLEX = "complex"    # Needs tools or deep reasoning
 
-   class ResearchAgentWithTools(BaseAgent):
-       """Research agent with web search capabilities."""
-       
-       def __init__(self, llm_client, system_prompt, web_search_tool):
+   class ResponseMetadata:
+       """Metadata about the agent's response."""
+       def __init__(self, complexity: RequestComplexity, processing_time: float, tools_used: List[str]):
+           self.complexity = complexity.value
+           self.processing_time = processing_time
+           self.tools_used = tools_used
+           self.timestamp = datetime.utcnow().isoformat()
+
+Step 3: Implement the Agent Core
+---------------------------------
+
+Now let's build our custom agent:
+
+.. code-block:: python
+
+   class SmartAssistantAgent(BaseAgent):
+       """
+       A smart assistant that adapts its processing based on request complexity.
+
+       Features:
+       - Complexity analysis
+       - Adaptive processing strategies
+       - Tool integration
+       - Structured metadata responses
+       """
+
+       def __init__(self, llm_client, system_prompt: str, complexity_threshold: float = 0.5):
+           """Initialize the smart assistant.
+
+           Args:
+               llm_client: LLM client for processing
+               system_prompt: Base system prompt
+               complexity_threshold: Threshold for complexity routing (0.0-1.0)
+           """
            super().__init__(llm_client, system_prompt)
-           self.web_search = web_search_tool
-       
-       async def process(self, input: IAgentInput) -> str:
-           # Define search tool function
-           def search_web(query: str) -> str:
-               """Search the web for current information."""
-               try:
-                   results = self.web_search.search(query)
-                   return f"Search results for '{query}': {results}"
-               except Exception as e:
-                   return f"Search failed: {str(e)}"
-           
-           # Use LLM with function calling
-           llm_input = ILLMInput(
-               system_prompt=self.system_prompt,
-               user_message=input.message,
-               regular_functions={"search_web": search_web}
-           )
-           
-           result = await self.llm_client.chat(llm_input)
-           return result['llm_response']
+           self.complexity_threshold = complexity_threshold
 
-   def create_research_agent_with_tools():
-       # Create LLM client (Layer 1)
-       llm_config = ILLMConfig(model="gpt-4o", temperature=0.7)
-       llm_client = OpenAIClient(llm_config)
-       
-       # Create web search tool (Optional Framework Component)
-       web_search = WebSearchTool()  # Or inject search client directly
-       
-       # Enhanced system prompt
-       system_prompt = '''
-       You are a research assistant with web search capabilities.
-       
-       When users ask questions that require current information:
-       1. Use web search to find relevant, up-to-date information
-       2. Analyze and synthesize information from multiple sources
-       3. Provide clear, well-structured responses  
-       4. Always cite your sources with URLs when using search results
-       
-       For general knowledge questions, you can use your training data,
-       but for current events, statistics, or recent developments,
-       always use web search to ensure accuracy.
-       '''
-       
-       # Create enhanced agent (Layer 2)
-       agent = ResearchAgentWithTools(
-           llm_client=llm_client,
-           system_prompt=system_prompt.strip(),
-           web_search_tool=web_search
-       )
-       
-       return agent
+       async def process(self, input: IAgentInput) -> Dict[str, Any]:
+           """Process user input with adaptive complexity handling."""
+           start_time = asyncio.get_event_loop().time()
 
-   # Create enhanced agent
-   agent = create_research_agent_with_tools()
+           # Step 1: Analyze complexity
+           complexity = await self._analyze_complexity(input.message)
 
-Step 3: Testing the Agent
-=========================
+           # Step 2: Route based on complexity
+           if complexity == RequestComplexity.SIMPLE:
+               response = await self._process_simple(input)
+               tools_used = []
+           elif complexity == RequestComplexity.MODERATE:
+               response = await self._process_moderate(input)
+               tools_used = []
+           else:  # COMPLEX
+               response, tools_used = await self._process_complex(input)
 
-Let's test our research agent:
+           # Step 3: Calculate metadata
+           end_time = asyncio.get_event_loop().time()
+           processing_time = end_time - start_time
+
+           # Step 4: Return structured response
+           return {
+               "response": response,
+               "metadata": {
+                   "complexity": complexity.value,
+                   "processing_time": round(processing_time, 3),
+                   "tools_used": tools_used,
+                   "timestamp": datetime.utcnow().isoformat()
+               }
+           }
+
+Step 4: Implement Complexity Analysis
+--------------------------------------
+
+Add intelligence to classify request complexity:
 
 .. code-block:: python
 
-   def test_research_agent():
-       agent, settings = create_research_agent_with_tools()
-       
-       # Test with a question requiring current information
-       response, usage = agent.process_message(
-           IAgentInput(
-               message="What are the latest developments in artificial intelligence in 2024?",
-               conversation_id="research_session_1"
-           )
+   async def _analyze_complexity(self, message: str) -> RequestComplexity:
+       """Analyze the complexity of a user request."""
+
+       # Simple heuristics (you can make this more sophisticated)
+       simple_patterns = [
+           "hello", "hi", "thanks", "thank you", "bye", "goodbye",
+           "what is your name", "who are you", "how are you"
+       ]
+
+       complex_patterns = [
+           "calculate", "compute", "search", "find", "lookup",
+           "analyze", "compare", "research", "explain in detail"
+       ]
+
+       message_lower = message.lower()
+
+       # Check for simple patterns
+       if any(pattern in message_lower for pattern in simple_patterns):
+           return RequestComplexity.SIMPLE
+
+       # Check for complex patterns
+       if any(pattern in message_lower for pattern in complex_patterns):
+           return RequestComplexity.COMPLEX
+
+       # Use LLM to analyze ambiguous cases
+       analysis_prompt = ILLMInput(
+           system_prompt="Analyze request complexity. Reply only with 'simple', 'moderate', or 'complex'.",
+           user_message=f"Classify this request: {message}"
        )
-       
-       print("=== Research Agent Response ===")
-       print(response)
-       print(f"\\nTokens used: {usage}")
-       
-       # Follow up question to test memory
-       response2, usage2 = agent.process_message(
-           IAgentInput(
-               message="Can you elaborate on the AI safety developments you mentioned?",
-               conversation_id="research_session_1"  # Same session
-           )
+
+       result = await self.llm_client.chat(analysis_prompt)
+       complexity_str = result.get("llm_response", "moderate").lower().strip()
+
+       if "simple" in complexity_str:
+           return RequestComplexity.SIMPLE
+       elif "complex" in complexity_str:
+           return RequestComplexity.COMPLEX
+       else:
+           return RequestComplexity.MODERATE
+
+Step 5: Implement Processing Strategies
+----------------------------------------
+
+Add different processing approaches for each complexity level:
+
+.. code-block:: python
+
+   async def _process_simple(self, input: IAgentInput) -> str:
+       """Fast processing for simple requests."""
+       llm_input = ILLMInput(
+           system_prompt=f"{self.system_prompt} Be brief and friendly.",
+           user_message=input.message
        )
-       
-       print("\\n=== Follow-up Response ===")
-       print(response2)
-       print(f"\\nTokens used: {usage2}")
+
+       result = await self.llm_client.chat(llm_input)
+       return result.get("llm_response", "I'm here to help!")
+
+   async def _process_moderate(self, input: IAgentInput) -> str:
+       """Standard processing for moderate requests."""
+       llm_input = ILLMInput(
+           system_prompt=f"{self.system_prompt} Provide a thoughtful response.",
+           user_message=input.message
+       )
+
+       result = await self.llm_client.chat(llm_input)
+       return result.get("llm_response", "Let me think about that...")
+
+   async def _process_complex(self, input: IAgentInput) -> tuple[str, List[str]]:
+       """Advanced processing with tools for complex requests."""
+
+       # Define tools
+       def search_web(query: str) -> str:
+           """Search the web for information."""
+           return f"Found information about: {query}"
+
+       def calculate(expression: str) -> str:
+           """Calculate mathematical expression."""
+           try:
+               # Simple calculator (use safe eval in production!)
+               result = eval(expression.replace("^", "**"))
+               return f"Result: {result}"
+           except:
+               return "Invalid calculation"
+
+       def get_current_time() -> str:
+           """Get the current time."""
+           return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+       # Process with tools
+       llm_input = ILLMInput(
+           system_prompt=f"{self.system_prompt} You have access to tools. Use them when helpful.",
+           user_message=input.message,
+           regular_functions={
+               "search_web": search_web,
+               "calculate": calculate,
+               "get_current_time": get_current_time
+           }
+       )
+
+       result = await self.llm_client.chat(llm_input)
+
+       # Extract which tools were used
+       function_calls = result.get("function_calls", {})
+       tools_used = list(function_calls.keys()) if function_calls else []
+
+       response = result.get("llm_response", "I processed your complex request.")
+
+       return response, tools_used
+
+Step 6: Create the Agent Instance
+----------------------------------
+
+Now let's put it all together:
+
+.. code-block:: python
+
+   async def create_smart_agent():
+       """Create and configure the smart assistant agent."""
+
+       # Check for API key
+       if not os.getenv("OPENAI_API_KEY"):
+           raise ValueError("Please set OPENAI_API_KEY environment variable")
+
+       # Configure LLM client (Layer 1)
+       llm_config = ILLMConfig(
+           model="gpt-3.5-turbo",
+           temperature=0.7,
+           max_tokens=200
+       )
+
+       llm_client = OpenAIClient(llm_config)
+       print("✅ LLM client created")
+
+       # Create agent (Layer 2)
+       agent = SmartAssistantAgent(
+           llm_client=llm_client,
+           system_prompt="You are a helpful AI assistant that adapts to user needs.",
+           complexity_threshold=0.5
+       )
+       print("✅ Smart agent created")
+
+       return agent
+
+Step 7: Test Your Agent
+------------------------
+
+Let's test our agent with different complexity levels:
+
+.. code-block:: python
+
+   async def test_agent():
+       """Test the smart agent with various inputs."""
+
+       agent = await create_smart_agent()
+
+       test_cases = [
+           # Simple requests
+           "Hello!",
+           "Thanks for your help",
+
+           # Moderate requests
+           "Explain what artificial intelligence is",
+           "What are the benefits of exercise?",
+
+           # Complex requests
+           "Calculate 15 * 23 + 45",
+           "Search for information about Python programming",
+           "What time is it now?"
+       ]
+
+       print("\n" + "=" * 60)
+       print("TESTING SMART ASSISTANT AGENT")
+       print("=" * 60)
+
+       for message in test_cases:
+           print(f"\n👤 User: {message}")
+
+           # Process with agent
+           result = await agent.process(IAgentInput(message=message))
+
+           # Display results
+           print(f"🤖 Agent: {result['response']}")
+           print(f"📊 Metadata:")
+           print(f"   Complexity: {result['metadata']['complexity']}")
+           print(f"   Processing time: {result['metadata']['processing_time']}s")
+           if result['metadata']['tools_used']:
+               print(f"   Tools used: {', '.join(result['metadata']['tools_used'])}")
+
+           print("-" * 40)
 
    # Run the test
-   test_research_agent()
+   if __name__ == "__main__":
+       asyncio.run(test_agent())
 
-Step 4: Creating Custom Tools
-=============================
+Step 8: Make It Interactive
+----------------------------
 
-Let's create a custom tool for our agent:
-
-.. code-block:: python
-
-   from arshai.core.interfaces import ITool
-   from typing import Dict, Any
-   import json
-   import requests
-
-   class WeatherTool(ITool):
-       """Custom tool to get weather information."""
-       
-       @property
-       def name(self) -> str:
-           return "get_weather"
-       
-       @property
-       def description(self) -> str:
-           return "Get current weather information for a specified city"
-       
-       @property
-       def parameters(self) -> Dict[str, Any]:
-           return {
-               "type": "object",
-               "properties": {
-                   "city": {
-                       "type": "string",
-                       "description": "The city name to get weather for"
-                   },
-                   "country": {
-                       "type": "string", 
-                       "description": "The country code (optional, e.g., 'US', 'UK')"
-                   }
-               },
-               "required": ["city"]
-           }
-       
-       async def execute(self, **kwargs) -> str:
-           """Execute the weather tool."""
-           city = kwargs.get("city")
-           country = kwargs.get("country", "")
-           
-           # This is a mock implementation
-           # In practice, you'd call a real weather API
-           weather_data = {
-               "city": city,
-               "country": country,
-               "temperature": "22°C",
-               "condition": "Partly cloudy",
-               "humidity": "65%",
-               "wind": "10 km/h"
-           }
-           
-           return f"Weather in {city}: {weather_data['temperature']}, {weather_data['condition']}"
-
-Step 5: Agent with Multiple Tools
-=================================
-
-Now let's create an agent with multiple tools:
+Add an interactive chat loop:
 
 .. code-block:: python
 
-   def create_full_featured_agent():
-       settings = Settings()
-       
-       # Create tools
-       web_search = WebSearchTool(settings)
-       weather_tool = WeatherTool()
-       
-       agent_config = IAgentConfig(
-           task_context='''
-           You are a comprehensive AI assistant with multiple capabilities:
-           
-           1. Web search for current information and research
-           2. Weather information for any city
-           3. General knowledge and problem-solving
-           
-           Tool Usage Guidelines:
-           - Use web search for current events, news, recent developments
-           - Use weather tool when users ask about weather conditions
-           - For general questions, use your knowledge base
-           - Always be helpful and provide complete answers
-           - Cite sources when using web search results
-           ''',
-           tools=[web_search, weather_tool]
-       )
-       
-       return settings.create_agent("conversation", agent_config), settings
+   async def interactive_chat():
+       """Interactive chat with the smart agent."""
 
-   # Test the full-featured agent
-   def test_full_agent():
-       agent, settings = create_full_featured_agent()
-       
-       # Test weather tool
-       response1, _ = agent.process_message(
-           IAgentInput(
-               message="What's the weather like in New York?",
-               conversation_id="demo_session"
-           )
-       )
-       print("Weather Response:")
-       print(response1)
-       
-       # Test web search
-       response2, _ = agent.process_message(
-           IAgentInput(
-               message="What are the latest tech news today?",
-               conversation_id="demo_session"
-           )
-       )
-       print("\\nNews Response:")
-       print(response2)
+       agent = await create_smart_agent()
 
-   test_full_agent()
+       print("\n🤖 Smart Assistant Ready!")
+       print("Features: Adaptive complexity, tool usage, detailed metadata")
+       print("Type 'quit' to exit, 'help' for commands")
+       print("=" * 60)
 
-Step 6: Configuration Management
-================================
-
-For production use, manage configuration with files:
-
-.. code-block:: yaml
-
-   # agent_config.yaml
-   llm:
-     provider: openai
-     model: gpt-4
-     temperature: 0.7
-     max_tokens: 2000
-
-   memory:
-     working_memory:
-       provider: redis
-       ttl: 86400  # 24 hours
-       
-   tools:
-     web_search:
-       enabled: true
-       max_results: 5
-     
-     weather:
-       enabled: true
-       api_key: "${WEATHER_API_KEY}"
-
-Load configuration in your code:
-
-.. code-block:: python
-
-   def create_configured_agent():
-       # Load settings from file
-       settings = Settings(config_path="agent_config.yaml")
-       
-       # Tools are automatically configured based on settings
-       web_search = WebSearchTool(settings)
-       weather_tool = WeatherTool()
-       
-       agent_config = IAgentConfig(
-           task_context="Your comprehensive AI assistant...",
-           tools=[web_search, weather_tool]
-       )
-       
-       return settings.create_agent("conversation", agent_config)
-
-Step 7: Error Handling and Logging
-==================================
-
-Add proper error handling to your agent:
-
-.. code-block:: python
-
-   import logging
-   from arshai.utils.logging import setup_logging
-
-   def create_robust_agent():
-       # Set up logging
-       setup_logging(level=logging.INFO)
-       logger = logging.getLogger(__name__)
-       
-       try:
-           settings = Settings(config_path="agent_config.yaml")
-           
-           # Create tools with error handling
-           tools = []
+       while True:
            try:
-               web_search = WebSearchTool(settings)
-               tools.append(web_search)
-               logger.info("Web search tool enabled")
+               # Get user input
+               user_input = input("\n👤 You: ").strip()
+
+               if user_input.lower() == 'quit':
+                   print("👋 Goodbye!")
+                   break
+
+               if user_input.lower() == 'help':
+                   print("""
+   Available commands:
+   - 'quit' - Exit the chat
+   - 'help' - Show this help
+   - Any other text - Process with the agent
+
+   Try different types of requests:
+   - Simple: "Hello", "Thanks"
+   - Moderate: "Explain AI", "What is Python?"
+   - Complex: "Calculate 25*4", "What time is it?"
+                   """)
+                   continue
+
+               if not user_input:
+                   continue
+
+               # Process with agent
+               result = await agent.process(IAgentInput(message=user_input))
+
+               # Display response
+               print(f"\n🤖 Agent: {result['response']}")
+
+               # Display metadata (optional)
+               metadata = result['metadata']
+               print(f"\n📊 [Complexity: {metadata['complexity']} | "
+                     f"Time: {metadata['processing_time']}s")
+               if metadata['tools_used']:
+                   print(f" | Tools: {', '.join(metadata['tools_used'])}", end="")
+               print("]")
+
+           except KeyboardInterrupt:
+               print("\n👋 Goodbye!")
+               break
            except Exception as e:
-               logger.warning(f"Web search tool failed to initialize: {e}")
-           
-           try:
-               weather_tool = WeatherTool()
-               tools.append(weather_tool)
-               logger.info("Weather tool enabled")
-           except Exception as e:
-               logger.warning(f"Weather tool failed to initialize: {e}")
-           
-           agent_config = IAgentConfig(
-               task_context="Your AI assistant with robust error handling...",
-               tools=tools
-           )
-           
-           agent = settings.create_agent("conversation", agent_config)
-           logger.info("Agent created successfully")
-           return agent
-           
-       except Exception as e:
-           logger.error(f"Failed to create agent: {e}")
-           raise
+               print(f"❌ Error: {e}")
 
-Next Steps
-==========
-
-Congratulations! You've built a sophisticated AI agent. Here's what you can explore next:
-
-1. **Workflows**: Learn to create multi-agent workflows in :doc:`../user-guide/workflows/index`
-2. **Advanced Memory**: Explore persistent memory options in :doc:`../user-guide/memory/index`
-3. **Plugin System**: Create reusable plugins in :doc:`../user-guide/extensions/plugins`
-4. **Production Deployment**: Deploy your agent in :doc:`../deployment/production`
+   # Run interactive mode
+   if __name__ == "__main__":
+       asyncio.run(interactive_chat())
 
 Complete Example
-===============
+----------------
 
-Here's the complete code for a production-ready research agent:
+Here's the full working agent in one file:
+
+.. admonition:: Complete smart_agent.py
+   :class: dropdown
+
+   .. code-block:: python
+
+      # smart_agent.py - Complete Smart Assistant Agent
+      import asyncio
+      import os
+      from datetime import datetime
+      from typing import Dict, Any, List
+      from enum import Enum
+
+      from arshai.llms.openai import OpenAIClient
+      from arshai.core.interfaces.illm import ILLMConfig, ILLMInput
+      from arshai.agents.base import BaseAgent
+      from arshai.core.interfaces.iagent import IAgentInput
+
+      class RequestComplexity(Enum):
+          SIMPLE = "simple"
+          MODERATE = "moderate"
+          COMPLEX = "complex"
+
+      class SmartAssistantAgent(BaseAgent):
+          def __init__(self, llm_client, system_prompt: str, complexity_threshold: float = 0.5):
+              super().__init__(llm_client, system_prompt)
+              self.complexity_threshold = complexity_threshold
+
+          async def process(self, input: IAgentInput) -> Dict[str, Any]:
+              start_time = asyncio.get_event_loop().time()
+
+              complexity = await self._analyze_complexity(input.message)
+
+              if complexity == RequestComplexity.SIMPLE:
+                  response = await self._process_simple(input)
+                  tools_used = []
+              elif complexity == RequestComplexity.MODERATE:
+                  response = await self._process_moderate(input)
+                  tools_used = []
+              else:
+                  response, tools_used = await self._process_complex(input)
+
+              end_time = asyncio.get_event_loop().time()
+              processing_time = end_time - start_time
+
+              return {
+                  "response": response,
+                  "metadata": {
+                      "complexity": complexity.value,
+                      "processing_time": round(processing_time, 3),
+                      "tools_used": tools_used,
+                      "timestamp": datetime.utcnow().isoformat()
+                  }
+              }
+
+          async def _analyze_complexity(self, message: str) -> RequestComplexity:
+              simple_patterns = ["hello", "hi", "thanks", "bye"]
+              complex_patterns = ["calculate", "search", "analyze"]
+
+              message_lower = message.lower()
+
+              if any(pattern in message_lower for pattern in simple_patterns):
+                  return RequestComplexity.SIMPLE
+              if any(pattern in message_lower for pattern in complex_patterns):
+                  return RequestComplexity.COMPLEX
+
+              return RequestComplexity.MODERATE
+
+          async def _process_simple(self, input: IAgentInput) -> str:
+              llm_input = ILLMInput(
+                  system_prompt=f"{self.system_prompt} Be brief and friendly.",
+                  user_message=input.message
+              )
+              result = await self.llm_client.chat(llm_input)
+              return result.get("llm_response", "Hello!")
+
+          async def _process_moderate(self, input: IAgentInput) -> str:
+              llm_input = ILLMInput(
+                  system_prompt=f"{self.system_prompt} Provide a thoughtful response.",
+                  user_message=input.message
+              )
+              result = await self.llm_client.chat(llm_input)
+              return result.get("llm_response", "Let me help you with that.")
+
+          async def _process_complex(self, input: IAgentInput) -> tuple[str, List[str]]:
+              def calculate(expression: str) -> str:
+                  try:
+                      result = eval(expression.replace("^", "**"))
+                      return f"Result: {result}"
+                  except:
+                      return "Invalid calculation"
+
+              def get_current_time() -> str:
+                  return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+              llm_input = ILLMInput(
+                  system_prompt=f"{self.system_prompt} Use tools when helpful.",
+                  user_message=input.message,
+                  regular_functions={
+                      "calculate": calculate,
+                      "get_current_time": get_current_time
+                  }
+              )
+
+              result = await self.llm_client.chat(llm_input)
+              function_calls = result.get("function_calls", {})
+              tools_used = list(function_calls.keys()) if function_calls else []
+
+              return result.get("llm_response", "Processed"), tools_used
+
+      async def main():
+          if not os.getenv("OPENAI_API_KEY"):
+              print("❌ Please set OPENAI_API_KEY environment variable")
+              return
+
+          config = ILLMConfig(model="gpt-3.5-turbo", temperature=0.7)
+          llm_client = OpenAIClient(config)
+
+          agent = SmartAssistantAgent(
+              llm_client=llm_client,
+              system_prompt="You are a helpful AI assistant."
+          )
+
+          print("🤖 Smart Assistant Ready! (Type 'quit' to exit)")
+
+          while True:
+              user_input = input("\n👤 You: ").strip()
+              if user_input.lower() == 'quit':
+                  break
+
+              result = await agent.process(IAgentInput(message=user_input))
+              print(f"🤖 Agent: {result['response']}")
+              print(f"📊 [{result['metadata']['complexity']} | {result['metadata']['processing_time']}s]")
+
+      if __name__ == "__main__":
+          asyncio.run(main())
+
+Key Concepts Demonstrated
+--------------------------
+
+1. Direct Instantiation
+~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
-   import logging
-   from arshai import Settings, IAgentConfig, IAgentInput
-   from arshai.tools.web_search_tool import WebSearchTool
-   from arshai.core.interfaces import ITool
+   # You create everything explicitly
+   llm_client = OpenAIClient(config)
+   agent = SmartAssistantAgent(llm_client, prompt)
 
-   # Set up logging
-   logging.basicConfig(level=logging.INFO)
-   logger = logging.getLogger(__name__)
+2. Single Responsibility
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   class ResearchAgent:
-       def __init__(self, config_path=None):
-           self.settings = Settings(config_path=config_path)
-           self.agent = self._create_agent()
-       
-       def _create_agent(self):
-           # Create tools
-           tools = []
-           try:
-               web_search = WebSearchTool(self.settings)
-               tools.append(web_search)
-           except Exception as e:
-               logger.warning(f"Web search unavailable: {e}")
-           
-           # Configure agent
-           agent_config = IAgentConfig(
-               task_context='''
-               You are a professional research assistant. Use web search 
-               for current information and provide well-cited responses.
-               ''',
-               tools=tools
-           )
-           
-           return self.settings.create_agent("conversation", agent_config)
-       
-       def research(self, question: str, session_id: str = None) -> str:
-           """Research a question and return the response."""
-           if session_id is None:
-               session_id = f"research_{hash(question) % 10000}"
-           
-           try:
-               response, usage = self.agent.process_message(
-                   IAgentInput(message=question, conversation_id=session_id)
-               )
-               logger.info(f"Research completed. Tokens used: {usage}")
-               return response
-           except Exception as e:
-               logger.error(f"Research failed: {e}")
-               return f"I encountered an error: {e}"
+.. code-block:: python
 
-   # Usage
-   if __name__ == "__main__":
-       assistant = ResearchAgent()
-       result = assistant.research("What are the latest AI developments?")
-       print(result)
+   # Agent has ONE clear purpose: smart assistance with adaptive complexity
+   class SmartAssistantAgent(BaseAgent):
+       """Smart assistant that adapts to request complexity."""
 
-This example demonstrates a complete, production-ready research agent with proper error handling, logging, and configuration management.
+3. Dependency Injection
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   # Dependencies passed in constructor
+   def __init__(self, llm_client, system_prompt: str, complexity_threshold: float):
+       super().__init__(llm_client, system_prompt)  # Explicit
+       self.complexity_threshold = complexity_threshold
+
+4. Stateless Design
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   # No internal state - same input = same output
+   async def process(self, input: IAgentInput) -> Dict[str, Any]:
+       # All state comes from input parameters
+       pass
+
+5. Three-Layer Architecture
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- **Layer 1**: ``OpenAIClient`` - LLM access
+- **Layer 2**: ``SmartAssistantAgent`` - Business logic
+- **Layer 3**: Your application - Orchestration
+
+Next Steps
+----------
+
+Now that you've built your first custom agent:
+
+1. **Experiment** - Try different complexity analysis strategies
+2. **Add Tools** - Integrate more external capabilities
+3. **Compose Systems** - Combine multiple agents
+4. **Explore Layers** - Learn more in :doc:`../framework/building-systems/index`
+5. **Test Thoroughly** - Add comprehensive unit tests
+
+Testing Your Agent
+------------------
+
+.. code-block:: python
+
+   import pytest
+   from unittest.mock import AsyncMock
+
+   @pytest.mark.asyncio
+   async def test_smart_agent():
+       # Mock LLM client
+       mock_llm = AsyncMock()
+       mock_llm.chat.return_value = {"llm_response": "Test response"}
+
+       # Create agent with mock
+       agent = SmartAssistantAgent(mock_llm, "Test prompt")
+
+       # Test processing
+       result = await agent.process(IAgentInput(message="Hello"))
+
+       # Verify structure
+       assert "response" in result
+       assert "metadata" in result
+       assert result["metadata"]["complexity"] == "simple"
+
+----
+
+**Congratulations!** You've built a sophisticated agent that demonstrates all the key principles of Arshai's architecture. You now have complete control over an AI component that can adapt, use tools, and provide rich metadata. 🎉
+
+*Ready for more advanced patterns? Check out* :doc:`../framework/building-systems/index` *→*

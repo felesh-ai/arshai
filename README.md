@@ -2,30 +2,45 @@
 
 **A powerful AI application framework built on clean architecture principles with complete developer control.**
 
-```mermaid
-graph TD
-    subgraph L3 ["Layer 3: Agentic Systems"]
-        WF[Workflows] --> AG[Agents]
-        MEM[Memory Systems] --> AG
-        ORCH[Orchestration] --> AG
-    end
-    
-    subgraph L2 ["Layer 2: Agents"] 
-        AG --> TOOLS[Tool Integration]
-        AG --> LOGIC[Custom Logic]
-    end
-    
-    subgraph L1 ["Layer 1: LLM Clients"]
-        LOGIC --> OPENAI[OpenAI]
-        LOGIC --> AZURE[Azure OpenAI]
-        LOGIC --> GEMINI[Google Gemini]
-        LOGIC --> ROUTER[OpenRouter]
-    end
-    
-    style L3 fill:#e1f5fe
-    style L2 fill:#f3e5f5
-    style L1 fill:#e8f5e8
 ```
+┌────────────────────────────────────────────────────────────┐
+│          Layer 3: Agentic Systems                          │
+├────────────────────────────────────────────────────────────┤
+│  Workflows  →┐                                             │
+│  Memory     →├──→  Agents                                  │
+│  Orchestration→┘                                           │
+└─────────────────────┬──────────────────────────────────────┘
+                      │
+┌─────────────────────▼──────────────────────────────────────┐
+│          Layer 2: Agents                                   │
+├────────────────────────────────────────────────────────────┤
+│              Agents  →  Tool Integration                   │
+│                      →  Custom Logic                       │
+└─────────────────────┬──────────────────────────────────────┘
+                      │
+┌─────────────────────▼──────────────────────────────────────┐
+│          Layer 1: LLM Clients                              │
+├────────────────────────────────────────────────────────────┤
+│              Custom Logic  →  OpenAI                       │
+│                            →  Azure OpenAI                 │
+│                            →  Google Gemini                │
+│                            →  OpenRouter                   │
+└────────────────────────────────────────────────────────────┘
+```
+
+## 📚 Documentation
+
+**Complete documentation is available at: [Arshai Documentation](https://felesh-ai.github.io/arshai/)** (or build locally with `cd docs_sphinx && make html`)
+
+The comprehensive documentation covers:
+- **Getting Started**: Quick installation and your first agent
+- **Framework Guide**: Deep dive into agents, tools, memory, and orchestration
+- **Implementations**: LLM clients, vector databases, and memory backends
+- **Tutorials**: Step-by-step guides for common use cases
+- **API Reference**: Complete interface and class documentation
+- **Extending**: Custom agents, LLM providers, and components
+
+For a quick overview, continue reading this README. For detailed guides and API documentation, visit the full documentation site.
 
 ## Philosophy: Developer Authority First
 
@@ -1630,32 +1645,37 @@ Every LLM interaction automatically captures these critical performance metrics:
 
 ### 🏗️ Architecture
 
-```mermaid
-graph TD
-    A[LLM Calls] --> B[Observable Factory]
-    B --> C[Observability Manager]
-    C --> D[Metrics Collector]
-    C --> E[Trace Exporter]
-    C --> F[Phoenix Client]
-    D --> G[OpenTelemetry Collector]
-    E --> G
-    F --> H[Phoenix AI Platform]
-    G --> I[Jaeger/Zipkin]
-    G --> J[Prometheus]
-    G --> K[DataDog/New Relic]
-    J --> L[Grafana Dashboards]
-    
-    subgraph "Automatic Capture"
-        M[Input Messages]
-        N[Output Responses]
-        O[Token Usage]
-        P[Timing Data]
-    end
-    
-    B --> M
-    B --> N
-    B --> O
-    B --> P
+```
+                          LLM Calls
+                              │
+                              ▼
+                     Observable Factory ─────┐
+                              │              │
+                              ▼              │ Automatic Capture:
+                   Observability Manager     │  • Input Messages
+                       │      │      │       │  • Output Responses
+           ┌───────────┼──────┼──────┘       │  • Token Usage
+           │           │      │              │  • Timing Data
+           ▼           ▼      ▼              │
+    Metrics      Trace     Phoenix ──────────┘
+    Collector    Exporter  Client
+           │           │      │
+           └─────┬─────┘      │
+                 ▼            ▼
+         OpenTelemetry    Phoenix AI
+            Collector      Platform
+           │   │   │
+      ┌────┼───┼───┘
+      │    │   │
+      ▼    ▼   ▼
+   Jaeger  │  DataDog/
+   Zipkin  │  New Relic
+           ▼
+      Prometheus
+           │
+           ▼
+      Grafana
+     Dashboards
 ```
 
 ### 🚀 Quick Setup
@@ -2148,6 +2168,8 @@ class DataAnalysisAssistant:
 - **[Meeting Summarizer](examples/meeting_summarizer.py)** - Meeting analysis and action items
 
 ## Comprehensive Documentation
+
+> **Note**: For the complete technical documentation with API reference and detailed guides, visit [Arshai Documentation](https://felesh-ai.github.io/arshai/) or build locally with `cd docs_sphinx && make html`. The markdown documentation below provides quick reference links.
 
 ### 🚀 Getting Started
 - **[Quick Start Guide](docs/01-getting-started/)** - Your first Arshai application in 5 minutes

@@ -1,134 +1,358 @@
-============
 Installation
 ============
 
-System Requirements
-===================
+This guide will help you install Arshai and set up your development environment.
 
-- Python 3.11 or higher
-- pip or Poetry for package management
-
-Basic Installation
-==================
-
-The easiest way to install Arshai is using pip:
-
-.. code-block:: bash
-
-   pip install arshai
-
-This installs the core Arshai framework with basic dependencies.
-
-Installation with Optional Dependencies
-=======================================
-
-Arshai supports optional features that require additional dependencies:
-
-All Features
+Requirements
 ------------
 
-Install with all optional dependencies:
+- Python 3.9 or higher
+- pip or poetry package manager
+- Virtual environment (recommended)
+
+Basic Installation
+------------------
+
+Using pip
+~~~~~~~~~
 
 .. code-block:: bash
 
+   # Install the core package
+   pip install arshai
+
+   # Install with specific LLM provider support
+   pip install arshai[openai]     # For OpenAI support
+   pip install arshai[google]     # For Google Gemini support
+   pip install arshai[azure]      # For Azure OpenAI support
+
+   # Install with all optional dependencies
    pip install arshai[all]
 
-This includes:
-- Redis support for distributed memory
-- Milvus support for vector databases
-- FlashRank for result reranking
-
-Individual Features
--------------------
-
-You can also install specific optional dependencies:
-
-**Redis Support** (for distributed memory):
+Using poetry
+~~~~~~~~~~~~
 
 .. code-block:: bash
 
-   pip install arshai[redis]
-
-**Milvus Support** (for vector databases):
-
-.. code-block:: bash
-
-   pip install arshai[milvus]
-
-**Reranking Support** (for search result reranking):
-
-.. code-block:: bash
-
-   pip install arshai[rerankers]
-
-Using Poetry
-============
-
-If you're using Poetry for dependency management:
-
-.. code-block:: bash
-
+   # Add to your project
    poetry add arshai
 
-Or with optional dependencies:
+   # With specific providers
+   poetry add arshai[openai]
+   poetry add arshai[google]
+   poetry add arshai[azure]
 
-.. code-block:: bash
-
+   # With all optional dependencies
    poetry add arshai[all]
 
 Development Installation
-========================
+------------------------
 
-For development or to get the latest features:
+For contributing or modifying Arshai:
 
 .. code-block:: bash
 
-   git clone https://github.com/nimunzn/arshai.git
+   # Clone the repository
+   git clone https://github.com/felesh-ai/arshai.git
    cd arshai
-   pip install -e .[all]
 
-Verification
-============
+   # Install with poetry (recommended for development)
+   poetry install
 
-Verify your installation by importing Arshai:
+   # Or install with pip in editable mode
+   pip install -e .
+
+   # Install with all optional dependencies for development
+   poetry install -E all
+
+Optional Dependencies
+---------------------
+
+Arshai has optional dependencies for specific features:
+
+Memory Backends
+~~~~~~~~~~~~~~~
+
+.. code-block:: bash
+
+   # Redis support for distributed memory
+   pip install arshai[redis]
+
+Vector Databases
+~~~~~~~~~~~~~~~~
+
+.. code-block:: bash
+
+   # Milvus support for vector storage
+   pip install arshai[milvus]
+
+Document Processing
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: bash
+
+   # Enhanced document processing capabilities
+   pip install arshai[documents]
+
+Observability
+~~~~~~~~~~~~~
+
+.. code-block:: bash
+
+   # OpenTelemetry support for monitoring
+   pip install arshai[observability]
+
+All Features
+~~~~~~~~~~~~
+
+.. code-block:: bash
+
+   # Install everything
+   pip install arshai[all]
+
+Environment Configuration
+-------------------------
+
+Setting Up API Keys
+~~~~~~~~~~~~~~~~~~~
+
+Arshai reads API keys from environment variables. Set them up based on your LLM provider:
+
+**OpenAI**
+
+.. code-block:: bash
+
+   export OPENAI_API_KEY="sk-..."
+
+**Google Gemini**
+
+.. code-block:: bash
+
+   export GOOGLE_API_KEY="..."
+
+**Azure OpenAI**
+
+.. code-block:: bash
+
+   export AZURE_OPENAI_API_KEY="..."
+   export AZURE_OPENAI_ENDPOINT="https://your-resource.openai.azure.com/"
+   export AZURE_OPENAI_API_VERSION="2024-02-01"
+
+**OpenRouter**
+
+.. code-block:: bash
+
+   export OPENROUTER_API_KEY="..."
+
+Using a .env File
+~~~~~~~~~~~~~~~~~
+
+For local development, you can use a ``.env`` file:
+
+.. code-block:: bash
+
+   # Create a .env file
+   cat > .env << EOF
+   OPENAI_API_KEY=sk-...
+   GOOGLE_API_KEY=...
+   AZURE_OPENAI_API_KEY=...
+   AZURE_OPENAI_ENDPOINT=https://...
+   EOF
+
+   # Load it in your Python code
+   from dotenv import load_dotenv
+   load_dotenv()
+
+   # Now environment variables are available
+   import os
+   print(os.getenv("OPENAI_API_KEY"))
+
+Verifying Installation
+----------------------
+
+Check Installation
+~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
+   # verify_installation.py
    import arshai
+
+   # Check version
    print(f"Arshai version: {arshai.__version__}")
 
-You should see the version number printed without any errors.
+   # Check core imports
+   from arshai.llms.openai import OpenAIClient
+   from arshai.agents.base import BaseAgent
+   from arshai.core.interfaces.illm import ILLMConfig
+
+   print("✅ Core imports successful")
+
+   # Check optional dependencies
+   try:
+       import redis
+       print("✅ Redis support available")
+   except ImportError:
+       print("⚠️ Redis not installed (optional)")
+
+   try:
+       import pymilvus
+       print("✅ Milvus support available")
+   except ImportError:
+       print("⚠️ Milvus not installed (optional)")
+
+Test Basic Functionality
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   # test_basic.py
+   import asyncio
+   import os
+   from arshai.llms.openai import OpenAIClient
+   from arshai.core.interfaces.illm import ILLMConfig, ILLMInput
+
+   async def test_llm():
+       # Check for API key
+       if not os.getenv("OPENAI_API_KEY"):
+           print("⚠️ OPENAI_API_KEY not set")
+           return
+
+       # Create LLM client
+       config = ILLMConfig(model="gpt-3.5-turbo", temperature=0.7)
+       client = OpenAIClient(config)
+
+       # Test chat
+       input_data = ILLMInput(
+           system_prompt="You are a helpful assistant",
+           user_message="Say 'Installation successful!'"
+       )
+
+       result = await client.chat(input_data)
+       print(f"✅ LLM Response: {result['llm_response']}")
+
+   # Run the test
+   asyncio.run(test_llm())
 
 Troubleshooting
-===============
+---------------
 
 Common Issues
--------------
+~~~~~~~~~~~~~
 
-**Python Version Error**
-   Ensure you're using Python 3.11 or higher:
-   
-   .. code-block:: bash
-   
-      python --version
+**Import Errors**
 
-**Permission Errors**
-   Use ``--user`` flag if you don't have admin privileges:
-   
-   .. code-block:: bash
-   
-      pip install --user arshai
+.. code-block:: python
 
-**Virtual Environment Recommended**
-   It's recommended to use a virtual environment:
-   
-   .. code-block:: bash
-   
-      python -m venv arshai-env
-      source arshai-env/bin/activate  # On Windows: arshai-env\Scripts\activate
-      pip install arshai
+   # Error: ModuleNotFoundError: No module named 'arshai'
+   # Solution: Ensure arshai is installed
+   pip install arshai
+
+**API Key Errors**
+
+.. code-block:: python
+
+   # Error: OPENAI_API_KEY environment variable is required
+   # Solution: Set your API key
+   export OPENAI_API_KEY="your-key"
+
+**Async Errors**
+
+.. code-block:: python
+
+   # Error: RuntimeWarning: coroutine was never awaited
+   # Solution: Use asyncio.run() or await
+   import asyncio
+   asyncio.run(your_async_function())
+
+**SSL/Certificate Errors**
+
+.. code-block:: bash
+
+   # Error: SSL certificate verification failed
+   # Solution: Update certificates
+   pip install --upgrade certifi
+
+IDE Setup
+---------
+
+VS Code
+~~~~~~~
+
+Install recommended extensions:
+
+- Python
+- Pylance (for type checking)
+- Python Docstring Generator
+
+Settings for ``.vscode/settings.json``:
+
+.. code-block:: json
+
+   {
+       "python.linting.enabled": true,
+       "python.linting.pylintEnabled": true,
+       "python.formatting.provider": "black",
+       "python.testing.pytestEnabled": true,
+       "python.analysis.typeCheckingMode": "basic"
+   }
+
+PyCharm
+~~~~~~~
+
+1. Set Python interpreter to your virtual environment
+2. Enable type checking in Settings → Editor → Inspections
+3. Configure async debugging support
+
+Docker Installation (Optional)
+-------------------------------
+
+For containerized development:
+
+.. code-block:: dockerfile
+
+   # Dockerfile
+   FROM python:3.9-slim
+
+   WORKDIR /app
+
+   # Install dependencies
+   COPY pyproject.toml poetry.lock ./
+   RUN pip install poetry && \
+       poetry config virtualenvs.create false && \
+       poetry install
+
+   # Copy application
+   COPY . .
+
+   # Set environment variables
+   ENV PYTHONUNBUFFERED=1
+
+   CMD ["python", "main.py"]
+
+Build and run:
+
+.. code-block:: bash
+
+   docker build -t arshai-app .
+   docker run -e OPENAI_API_KEY=$OPENAI_API_KEY arshai-app
 
 Next Steps
-==========
+----------
 
-Once you have Arshai installed, continue with the :doc:`quickstart` guide to build your first AI agent!
+Now that you have Arshai installed:
+
+1. **Quickstart** - Build your first example in :doc:`quickstart`
+2. **Comprehensive Guide** - Learn all patterns in :doc:`comprehensive-guide`
+3. **First Agent** - Create a custom agent in :doc:`first-agent`
+
+Getting Help
+------------
+
+- Check the `Troubleshooting`_ section above
+- Review :doc:`../reference/index` for API documentation
+- Open an issue on `GitHub <https://github.com/felesh-ai/arshai/issues>`_
+
+----
+
+*Ready to build? Continue to* :doc:`quickstart` *→*
