@@ -5,7 +5,6 @@ Caching decorators for Arshai agents and workflows.
 import functools
 import hashlib
 import json
-import pickle
 from typing import Any, Callable, Optional
 from datetime import datetime, timedelta
 import logging
@@ -65,7 +64,8 @@ def cache_result(
                     "kwargs": str(sorted(kwargs.items()))
                 }
                 key_hash = hashlib.md5(
-                    json.dumps(key_data, sort_keys=True).encode()
+                    json.dumps(key_data, sort_keys=True).encode(),
+                    usedforsecurity=False
                 ).hexdigest()
                 cache_key = f"{key_prefix}:{func.__name__}:{key_hash}" if key_prefix else f"{func.__name__}:{key_hash}"
 
@@ -74,7 +74,13 @@ def cache_result(
                 cached = await self.memory.get(cache_key)
                 if cached is not None:
                     logger.debug(f"Cache hit for {cache_key}")
-                    return pickle.loads(cached)
+                    # Use JSON for safe deserialization
+                    try:
+                        return json.loads(cached)
+                    except (json.JSONDecodeError, TypeError):
+                        # Fallback for non-JSON serializable cached data
+                        logger.warning(f"Failed to deserialize cached data as JSON for {cache_key}")
+                        return cached
             except Exception as e:
                 logger.warning(f"Failed to get from cache: {e}")
 
@@ -84,9 +90,17 @@ def cache_result(
             # Cache result
             if result is not None or cache_none:
                 try:
+                    # Try JSON serialization first for security
+                    try:
+                        serialized = json.dumps(result)
+                    except (TypeError, ValueError):
+                        # For non-JSON serializable objects, convert to string representation
+                        logger.debug(f"Result not JSON serializable, using string representation for {cache_key}")
+                        serialized = json.dumps({"__repr__": str(result), "__type__": type(result).__name__})
+
                     await self.memory.set(
                         cache_key,
-                        pickle.dumps(result),
+                        serialized,
                         ttl=ttl
                     )
                     logger.debug(f"Cached result for {cache_key} with TTL={ttl}")
@@ -114,7 +128,8 @@ def cache_result(
                     "kwargs": str(sorted(kwargs.items()))
                 }
                 key_hash = hashlib.md5(
-                    json.dumps(key_data, sort_keys=True).encode()
+                    json.dumps(key_data, sort_keys=True).encode(),
+                    usedforsecurity=False
                 ).hexdigest()
                 cache_key = f"{key_prefix}:{func.__name__}:{key_hash}" if key_prefix else f"{func.__name__}:{key_hash}"
 
@@ -124,7 +139,13 @@ def cache_result(
                 cached = self.memory.get_sync(cache_key) if hasattr(self.memory, 'get_sync') else None
                 if cached is not None:
                     logger.debug(f"Cache hit for {cache_key}")
-                    return pickle.loads(cached)
+                    # Use JSON for safe deserialization
+                    try:
+                        return json.loads(cached)
+                    except (json.JSONDecodeError, TypeError):
+                        # Fallback for non-JSON serializable cached data
+                        logger.warning(f"Failed to deserialize cached data as JSON for {cache_key}")
+                        return cached
             except Exception as e:
                 logger.warning(f"Failed to get from cache: {e}")
 
@@ -135,9 +156,17 @@ def cache_result(
             if result is not None or cache_none:
                 try:
                     if hasattr(self.memory, 'set_sync'):
+                        # Try JSON serialization first for security
+                        try:
+                            serialized = json.dumps(result)
+                        except (TypeError, ValueError):
+                            # For non-JSON serializable objects, convert to string representation
+                            logger.debug(f"Result not JSON serializable, using string representation for {cache_key}")
+                            serialized = json.dumps({"__repr__": str(result), "__type__": type(result).__name__})
+
                         self.memory.set_sync(
                             cache_key,
-                            pickle.dumps(result),
+                            serialized,
                             ttl=ttl
                         )
                         logger.debug(f"Cached result for {cache_key} with TTL={ttl}")
@@ -182,14 +211,21 @@ def create_key_func(include_args: bool = True, include_kwargs: bool = True, hash
             for arg in args:
                 if hash_objects and hasattr(arg, '__dict__'):
                     # Hash complex objects
-                    parts.append(hashlib.md5(str(arg.__dict__).encode()).hexdigest())
+                    parts.append(hashlib.md5(
+                        str(arg.__dict__).encode(),
+                        usedforsecurity=False
+                    ).hexdigest())
                 else:
                     parts.append(str(arg))
 
         if include_kwargs:
             for key, value in sorted(kwargs.items()):
                 if hash_objects and hasattr(value, '__dict__'):
-                    parts.append(f"{key}={hashlib.md5(str(value.__dict__).encode()).hexdigest()}")
+                    value_hash = hashlib.md5(
+                        str(value.__dict__).encode(),
+                        usedforsecurity=False
+                    ).hexdigest()
+                    parts.append(f"{key}={value_hash}")
                 else:
                     parts.append(f"{key}={value}")
 
