@@ -73,4 +73,10 @@ previous_project/
 
 # Documentation build files
 docs_sphinx/_build/
-docs_sphinx/.doctrees/ 
+docs_sphinx/.doctrees/
+
+# OpenSpec directory (for spec-driven development)
+openspec/
+
+# Claude AI files
+.claude/ 
