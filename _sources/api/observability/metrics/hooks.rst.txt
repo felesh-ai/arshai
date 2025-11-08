@@ -1,0 +1,13 @@
+Hooks
+=====
+
+OpenTelemetry integration hooks for metrics export.
+
+Classes
+-------
+
+.. autoclass:: arshai.observability.metrics.hooks.OpenTelemetryHooks
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

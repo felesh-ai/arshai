@@ -1,0 +1,23 @@
+Webhook
+=======
+
+Webhook handling utilities for Arshai.
+
+Classes
+-------
+
+.. autoclass:: arshai.web.webhook.WebhookConfig
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.web.webhook.WebhookHandler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.web.webhook.WebhookValidationError
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

@@ -1,0 +1,117 @@
+Logging
+=======
+
+Simple logging utilities for Arshai framework with OpenTelemetry integration.
+
+This module provides logging support similar to Taloan project - simple and clean,
+with optional OpenTelemetry integration when available.
+
+Classes
+-------
+
+.. autoclass:: arshai.utils.logging.ApiEvent
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.utils.logging.ConnectionEvent
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.utils.logging.ErrorEvent
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.utils.logging.HandlerInterface
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.utils.logging.InterceptHandler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.utils.logging.LogLevel
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.utils.logging.LoggerAdapter
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.utils.logging.LoggerFactory
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.utils.logging.LoggerInterface
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.utils.logging.LoggingConfig
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.utils.logging.LoggingFormat
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.utils.logging.LoggingService
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.utils.logging.LoguruHandler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.utils.logging.MetricEvent
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.utils.logging.StructuredLogEvent
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Functions
+---------
+
+.. autofunction:: arshai.utils.logging.configure_logging
+
+.. autofunction:: arshai.utils.logging.get_correlation_logger_from_trace
+
+.. autofunction:: arshai.utils.logging.get_logger
+
+.. autofunction:: arshai.utils.logging.get_logger_with_correlation
+
+.. autofunction:: arshai.utils.logging.get_simple_logger
+
+.. autofunction:: arshai.utils.logging.get_trace_logger
+
+.. autofunction:: arshai.utils.logging.is_otel_enabled
+
+.. autofunction:: arshai.utils.logging.log_api
+
+.. autofunction:: arshai.utils.logging.log_connection
+
+.. autofunction:: arshai.utils.logging.log_error
+
+.. autofunction:: arshai.utils.logging.log_event
+
+.. autofunction:: arshai.utils.logging.log_metric
+
+.. autofunction:: arshai.utils.logging.set_log_level
+
+.. autofunction:: arshai.utils.logging.setup_logging
+

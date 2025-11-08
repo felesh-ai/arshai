@@ -1,0 +1,13 @@
+Aggregator
+==========
+
+Metrics aggregation utilities for combining metrics from multiple collectors.
+
+Classes
+-------
+
+.. autoclass:: arshai.observability.metrics.aggregator.MetricsAggregator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

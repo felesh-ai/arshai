@@ -1,0 +1,77 @@
+Telemetry Manager
+=================
+
+LLM-friendly telemetry abstraction layer for Arshai framework.
+
+This module provides a well-behaved OTEL citizen implementation that:
+1. Never creates TracerProvider/MeterProvider instances
+2. Always uses get_tracer("arshai", version) pattern
+3. Respects parent application's configuration
+4. Works with and without OTEL dependencies
+5. Provides no-op implementations when OTEL is unavailable
+
+Classes
+-------
+
+.. autoclass:: arshai.observability.telemetry_manager.Meter
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.observability.telemetry_manager.NoOpInstrument
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.observability.telemetry_manager.NoOpMeter
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.observability.telemetry_manager.NoOpSpan
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.observability.telemetry_manager.NoOpTracer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.observability.telemetry_manager.Span
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.observability.telemetry_manager.SpanKind
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.observability.telemetry_manager.Status
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.observability.telemetry_manager.StatusCode
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.observability.telemetry_manager.TelemetryManager
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.observability.telemetry_manager.Tracer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Functions
+---------
+
+.. autofunction:: arshai.observability.telemetry_manager.get_telemetry_manager
+
+.. autofunction:: arshai.observability.telemetry_manager.reset_telemetry_manager
+

@@ -1,0 +1,30 @@
+Package Config
+==============
+
+Package-specific observability configuration that respects parent settings.
+
+This module provides configuration that:
+1. Never overrides global OTEL configuration
+2. Reads package-specific environment variables
+3. Provides sensible defaults that work with any parent setup
+4. Allows runtime enable/disable of features
+5. Supports multiple verbosity levels
+
+Classes
+-------
+
+.. autoclass:: arshai.observability.package_config.ObservabilityLevel
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.observability.package_config.PackageObservabilityConfig
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.observability.package_config.SpanKind
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

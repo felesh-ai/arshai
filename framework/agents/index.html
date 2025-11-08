@@ -1,0 +1,1023 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="BaseAgent Class" href="base-agent.html"><link rel="prev" title="Extending LLM Clients" href="../llm-clients/extending-llm-clients.html">
+
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
+        <title>Agents (Layer 2) - Arshai Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=580074bf" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../index.html"><div class="brand">Arshai Documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../index.html">
+  
+  <span class="sidebar-brand-text">Arshai Documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../getting-started/index.html">Getting Started</a><input aria-label="Toggle navigation of Getting Started" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/comprehensive-guide.html">Comprehensive Agent Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/first-agent.html">Build Your First Custom Agent</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting-started/quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting-started/comprehensive-guide.html">Comprehensive Agent Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Philosophy</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../philosophy/index.html">Philosophy</a><input aria-label="Toggle navigation of Philosophy" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../philosophy/introduction.html">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../philosophy/three-layer-architecture.html">Three-Layer Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../philosophy/developer-authority.html">Developer Authority</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../philosophy/design-decisions.html">Design Decisions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../philosophy/introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../philosophy/three-layer-architecture.html">Three-Layer Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../philosophy/developer-authority.html">Developer Authority</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../philosophy/design-decisions.html">Design Decisions</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Framework (Core)</span></p>
+<ul class="current">
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../index.html">Framework Core</a><input aria-label="Toggle navigation of Framework Core" checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2 has-children"><a class="reference internal" href="../llm-clients/index.html">LLM Clients (Layer 1)</a><input aria-label="Toggle navigation of LLM Clients (Layer 1)" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../llm-clients/interface-overview.html">ILLM Interface Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../llm-clients/openai-client.html">OpenAI Client</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../llm-clients/azure-client.html">Azure OpenAI Client</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../llm-clients/google-gemini-client.html">Google Gemini Client</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../llm-clients/openrouter-client.html">OpenRouter Client</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../llm-clients/extending-llm-clients.html">Extending LLM Clients</a></li>
+</ul>
+</li>
+<li class="toctree-l2 current has-children"><a class="current reference internal" href="#">Agents (Layer 2)</a><input aria-label="Toggle navigation of Agents (Layer 2)" checked="" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="base-agent.html">BaseAgent Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="creating-agents.html">Creating Agents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tools-and-callables.html">Tools and Callables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="agent-patterns.html">Agent Patterns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="stateless-design.html">Stateless Agent Design</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="examples/index.html">Agent Examples</a><input aria-label="Toggle navigation of Agent Examples" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="examples/01-basic-usage.html">Example 01: Basic Agent Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="examples/02-custom-agents.html">Example 02: Creating Custom Agents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="examples/03-memory-patterns.html">Example 3: Memory Patterns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="examples/04-tool-integration.html">Example 4: Tool Integration</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../implementations/agents/index.html">Agent Reference Implementations</a><input aria-label="Toggle navigation of Agent Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../implementations/agents/working-memory-agent.html">WorkingMemoryAgent Reference Implementation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../building-systems/index.html">Building Systems (Layer 3)</a><input aria-label="Toggle navigation of Building Systems (Layer 3)" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../building-systems/composition-patterns.html">Example 5: Agent Composition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../building-systems/building-agentic-systems.html">Building Agentic Systems</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../llm-clients/index.html">LLM Clients (Layer 1)</a><input aria-label="Toggle navigation of LLM Clients (Layer 1)" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../llm-clients/interface-overview.html">ILLM Interface Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../llm-clients/openai-client.html">OpenAI Client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../llm-clients/azure-client.html">Azure OpenAI Client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../llm-clients/google-gemini-client.html">Google Gemini Client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../llm-clients/openrouter-client.html">OpenRouter Client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../llm-clients/extending-llm-clients.html">Extending LLM Clients</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current has-children current-page"><a class="current reference internal" href="#">Agents (Layer 2)</a><input aria-label="Toggle navigation of Agents (Layer 2)" checked="" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="base-agent.html">BaseAgent Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="creating-agents.html">Creating Agents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tools-and-callables.html">Tools and Callables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agent-patterns.html">Agent Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stateless-design.html">Stateless Agent Design</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="examples/index.html">Agent Examples</a><input aria-label="Toggle navigation of Agent Examples" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/01-basic-usage.html">Example 01: Basic Agent Usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/02-custom-agents.html">Example 02: Creating Custom Agents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/03-memory-patterns.html">Example 3: Memory Patterns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/04-tool-integration.html">Example 4: Tool Integration</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../implementations/agents/index.html">Agent Reference Implementations</a><input aria-label="Toggle navigation of Agent Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../implementations/agents/working-memory-agent.html">WorkingMemoryAgent Reference Implementation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../building-systems/index.html">Building Systems (Layer 3)</a><input aria-label="Toggle navigation of Building Systems (Layer 3)" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../building-systems/composition-patterns.html">Example 5: Agent Composition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../building-systems/building-agentic-systems.html">Building Agentic Systems</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Implementations (Reference)</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../implementations/index.html">Reference Implementations</a><input aria-label="Toggle navigation of Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../implementations/agents/index.html">Agent Reference Implementations</a><input aria-label="Toggle navigation of Agent Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../implementations/agents/working-memory-agent.html">WorkingMemoryAgent Reference Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../implementations/orchestration/index.html">Orchestration Reference Implementations</a><input aria-label="Toggle navigation of Orchestration Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../implementations/orchestration/workflow-system.html">Workflow System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../implementations/orchestration/building-your-own.html">Building Your Own Orchestration</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../implementations/memory/index.html">Memory Reference Implementations</a><input aria-label="Toggle navigation of Memory Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../implementations/memory/in-memory.html">In-Memory Manager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../implementations/memory/redis-memory.html">Redis Memory Manager</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../implementations/components/index.html">Component Reference Implementations</a><input aria-label="Toggle navigation of Component Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../implementations/components/embeddings.html">Embedding Implementations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../implementations/components/vector-databases.html">Vector Database - Milvus Client</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../implementations/agents/index.html">Agent Reference Implementations</a><input aria-label="Toggle navigation of Agent Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-19" name="toctree-checkbox-19" role="switch" type="checkbox"/><label for="toctree-checkbox-19"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../implementations/agents/working-memory-agent.html">WorkingMemoryAgent Reference Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../implementations/orchestration/index.html">Orchestration Reference Implementations</a><input aria-label="Toggle navigation of Orchestration Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-20" name="toctree-checkbox-20" role="switch" type="checkbox"/><label for="toctree-checkbox-20"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../implementations/orchestration/workflow-system.html">Workflow System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../implementations/orchestration/building-your-own.html">Building Your Own Orchestration</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../implementations/memory/index.html">Memory Reference Implementations</a><input aria-label="Toggle navigation of Memory Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-21" name="toctree-checkbox-21" role="switch" type="checkbox"/><label for="toctree-checkbox-21"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../implementations/memory/in-memory.html">In-Memory Manager</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../implementations/memory/redis-memory.html">Redis Memory Manager</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../implementations/components/index.html">Component Reference Implementations</a><input aria-label="Toggle navigation of Component Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-22" name="toctree-checkbox-22" role="switch" type="checkbox"/><label for="toctree-checkbox-22"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../implementations/components/embeddings.html">Embedding Implementations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../implementations/components/vector-databases.html">Vector Database - Milvus Client</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../tutorials/index.html">Tutorials</a><input aria-label="Toggle navigation of Tutorials" class="toctree-checkbox" id="toctree-checkbox-23" name="toctree-checkbox-23" role="switch" type="checkbox"/><label for="toctree-checkbox-23"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/simple-chatbot.html">Building a Simple Chatbot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/rag-system.html">Building a RAG System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/custom-system.html">Building a Custom Agentic System</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../reference/index.html">API Reference</a><input aria-label="Toggle navigation of API Reference" class="toctree-checkbox" id="toctree-checkbox-24" name="toctree-checkbox-24" role="switch" type="checkbox"/><label for="toctree-checkbox-24"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../reference/interfaces.html">Interfaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../reference/base-classes.html">Base Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../reference/models.html">Models</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extending</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../extending/index.html">Extending Arshai</a><input aria-label="Toggle navigation of Extending Arshai" class="toctree-checkbox" id="toctree-checkbox-25" name="toctree-checkbox-25" role="switch" type="checkbox"/><label for="toctree-checkbox-25"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../extending/custom-agents.html">Building Custom Agents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../extending/custom-llm-clients.html">Adding LLM Providers</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="https://github.com/nimunzn/arshai/blob/main/docs_sphinx/framework/agents/index.rst?plain=true" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div><div class="edit-this-page">
+  <a class="muted-link" href="https://github.com/nimunzn/arshai/edit/main/docs_sphinx/framework/agents/index.rst" rel="edit" title="Edit this page">
+    <svg><use href="#svg-pencil"></use></svg>
+    <span class="visually-hidden">Edit this page</span>
+  </a>
+</div><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="agents-layer-2">
+<h1>Agents (Layer 2)<a class="headerlink" href="#agents-layer-2" title="Link to this heading">¶</a></h1>
+<p>Layer 2 provides the agent foundation for building purpose-driven components that wrap LLM clients with custom logic. Agents are the core building blocks that transform raw LLM capabilities into focused, reusable components.</p>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Agent Framework</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="base-agent.html">BaseAgent Class</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="base-agent.html#core-concepts">Core Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="base-agent.html#class-definition">Class Definition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="base-agent.html#required-implementation">Required Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="base-agent.html#input-structure">Input Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="base-agent.html#response-flexibility">Response Flexibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="base-agent.html#configuration-patterns">Configuration Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="base-agent.html#common-implementation-patterns">Common Implementation Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="base-agent.html#tool-integration">Tool Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="base-agent.html#background-tasks">Background Tasks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="base-agent.html#testing-baseagent-implementations">Testing BaseAgent Implementations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="base-agent.html#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="base-agent.html#common-mistakes">Common Mistakes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="base-agent.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="creating-agents.html">Creating Agents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="creating-agents.html#quick-start">Quick Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="creating-agents.html#step-by-step-development-process">Step-by-Step Development Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="creating-agents.html#common-agent-patterns">Common Agent Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="creating-agents.html#advanced-features">Advanced Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="creating-agents.html#testing-your-agents">Testing Your Agents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="creating-agents.html#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="creating-agents.html#common-pitfalls">Common Pitfalls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="creating-agents.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tools-and-callables.html">Tools and Callables</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tools-and-callables.html#the-arshai-vision-for-tools">The Arshai Vision for Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tools-and-callables.html#core-tool-philosophy">Core Tool Philosophy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tools-and-callables.html#types-of-tools-in-agentic-systems">Types of Tools in Agentic Systems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tools-and-callables.html#agent-tool-integration-patterns">Agent Tool Integration Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tools-and-callables.html#tools-as-system-interfaces">Tools as System Interfaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tools-and-callables.html#advanced-tool-patterns">Advanced Tool Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tools-and-callables.html#benefits-for-agentic-systems">Benefits for Agentic Systems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tools-and-callables.html#testing-tool-enabled-agents">Testing Tool-Enabled Agents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="agent-patterns.html">Agent Patterns</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="agent-patterns.html#core-agent-patterns">Core Agent Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agent-patterns.html#advanced-agent-patterns">Advanced Agent Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agent-patterns.html#specialized-agent-patterns">Specialized Agent Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agent-patterns.html#pattern-selection-guide">Pattern Selection Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agent-patterns.html#combining-patterns">Combining Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agent-patterns.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="stateless-design.html">Stateless Agent Design</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="stateless-design.html#why-stateless-agents">Why Stateless Agents?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stateless-design.html#what-makes-an-agent-stateless">What Makes an Agent Stateless?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stateless-design.html#stateless-vs-stateful-examples">Stateless vs Stateful Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stateless-design.html#handling-state-in-stateless-design">Handling State in Stateless Design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stateless-design.html#state-management-patterns">State Management Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stateless-design.html#testing-stateless-agents">Testing Stateless Agents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stateless-design.html#common-pitfalls-and-solutions">Common Pitfalls and Solutions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stateless-design.html#benefits-of-stateless-design">Benefits of Stateless Design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stateless-design.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Example Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="examples/index.html">Agent Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/01-basic-usage.html">Example 01: Basic Agent Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/02-custom-agents.html">Example 02: Creating Custom Agents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/03-memory-patterns.html">Example 3: Memory Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/04-tool-integration.html">Example 4: Tool Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/index.html#learning-path">Learning Path</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/index.html#example-comparison">Example Comparison</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/index.html#key-concepts-covered">Key Concepts Covered</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/index.html#running-the-examples">Running the Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/index.html#common-patterns-demonstrated">Common Patterns Demonstrated</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/index.html#framework-vs-examples">Framework vs Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/index.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Reference Implementations</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../implementations/agents/index.html">Agent Reference Implementations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../implementations/agents/working-memory-agent.html">WorkingMemoryAgent Reference Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../implementations/agents/index.html#available-reference-implementations">Available Reference Implementations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../implementations/agents/index.html#common-patterns-demonstrated">Common Patterns Demonstrated</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../implementations/agents/index.html#using-reference-implementations">Using Reference Implementations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../implementations/agents/index.html#framework-integration-patterns">Framework Integration Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../implementations/agents/index.html#key-design-principles">Key Design Principles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../implementations/agents/index.html#testing-reference-implementations">Testing Reference Implementations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../implementations/agents/index.html#best-practices-from-reference-implementations">Best Practices from Reference Implementations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../implementations/agents/index.html#contributing-reference-implementations">Contributing Reference Implementations</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="core-philosophy">
+<h2>Core Philosophy<a class="headerlink" href="#core-philosophy" title="Link to this heading">¶</a></h2>
+<p>Agents in Arshai follow these principles:</p>
+<dl class="simple">
+<dt><strong>Direct Instantiation</strong></dt><dd><p>You create agents explicitly, configuring them exactly as needed for your use case.</p>
+</dd>
+<dt><strong>Stateless Design</strong></dt><dd><p>Agents don’t maintain internal state, making them easier to test, debug, and scale.</p>
+</dd>
+<dt><strong>Maximum Developer Authority</strong></dt><dd><p>Agents can return any type of data (strings, objects, streams) and implement any logic you need.</p>
+</dd>
+<dt><strong>Interface Compliance</strong></dt><dd><p>All agents implement the IAgent interface, ensuring consistent behavior while allowing complete customization.</p>
+</dd>
+<dt><strong>Tool Integration</strong></dt><dd><p>Agents work seamlessly with Python callables as tools - no special interfaces required.</p>
+</dd>
+</dl>
+</section>
+<section id="what-is-the-agent-framework">
+<h2>What IS the Agent Framework<a class="headerlink" href="#what-is-the-agent-framework" title="Link to this heading">¶</a></h2>
+<p>The core agent framework consists of:</p>
+<dl class="simple">
+<dt><strong>BaseAgent Class</strong></dt><dd><p>Abstract base class that provides the foundation for all agents. Located in <code class="docutils literal notranslate"><span class="pre">arshai.agents.base</span></code>.</p>
+</dd>
+<dt><strong>IAgent Interface</strong></dt><dd><p>Protocol defining the contract that all agents must implement.</p>
+</dd>
+<dt><strong>IAgentInput Structure</strong></dt><dd><p>Standardized input format for agent communication.</p>
+</dd>
+<dt><strong>Tool Integration Patterns</strong></dt><dd><p>How agents work with Python callables as tools.</p>
+</dd>
+</dl>
+<p>These components ARE the framework and provide the building blocks for creating custom agents.</p>
+</section>
+<section id="what-is-not-the-framework">
+<h2>What is NOT the Framework<a class="headerlink" href="#what-is-not-the-framework" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">hub/</span></code> directory contains <strong>reference implementations</strong> - examples showing how we’ve used the framework:</p>
+<dl class="simple">
+<dt><strong>Example Agents</strong> (in <code class="docutils literal notranslate"><span class="pre">arshai.agents.hub/</span></code>)</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">WorkingMemoryAgent</span></code>: Example of memory-enabled agent</p></li>
+<li><p>Future agent examples as they’re added</p></li>
+</ul>
+</dd>
+</dl>
+<p>These implementations are provided as working examples and starting points, but they are not prescriptive. You’re encouraged to:</p>
+<ul class="simple">
+<li><p>Use them as-is if they fit your needs</p></li>
+<li><p>Modify them for your requirements</p></li>
+<li><p>Build completely different implementations</p></li>
+<li><p>Ignore them entirely and create your own</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>Framework vs Examples</strong>: The core framework is in <code class="docutils literal notranslate"><span class="pre">base.py</span></code> and interfaces. Everything in <code class="docutils literal notranslate"><span class="pre">hub/</span></code> represents “our experience” with the framework, not “the way” to build agents.</p>
+</div>
+</section>
+<section id="basic-agent-structure">
+<h2>Basic Agent Structure<a class="headerlink" href="#basic-agent-structure" title="Link to this heading">¶</a></h2>
+<p>Every agent extends BaseAgent and implements the process method:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arshai.agents.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseAgent</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">arshai.core.interfaces.iagent</span><span class="w"> </span><span class="kn">import</span> <span class="n">IAgentInput</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">arshai.core.interfaces.illm</span><span class="w"> </span><span class="kn">import</span> <span class="n">ILLM</span><span class="p">,</span> <span class="n">ILLMInput</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyAgent</span><span class="p">(</span><span class="n">BaseAgent</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Custom agent with specific behavior.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">llm_client</span><span class="p">:</span> <span class="n">ILLM</span><span class="p">,</span> <span class="n">system_prompt</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">llm_client</span><span class="p">,</span> <span class="n">system_prompt</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c1"># Your custom initialization</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">:</span> <span class="n">IAgentInput</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Process input and return any type of response.</span>
+
+<span class="sd">        You have complete authority over:</span>
+<span class="sd">        - Response format (string, dict, stream, custom objects)</span>
+<span class="sd">        - How to use the LLM client</span>
+<span class="sd">        - Tool integration patterns</span>
+<span class="sd">        - Error handling approach</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Your custom logic here</span>
+        <span class="n">llm_input</span> <span class="o">=</span> <span class="n">ILLMInput</span><span class="p">(</span>
+            <span class="n">system_prompt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">system_prompt</span><span class="p">,</span>
+            <span class="n">user_message</span><span class="o">=</span><span class="nb">input</span><span class="o">.</span><span class="n">message</span>
+        <span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">llm_client</span><span class="o">.</span><span class="n">chat</span><span class="p">(</span><span class="n">llm_input</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;llm_response&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="agent-creation-patterns">
+<h2>Agent Creation Patterns<a class="headerlink" href="#agent-creation-patterns" title="Link to this heading">¶</a></h2>
+<p><strong>Simple Text Agent</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ConversationAgent</span><span class="p">(</span><span class="n">BaseAgent</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Agent for general conversations.&quot;&quot;&quot;</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">:</span> <span class="n">IAgentInput</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">llm_input</span> <span class="o">=</span> <span class="n">ILLMInput</span><span class="p">(</span>
+            <span class="n">system_prompt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">system_prompt</span><span class="p">,</span>
+            <span class="n">user_message</span><span class="o">=</span><span class="nb">input</span><span class="o">.</span><span class="n">message</span>
+        <span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">llm_client</span><span class="o">.</span><span class="n">chat</span><span class="p">(</span><span class="n">llm_input</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;llm_response&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Structured Response Agent</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">AnalysisResult</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">sentiment</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Sentiment analysis result&quot;</span><span class="p">)</span>
+    <span class="n">confidence</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Confidence score 0-1&quot;</span><span class="p">)</span>
+    <span class="n">key_points</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Key points identified&quot;</span><span class="p">)</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">AnalysisAgent</span><span class="p">(</span><span class="n">BaseAgent</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Agent that returns structured analysis.&quot;&quot;&quot;</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">:</span> <span class="n">IAgentInput</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AnalysisResult</span><span class="p">:</span>
+        <span class="n">llm_input</span> <span class="o">=</span> <span class="n">ILLMInput</span><span class="p">(</span>
+            <span class="n">system_prompt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">system_prompt</span><span class="p">,</span>
+            <span class="n">user_message</span><span class="o">=</span><span class="nb">input</span><span class="o">.</span><span class="n">message</span><span class="p">,</span>
+            <span class="n">structure_type</span><span class="o">=</span><span class="n">AnalysisResult</span>
+        <span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">llm_client</span><span class="o">.</span><span class="n">chat</span><span class="p">(</span><span class="n">llm_input</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;llm_response&quot;</span><span class="p">]</span>  <span class="c1"># Returns AnalysisResult instance</span>
+</pre></div>
+</div>
+<p><strong>Tool-Enabled Agent</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">search_database</span><span class="p">(</span><span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">table</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;products&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Search database for products.&quot;&quot;&quot;</span>
+    <span class="c1"># Your database search implementation</span>
+    <span class="k">return</span> <span class="n">results</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_price</span><span class="p">(</span><span class="n">base_price</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">discount</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate final price with discount.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">base_price</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">discount</span><span class="p">)</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ShoppingAgent</span><span class="p">(</span><span class="n">BaseAgent</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Agent with shopping tools.&quot;&quot;&quot;</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">:</span> <span class="n">IAgentInput</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="c1"># Tools are just Python functions</span>
+        <span class="n">tools</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;search_database&quot;</span><span class="p">:</span> <span class="n">search_database</span><span class="p">,</span>
+            <span class="s2">&quot;calculate_price&quot;</span><span class="p">:</span> <span class="n">calculate_price</span>
+        <span class="p">}</span>
+
+        <span class="n">llm_input</span> <span class="o">=</span> <span class="n">ILLMInput</span><span class="p">(</span>
+            <span class="n">system_prompt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">system_prompt</span><span class="p">,</span>
+            <span class="n">user_message</span><span class="o">=</span><span class="nb">input</span><span class="o">.</span><span class="n">message</span><span class="p">,</span>
+            <span class="n">regular_functions</span><span class="o">=</span><span class="n">tools</span>
+        <span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">llm_client</span><span class="o">.</span><span class="n">chat</span><span class="p">(</span><span class="n">llm_input</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;llm_response&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Streaming Agent</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncGenerator</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">StreamingAgent</span><span class="p">(</span><span class="n">BaseAgent</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Agent that streams responses.&quot;&quot;&quot;</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">:</span> <span class="n">IAgentInput</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AsyncGenerator</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+        <span class="n">llm_input</span> <span class="o">=</span> <span class="n">ILLMInput</span><span class="p">(</span>
+            <span class="n">system_prompt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">system_prompt</span><span class="p">,</span>
+            <span class="n">user_message</span><span class="o">=</span><span class="nb">input</span><span class="o">.</span><span class="n">message</span>
+        <span class="p">)</span>
+
+        <span class="k">async</span> <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">llm_client</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">llm_input</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">chunk</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;llm_response&quot;</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">chunk</span><span class="p">[</span><span class="s2">&quot;llm_response&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="tools-and-callables">
+<h2>Tools and Callables<a class="headerlink" href="#tools-and-callables" title="Link to this heading">¶</a></h2>
+<p>Arshai takes a unique approach to tools - they’re just Python callables, not classes with interfaces:</p>
+<p><strong>Any Callable is a Tool</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Functions</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_weather</span><span class="p">(</span><span class="n">city</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Weather in </span><span class="si">{</span><span class="n">city</span><span class="si">}</span><span class="s2">: Sunny, 22°C&quot;</span>
+
+<span class="c1"># Methods</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calculator</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span>
+
+<span class="n">calc</span> <span class="o">=</span> <span class="n">Calculator</span><span class="p">()</span>
+
+<span class="c1"># Lambdas</span>
+<span class="n">multiply</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span>
+
+<span class="c1"># Standard library functions</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="c1"># All work as tools</span>
+<span class="n">agent_tools</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;get_weather&quot;</span><span class="p">:</span> <span class="n">get_weather</span><span class="p">,</span>
+    <span class="s2">&quot;add_numbers&quot;</span><span class="p">:</span> <span class="n">calc</span><span class="o">.</span><span class="n">add</span><span class="p">,</span>
+    <span class="s2">&quot;multiply&quot;</span><span class="p">:</span> <span class="n">multiply</span><span class="p">,</span>
+    <span class="s2">&quot;list_directory&quot;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Tool Integration with Agents</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ToolEnabledAgent</span><span class="p">(</span><span class="n">BaseAgent</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">llm_client</span><span class="p">:</span> <span class="n">ILLM</span><span class="p">,</span> <span class="n">system_prompt</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tools</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">llm_client</span><span class="p">,</span> <span class="n">system_prompt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tools</span> <span class="o">=</span> <span class="n">tools</span> <span class="ow">or</span> <span class="p">{}</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">:</span> <span class="n">IAgentInput</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">llm_input</span> <span class="o">=</span> <span class="n">ILLMInput</span><span class="p">(</span>
+            <span class="n">system_prompt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">system_prompt</span><span class="p">,</span>
+            <span class="n">user_message</span><span class="o">=</span><span class="nb">input</span><span class="o">.</span><span class="n">message</span><span class="p">,</span>
+            <span class="n">regular_functions</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tools</span>
+        <span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">llm_client</span><span class="o">.</span><span class="n">chat</span><span class="p">(</span><span class="n">llm_input</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;llm_response&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Background Tasks</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">log_interaction</span><span class="p">(</span><span class="n">user_message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">agent_response</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;anonymous&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Log interaction for analytics (background task).&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Logged interaction: </span><span class="si">{</span><span class="n">user_message</span><span class="p">[:</span><span class="mi">50</span><span class="p">]</span><span class="si">}</span><span class="s2">... -&gt; </span><span class="si">{</span><span class="n">agent_response</span><span class="p">[:</span><span class="mi">50</span><span class="p">]</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">LoggingAgent</span><span class="p">(</span><span class="n">BaseAgent</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">:</span> <span class="n">IAgentInput</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">background_tasks</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;log_interaction&quot;</span><span class="p">:</span> <span class="n">log_interaction</span>
+        <span class="p">}</span>
+
+        <span class="n">llm_input</span> <span class="o">=</span> <span class="n">ILLMInput</span><span class="p">(</span>
+            <span class="n">system_prompt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">system_prompt</span><span class="p">,</span>
+            <span class="n">user_message</span><span class="o">=</span><span class="nb">input</span><span class="o">.</span><span class="n">message</span><span class="p">,</span>
+            <span class="n">background_tasks</span><span class="o">=</span><span class="n">background_tasks</span>
+        <span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">llm_client</span><span class="o">.</span><span class="n">chat</span><span class="p">(</span><span class="n">llm_input</span><span class="p">)</span>
+        <span class="c1"># Logging happens automatically in background</span>
+        <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;llm_response&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="advanced-patterns">
+<h2>Advanced Patterns<a class="headerlink" href="#advanced-patterns" title="Link to this heading">¶</a></h2>
+<p><strong>Configuration-Driven Agent</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ConfigurableAgent</span><span class="p">(</span><span class="n">BaseAgent</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">llm_client</span><span class="p">:</span> <span class="n">ILLM</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">system_prompt</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;system_prompt&quot;</span><span class="p">,</span> <span class="s2">&quot;You are a helpful assistant&quot;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">llm_client</span><span class="p">,</span> <span class="n">system_prompt</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">response_format</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;response_format&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_tokens</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;max_tokens&quot;</span><span class="p">,</span> <span class="mi">500</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tools</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tools&quot;</span><span class="p">,</span> <span class="p">{})</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">:</span> <span class="n">IAgentInput</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="n">llm_input</span> <span class="o">=</span> <span class="n">ILLMInput</span><span class="p">(</span>
+            <span class="n">system_prompt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">system_prompt</span><span class="p">,</span>
+            <span class="n">user_message</span><span class="o">=</span><span class="nb">input</span><span class="o">.</span><span class="n">message</span><span class="p">,</span>
+            <span class="n">regular_functions</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tools</span><span class="p">,</span>
+            <span class="n">max_tokens</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_tokens</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_format</span> <span class="o">==</span> <span class="s2">&quot;structured&quot;</span><span class="p">:</span>
+            <span class="n">llm_input</span><span class="o">.</span><span class="n">structure_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;structure_type&quot;</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">llm_client</span><span class="o">.</span><span class="n">chat</span><span class="p">(</span><span class="n">llm_input</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;llm_response&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Multi-Step Agent</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MultiStepAgent</span><span class="p">(</span><span class="n">BaseAgent</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Agent that performs multiple processing steps.&quot;&quot;&quot;</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">:</span> <span class="n">IAgentInput</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="c1"># Step 1: Analyze intent</span>
+        <span class="n">intent_prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">system_prompt</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">Analyze the user&#39;s intent in this message: </span><span class="si">{</span><span class="nb">input</span><span class="o">.</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">intent_input</span> <span class="o">=</span> <span class="n">ILLMInput</span><span class="p">(</span><span class="n">system_prompt</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">user_message</span><span class="o">=</span><span class="n">intent_prompt</span><span class="p">)</span>
+        <span class="n">intent_result</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">llm_client</span><span class="o">.</span><span class="n">chat</span><span class="p">(</span><span class="n">intent_input</span><span class="p">)</span>
+
+        <span class="c1"># Step 2: Generate response based on intent</span>
+        <span class="n">response_prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Based on intent &#39;</span><span class="si">{</span><span class="n">intent_result</span><span class="p">[</span><span class="s1">&#39;llm_response&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&#39;, respond to: </span><span class="si">{</span><span class="nb">input</span><span class="o">.</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">response_input</span> <span class="o">=</span> <span class="n">ILLMInput</span><span class="p">(</span><span class="n">system_prompt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">system_prompt</span><span class="p">,</span> <span class="n">user_message</span><span class="o">=</span><span class="n">response_prompt</span><span class="p">)</span>
+        <span class="n">response_result</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">llm_client</span><span class="o">.</span><span class="n">chat</span><span class="p">(</span><span class="n">response_input</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;intent&quot;</span><span class="p">:</span> <span class="n">intent_result</span><span class="p">[</span><span class="s2">&quot;llm_response&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;response&quot;</span><span class="p">:</span> <span class="n">response_result</span><span class="p">[</span><span class="s2">&quot;llm_response&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;steps&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                <span class="s2">&quot;total_tokens&quot;</span><span class="p">:</span> <span class="n">intent_result</span><span class="p">[</span><span class="s2">&quot;usage&quot;</span><span class="p">][</span><span class="s2">&quot;total_tokens&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">response_result</span><span class="p">[</span><span class="s2">&quot;usage&quot;</span><span class="p">][</span><span class="s2">&quot;total_tokens&quot;</span><span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="agent-testing">
+<h2>Agent Testing<a class="headerlink" href="#agent-testing" title="Link to this heading">¶</a></h2>
+<p>Agents are easy to test because they’re just classes with clear interfaces:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">unittest.mock</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncMock</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">asyncio</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_conversation_agent</span><span class="p">():</span>
+    <span class="c1"># Mock LLM client</span>
+    <span class="n">mock_llm</span> <span class="o">=</span> <span class="n">AsyncMock</span><span class="p">()</span>
+    <span class="n">mock_llm</span><span class="o">.</span><span class="n">chat</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;llm_response&quot;</span><span class="p">:</span> <span class="s2">&quot;Hello! How can I help you?&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;usage&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;total_tokens&quot;</span><span class="p">:</span> <span class="mi">15</span><span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Create agent</span>
+    <span class="n">agent</span> <span class="o">=</span> <span class="n">ConversationAgent</span><span class="p">(</span>
+        <span class="n">llm_client</span><span class="o">=</span><span class="n">mock_llm</span><span class="p">,</span>
+        <span class="n">system_prompt</span><span class="o">=</span><span class="s2">&quot;You are a helpful assistant&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Test agent</span>
+    <span class="n">input_data</span> <span class="o">=</span> <span class="n">IAgentInput</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s2">&quot;Hello&quot;</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">agent</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">response</span> <span class="o">==</span> <span class="s2">&quot;Hello! How can I help you?&quot;</span>
+    <span class="n">mock_llm</span><span class="o">.</span><span class="n">chat</span><span class="o">.</span><span class="n">assert_called_once</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="usage-examples">
+<h2>Usage Examples<a class="headerlink" href="#usage-examples" title="Link to this heading">¶</a></h2>
+<p><strong>Creating and Using Agents</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arshai.llms.openai</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAIClient</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">arshai.core.interfaces.illm</span><span class="w"> </span><span class="kn">import</span> <span class="n">ILLMConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">arshai.core.interfaces.iagent</span><span class="w"> </span><span class="kn">import</span> <span class="n">IAgentInput</span>
+
+<span class="c1"># Create LLM client</span>
+<span class="n">llm_config</span> <span class="o">=</span> <span class="n">ILLMConfig</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4o-mini&quot;</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+<span class="n">llm_client</span> <span class="o">=</span> <span class="n">OpenAIClient</span><span class="p">(</span><span class="n">llm_config</span><span class="p">)</span>
+
+<span class="c1"># Create agent</span>
+<span class="n">agent</span> <span class="o">=</span> <span class="n">ConversationAgent</span><span class="p">(</span>
+    <span class="n">llm_client</span><span class="o">=</span><span class="n">llm_client</span><span class="p">,</span>
+    <span class="n">system_prompt</span><span class="o">=</span><span class="s2">&quot;You are a helpful customer service agent&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># Use agent</span>
+<span class="n">input_data</span> <span class="o">=</span> <span class="n">IAgentInput</span><span class="p">(</span>
+    <span class="n">message</span><span class="o">=</span><span class="s2">&quot;I need help with my order&quot;</span><span class="p">,</span>
+    <span class="n">metadata</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="s2">&quot;12345&quot;</span><span class="p">,</span> <span class="s2">&quot;session_id&quot;</span><span class="p">:</span> <span class="s2">&quot;abc123&quot;</span><span class="p">}</span>
+<span class="p">)</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">agent</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Agent with Tools</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">lookup_order</span><span class="p">(</span><span class="n">order_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Look up order information.&quot;&quot;&quot;</span>
+    <span class="c1"># Your order lookup logic</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;order_id&quot;</span><span class="p">:</span> <span class="n">order_id</span><span class="p">,</span> <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;shipped&quot;</span><span class="p">,</span> <span class="s2">&quot;tracking&quot;</span><span class="p">:</span> <span class="s2">&quot;1234567890&quot;</span><span class="p">}</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">cancel_order</span><span class="p">(</span><span class="n">order_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Cancel an order.&quot;&quot;&quot;</span>
+    <span class="c1"># Your cancellation logic</span>
+    <span class="k">return</span> <span class="kc">True</span>
+
+<span class="c1"># Create tool-enabled agent</span>
+<span class="n">tools</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;lookup_order&quot;</span><span class="p">:</span> <span class="n">lookup_order</span><span class="p">,</span>
+    <span class="s2">&quot;cancel_order&quot;</span><span class="p">:</span> <span class="n">cancel_order</span>
+<span class="p">}</span>
+
+<span class="n">service_agent</span> <span class="o">=</span> <span class="n">ToolEnabledAgent</span><span class="p">(</span>
+    <span class="n">llm_client</span><span class="o">=</span><span class="n">llm_client</span><span class="p">,</span>
+    <span class="n">system_prompt</span><span class="o">=</span><span class="s2">&quot;You are a customer service agent. Use tools to help customers with orders.&quot;</span><span class="p">,</span>
+    <span class="n">tools</span><span class="o">=</span><span class="n">tools</span>
+<span class="p">)</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">service_agent</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">IAgentInput</span><span class="p">(</span>
+    <span class="n">message</span><span class="o">=</span><span class="s2">&quot;What&#39;s the status of order 12345?&quot;</span>
+<span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<section id="benefits-of-this-architecture">
+<h2>Benefits of This Architecture<a class="headerlink" href="#benefits-of-this-architecture" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt><strong>Complete Control</strong></dt><dd><p>You decide what your agent returns, how it processes input, and what tools it uses.</p>
+</dd>
+<dt><strong>Easy Testing</strong></dt><dd><p>Mock the LLM client and test your agent logic independently.</p>
+</dd>
+<dt><strong>Tool Flexibility</strong></dt><dd><p>Any Python function can be a tool - no framework-specific interfaces required.</p>
+</dd>
+<dt><strong>Type Safety</strong></dt><dd><p>Full type hints and IDE support for your custom agent implementations.</p>
+</dd>
+<dt><strong>Scalability</strong></dt><dd><p>Stateless design makes agents easy to scale and deploy.</p>
+</dd>
+<dt><strong>Reusability</strong></dt><dd><p>Agents can be composed into larger systems and reused across projects.</p>
+</dd>
+</dl>
+</section>
+<section id="reference-implementations">
+<h2>Reference Implementations<a class="headerlink" href="#reference-implementations" title="Link to this heading">¶</a></h2>
+<p>The framework includes reference implementations in the <code class="docutils literal notranslate"><span class="pre">hub/</span></code> directory:</p>
+<dl class="simple">
+<dt><strong>WorkingMemoryAgent</strong> (<code class="docutils literal notranslate"><span class="pre">arshai.agents.hub.working_memory</span></code>)</dt><dd><p>Example agent that manages conversation memory. Shows how to:</p>
+<ul class="simple">
+<li><p>Integrate with memory managers</p></li>
+<li><p>Handle conversation context</p></li>
+<li><p>Store and retrieve working memory</p></li>
+<li><p>Process metadata from agent inputs</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>Reference Implementation</strong>: The <code class="docutils literal notranslate"><span class="pre">WorkingMemoryAgent</span></code> is an example of how to build memory-enabled agents. It’s not part of the core framework, but shows one approach to memory management.</p>
+</div>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="base-agent.html"><span class="doc">BaseAgent Class</span></a> - Deep dive into the BaseAgent class</p></li>
+<li><p><a class="reference internal" href="creating-agents.html"><span class="doc">Creating Agents</span></a> - Step-by-step guide to building custom agents</p></li>
+<li><p><a class="reference internal" href="tools-and-callables.html"><span class="doc">Tools and Callables</span></a> - Complete guide to tool integration</p></li>
+<li><p><a class="reference internal" href="agent-patterns.html"><span class="doc">Agent Patterns</span></a> - Common patterns and best practices</p></li>
+<li><p><a class="reference internal" href="../building-systems/index.html"><span class="doc">Building Systems (Layer 3)</span></a> - Composing agents into systems</p></li>
+</ul>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="base-agent.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">BaseAgent Class</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="../llm-clients/extending-llm-clients.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Extending LLM Clients</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2024, Nima Nazarian
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Agents (Layer 2)</a><ul>
+<li><a class="reference internal" href="#core-philosophy">Core Philosophy</a></li>
+<li><a class="reference internal" href="#what-is-the-agent-framework">What IS the Agent Framework</a></li>
+<li><a class="reference internal" href="#what-is-not-the-framework">What is NOT the Framework</a></li>
+<li><a class="reference internal" href="#basic-agent-structure">Basic Agent Structure</a></li>
+<li><a class="reference internal" href="#agent-creation-patterns">Agent Creation Patterns</a></li>
+<li><a class="reference internal" href="#tools-and-callables">Tools and Callables</a></li>
+<li><a class="reference internal" href="#advanced-patterns">Advanced Patterns</a></li>
+<li><a class="reference internal" href="#agent-testing">Agent Testing</a></li>
+<li><a class="reference internal" href="#usage-examples">Usage Examples</a></li>
+<li><a class="reference internal" href="#benefits-of-this-architecture">Benefits of This Architecture</a></li>
+<li><a class="reference internal" href="#reference-implementations">Reference Implementations</a></li>
+<li><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../../_static/documentation_options.js?v=95e61db4"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=30646c52"></script>
+    </body>
+</html>

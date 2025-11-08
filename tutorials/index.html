@@ -1,0 +1,830 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Building a Simple Chatbot" href="simple-chatbot.html"><link rel="prev" title="Vector Database - Milvus Client" href="../implementations/components/vector-databases.html">
+
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
+        <title>Tutorials - Arshai Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=580074bf" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">Arshai Documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">Arshai Documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../getting-started/index.html">Getting Started</a><input aria-label="Toggle navigation of Getting Started" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/comprehensive-guide.html">Comprehensive Agent Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/first-agent.html">Build Your First Custom Agent</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/comprehensive-guide.html">Comprehensive Agent Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Philosophy</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../philosophy/index.html">Philosophy</a><input aria-label="Toggle navigation of Philosophy" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../philosophy/introduction.html">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../philosophy/three-layer-architecture.html">Three-Layer Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../philosophy/developer-authority.html">Developer Authority</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../philosophy/design-decisions.html">Design Decisions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../philosophy/introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../philosophy/three-layer-architecture.html">Three-Layer Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../philosophy/developer-authority.html">Developer Authority</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../philosophy/design-decisions.html">Design Decisions</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Framework (Core)</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../framework/index.html">Framework Core</a><input aria-label="Toggle navigation of Framework Core" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../framework/llm-clients/index.html">LLM Clients (Layer 1)</a><input aria-label="Toggle navigation of LLM Clients (Layer 1)" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../framework/llm-clients/interface-overview.html">ILLM Interface Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../framework/llm-clients/openai-client.html">OpenAI Client</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../framework/llm-clients/azure-client.html">Azure OpenAI Client</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../framework/llm-clients/google-gemini-client.html">Google Gemini Client</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../framework/llm-clients/openrouter-client.html">OpenRouter Client</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../framework/llm-clients/extending-llm-clients.html">Extending LLM Clients</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../framework/agents/index.html">Agents (Layer 2)</a><input aria-label="Toggle navigation of Agents (Layer 2)" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../framework/agents/base-agent.html">BaseAgent Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../framework/agents/creating-agents.html">Creating Agents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../framework/agents/tools-and-callables.html">Tools and Callables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../framework/agents/agent-patterns.html">Agent Patterns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../framework/agents/stateless-design.html">Stateless Agent Design</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../framework/agents/examples/index.html">Agent Examples</a><input aria-label="Toggle navigation of Agent Examples" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../framework/agents/examples/01-basic-usage.html">Example 01: Basic Agent Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../framework/agents/examples/02-custom-agents.html">Example 02: Creating Custom Agents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../framework/agents/examples/03-memory-patterns.html">Example 3: Memory Patterns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../framework/agents/examples/04-tool-integration.html">Example 4: Tool Integration</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../implementations/agents/index.html">Agent Reference Implementations</a><input aria-label="Toggle navigation of Agent Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../implementations/agents/working-memory-agent.html">WorkingMemoryAgent Reference Implementation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../framework/building-systems/index.html">Building Systems (Layer 3)</a><input aria-label="Toggle navigation of Building Systems (Layer 3)" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../framework/building-systems/composition-patterns.html">Example 5: Agent Composition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../framework/building-systems/building-agentic-systems.html">Building Agentic Systems</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../framework/llm-clients/index.html">LLM Clients (Layer 1)</a><input aria-label="Toggle navigation of LLM Clients (Layer 1)" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../framework/llm-clients/interface-overview.html">ILLM Interface Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/llm-clients/openai-client.html">OpenAI Client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/llm-clients/azure-client.html">Azure OpenAI Client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/llm-clients/google-gemini-client.html">Google Gemini Client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/llm-clients/openrouter-client.html">OpenRouter Client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/llm-clients/extending-llm-clients.html">Extending LLM Clients</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../framework/agents/index.html">Agents (Layer 2)</a><input aria-label="Toggle navigation of Agents (Layer 2)" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../framework/agents/base-agent.html">BaseAgent Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/agents/creating-agents.html">Creating Agents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/agents/tools-and-callables.html">Tools and Callables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/agents/agent-patterns.html">Agent Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/agents/stateless-design.html">Stateless Agent Design</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../framework/agents/examples/index.html">Agent Examples</a><input aria-label="Toggle navigation of Agent Examples" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../framework/agents/examples/01-basic-usage.html">Example 01: Basic Agent Usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../framework/agents/examples/02-custom-agents.html">Example 02: Creating Custom Agents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../framework/agents/examples/03-memory-patterns.html">Example 3: Memory Patterns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../framework/agents/examples/04-tool-integration.html">Example 4: Tool Integration</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../implementations/agents/index.html">Agent Reference Implementations</a><input aria-label="Toggle navigation of Agent Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../implementations/agents/working-memory-agent.html">WorkingMemoryAgent Reference Implementation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../framework/building-systems/index.html">Building Systems (Layer 3)</a><input aria-label="Toggle navigation of Building Systems (Layer 3)" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../framework/building-systems/composition-patterns.html">Example 5: Agent Composition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/building-systems/building-agentic-systems.html">Building Agentic Systems</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Implementations (Reference)</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../implementations/index.html">Reference Implementations</a><input aria-label="Toggle navigation of Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../implementations/agents/index.html">Agent Reference Implementations</a><input aria-label="Toggle navigation of Agent Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../implementations/agents/working-memory-agent.html">WorkingMemoryAgent Reference Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../implementations/orchestration/index.html">Orchestration Reference Implementations</a><input aria-label="Toggle navigation of Orchestration Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../implementations/orchestration/workflow-system.html">Workflow System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../implementations/orchestration/building-your-own.html">Building Your Own Orchestration</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../implementations/memory/index.html">Memory Reference Implementations</a><input aria-label="Toggle navigation of Memory Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../implementations/memory/in-memory.html">In-Memory Manager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../implementations/memory/redis-memory.html">Redis Memory Manager</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../implementations/components/index.html">Component Reference Implementations</a><input aria-label="Toggle navigation of Component Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../implementations/components/embeddings.html">Embedding Implementations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../implementations/components/vector-databases.html">Vector Database - Milvus Client</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../implementations/agents/index.html">Agent Reference Implementations</a><input aria-label="Toggle navigation of Agent Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-19" name="toctree-checkbox-19" role="switch" type="checkbox"/><label for="toctree-checkbox-19"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../implementations/agents/working-memory-agent.html">WorkingMemoryAgent Reference Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../implementations/orchestration/index.html">Orchestration Reference Implementations</a><input aria-label="Toggle navigation of Orchestration Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-20" name="toctree-checkbox-20" role="switch" type="checkbox"/><label for="toctree-checkbox-20"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../implementations/orchestration/workflow-system.html">Workflow System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../implementations/orchestration/building-your-own.html">Building Your Own Orchestration</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../implementations/memory/index.html">Memory Reference Implementations</a><input aria-label="Toggle navigation of Memory Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-21" name="toctree-checkbox-21" role="switch" type="checkbox"/><label for="toctree-checkbox-21"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../implementations/memory/in-memory.html">In-Memory Manager</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../implementations/memory/redis-memory.html">Redis Memory Manager</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../implementations/components/index.html">Component Reference Implementations</a><input aria-label="Toggle navigation of Component Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-22" name="toctree-checkbox-22" role="switch" type="checkbox"/><label for="toctree-checkbox-22"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../implementations/components/embeddings.html">Embedding Implementations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../implementations/components/vector-databases.html">Vector Database - Milvus Client</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="current">
+<li class="toctree-l1 current has-children current-page"><a class="current reference internal" href="#">Tutorials</a><input aria-label="Toggle navigation of Tutorials" checked="" class="toctree-checkbox" id="toctree-checkbox-23" name="toctree-checkbox-23" role="switch" type="checkbox"/><label for="toctree-checkbox-23"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="simple-chatbot.html">Building a Simple Chatbot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rag-system.html">Building a RAG System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="custom-system.html">Building a Custom Agentic System</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../reference/index.html">API Reference</a><input aria-label="Toggle navigation of API Reference" class="toctree-checkbox" id="toctree-checkbox-24" name="toctree-checkbox-24" role="switch" type="checkbox"/><label for="toctree-checkbox-24"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../reference/interfaces.html">Interfaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/base-classes.html">Base Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/models.html">Models</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extending</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../extending/index.html">Extending Arshai</a><input aria-label="Toggle navigation of Extending Arshai" class="toctree-checkbox" id="toctree-checkbox-25" name="toctree-checkbox-25" role="switch" type="checkbox"/><label for="toctree-checkbox-25"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../extending/custom-agents.html">Building Custom Agents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../extending/custom-llm-clients.html">Adding LLM Providers</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="https://github.com/nimunzn/arshai/blob/main/docs_sphinx/tutorials/index.rst?plain=true" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div><div class="edit-this-page">
+  <a class="muted-link" href="https://github.com/nimunzn/arshai/edit/main/docs_sphinx/tutorials/index.rst" rel="edit" title="Edit this page">
+    <svg><use href="#svg-pencil"></use></svg>
+    <span class="visually-hidden">Edit this page</span>
+  </a>
+</div><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="tutorials">
+<h1>Tutorials<a class="headerlink" href="#tutorials" title="Link to this heading">¶</a></h1>
+<p>Complete end-to-end tutorials showing how to build real AI applications with Arshai. Each tutorial builds a fully functional application from scratch, demonstrating core concepts and best practices.</p>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Available Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="simple-chatbot.html">Building a Simple Chatbot</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="simple-chatbot.html#project-setup">Project Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="simple-chatbot.html#step-1-build-the-core-chatbot-agent">Step 1: Build the Core Chatbot Agent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="simple-chatbot.html#step-2-build-the-cli-interface">Step 2: Build the CLI Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="simple-chatbot.html#step-3-create-the-main-application">Step 3: Create the Main Application</a></li>
+<li class="toctree-l2"><a class="reference internal" href="simple-chatbot.html#step-4-run-and-test">Step 4: Run and Test</a></li>
+<li class="toctree-l2"><a class="reference internal" href="simple-chatbot.html#step-5-add-enhancements-optional">Step 5: Add Enhancements (Optional)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="simple-chatbot.html#step-6-add-web-interface-optional">Step 6: Add Web Interface (Optional)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="simple-chatbot.html#production-considerations">Production Considerations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="simple-chatbot.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rag-system.html">Building a RAG System</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rag-system.html#project-setup">Project Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rag-system.html#step-1-document-processing">Step 1: Document Processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rag-system.html#step-2-build-rag-agent">Step 2: Build RAG Agent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rag-system.html#step-3-build-complete-rag-system">Step 3: Build Complete RAG System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rag-system.html#step-4-test-the-system">Step 4: Test the System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rag-system.html#step-5-add-advanced-features">Step 5: Add Advanced Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rag-system.html#production-deployment">Production Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rag-system.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="custom-system.html">Building a Custom Agentic System</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="custom-system.html#system-architecture">System Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="custom-system.html#project-setup">Project Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="custom-system.html#step-1-define-system-state">Step 1: Define System State</a></li>
+<li class="toctree-l2"><a class="reference internal" href="custom-system.html#step-2-build-specialized-agents">Step 2: Build Specialized Agents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="custom-system.html#step-3-build-custom-orchestrator">Step 3: Build Custom Orchestrator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="custom-system.html#step-4-create-main-application">Step 4: Create Main Application</a></li>
+<li class="toctree-l2"><a class="reference internal" href="custom-system.html#step-5-add-remaining-agents">Step 5: Add Remaining Agents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="custom-system.html#step-6-test-the-system">Step 6: Test the System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="custom-system.html#step-7-add-analytics-and-monitoring">Step 7: Add Analytics and Monitoring</a></li>
+<li class="toctree-l2"><a class="reference internal" href="custom-system.html#production-enhancements">Production Enhancements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="custom-system.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>These tutorials take you from concept to working application, with complete code examples and explanations. Each tutorial is self-contained and can be completed independently.</p>
+<p><strong>Learning Path:</strong></p>
+<ol class="arabic simple">
+<li><p>Start with <a class="reference internal" href="simple-chatbot.html"><span class="doc">Building a Simple Chatbot</span></a> to learn the basics</p></li>
+<li><p>Move to <a class="reference internal" href="rag-system.html"><span class="doc">Building a RAG System</span></a> to add document retrieval</p></li>
+<li><p>Complete with <a class="reference internal" href="custom-system.html"><span class="doc">Building a Custom Agentic System</span></a> for advanced orchestration</p></li>
+</ol>
+</section>
+<section id="available-tutorials">
+<h2>Available Tutorials<a class="headerlink" href="#available-tutorials" title="Link to this heading">¶</a></h2>
+<section id="simple-chatbot">
+<h3>Simple Chatbot<a class="headerlink" href="#simple-chatbot" title="Link to this heading">¶</a></h3>
+<p><strong>:doc:`simple-chatbot`</strong></p>
+<p>Build a conversational chatbot with memory and command handling.</p>
+<p><strong>What You’ll Learn:</strong></p>
+<ul class="simple">
+<li><p>Direct instantiation of framework components</p></li>
+<li><p>Memory integration for conversations</p></li>
+<li><p>CLI interface development</p></li>
+<li><p>Basic agent patterns</p></li>
+<li><p>Error handling and user experience</p></li>
+</ul>
+<p><strong>Duration:</strong> 30-45 minutes</p>
+<p><strong>Prerequisites:</strong> Python basics, API key</p>
+<p><strong>Builds:</strong> Complete CLI chatbot with memory, commands, and optional web interface</p>
+</section>
+<section id="rag-system">
+<h3>RAG System<a class="headerlink" href="#rag-system" title="Link to this heading">¶</a></h3>
+<p><strong>:doc:`rag-system`</strong></p>
+<p>Create a complete Retrieval-Augmented Generation system.</p>
+<p><strong>What You’ll Learn:</strong></p>
+<ul class="simple">
+<li><p>Document processing and chunking</p></li>
+<li><p>Embedding generation and storage</p></li>
+<li><p>Vector similarity search</p></li>
+<li><p>RAG agent implementation</p></li>
+<li><p>Production deployment patterns</p></li>
+</ul>
+<p><strong>Duration:</strong> 60-90 minutes</p>
+<p><strong>Prerequisites:</strong> Completion of simple-chatbot tutorial, Milvus setup</p>
+<p><strong>Builds:</strong> Full document Q&amp;A system with vector search and LLM reasoning</p>
+</section>
+<section id="custom-agentic-system">
+<h3>Custom Agentic System<a class="headerlink" href="#custom-agentic-system" title="Link to this heading">¶</a></h3>
+<p><strong>:doc:`custom-system`</strong></p>
+<p>Build a multi-agent customer support system from scratch.</p>
+<p><strong>What You’ll Learn:</strong></p>
+<ul class="simple">
+<li><p>Multi-agent system design</p></li>
+<li><p>Custom orchestration without workflows</p></li>
+<li><p>Agent specialization and routing</p></li>
+<li><p>State management across agents</p></li>
+<li><p>Advanced coordination patterns</p></li>
+</ul>
+<p><strong>Duration:</strong> 90-120 minutes</p>
+<p><strong>Prerequisites:</strong> Understanding of async Python, previous tutorials</p>
+<p><strong>Builds:</strong> Production-ready multi-agent support system with intelligent routing</p>
+</section>
+</section>
+<section id="tutorial-structure">
+<h2>Tutorial Structure<a class="headerlink" href="#tutorial-structure" title="Link to this heading">¶</a></h2>
+<p>Each tutorial follows a consistent structure:</p>
+<dl class="simple">
+<dt><strong>1. Introduction</strong></dt><dd><p>What you’ll build, what you’ll learn, time estimate</p>
+</dd>
+<dt><strong>2. Setup</strong></dt><dd><p>Project structure, dependencies, environment configuration</p>
+</dd>
+<dt><strong>3. Step-by-Step Implementation</strong></dt><dd><p>Incremental development with explanations</p>
+</dd>
+<dt><strong>4. Testing and Verification</strong></dt><dd><p>How to test your implementation</p>
+</dd>
+<dt><strong>5. Enhancements</strong></dt><dd><p>Optional advanced features</p>
+</dd>
+<dt><strong>6. Production Considerations</strong></dt><dd><p>Deployment, scaling, monitoring</p>
+</dd>
+<dt><strong>7. Next Steps</strong></dt><dd><p>Where to go from here</p>
+</dd>
+</dl>
+</section>
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">¶</a></h2>
+<section id="general-requirements">
+<h3>General Requirements<a class="headerlink" href="#general-requirements" title="Link to this heading">¶</a></h3>
+<p>All tutorials require:</p>
+<ul class="simple">
+<li><p>Python 3.9 or higher</p></li>
+<li><p>Virtual environment (recommended)</p></li>
+<li><p>Text editor or IDE</p></li>
+<li><p>Terminal/command prompt</p></li>
+</ul>
+</section>
+<section id="api-keys">
+<h3>API Keys<a class="headerlink" href="#api-keys" title="Link to this heading">¶</a></h3>
+<p>You’ll need at least one LLM provider API key:</p>
+<ul class="simple">
+<li><p><strong>OpenAI</strong> (recommended for tutorials)</p></li>
+<li><p>Google Gemini</p></li>
+<li><p>Azure OpenAI</p></li>
+<li><p>OpenRouter</p></li>
+</ul>
+<p>See <a class="reference internal" href="../getting-started/installation.html"><span class="doc">Installation</span></a> for setup details.</p>
+</section>
+<section id="installation">
+<h3>Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h3>
+<p>Basic installation for all tutorials:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>arshai<span class="o">[</span>openai<span class="o">]</span>
+</pre></div>
+</div>
+<p>Additional dependencies are specified in each tutorial.</p>
+</section>
+</section>
+<section id="choosing-your-path">
+<h2>Choosing Your Path<a class="headerlink" href="#choosing-your-path" title="Link to this heading">¶</a></h2>
+<p><strong>I’m New to Arshai</strong></p>
+<p>Start with <a class="reference internal" href="simple-chatbot.html"><span class="doc">Building a Simple Chatbot</span></a>. This tutorial introduces core concepts and builds confidence with hands-on coding.</p>
+<p><strong>I Want to Build RAG Applications</strong></p>
+<p>Go directly to <a class="reference internal" href="rag-system.html"><span class="doc">Building a RAG System</span></a> if you’re comfortable with Python and want to build document-based Q&amp;A systems.</p>
+<p><strong>I Need Multi-Agent Systems</strong></p>
+<p>Jump to <a class="reference internal" href="custom-system.html"><span class="doc">Building a Custom Agentic System</span></a> if you have experience with Arshai and need to build complex agentic systems.</p>
+<p><strong>I Want to Learn Everything</strong></p>
+<p>Follow the tutorials in order:
+1. <a class="reference internal" href="simple-chatbot.html"><span class="doc">Building a Simple Chatbot</span></a> - Foundation
+2. <a class="reference internal" href="rag-system.html"><span class="doc">Building a RAG System</span></a> - Document integration
+3. <a class="reference internal" href="custom-system.html"><span class="doc">Building a Custom Agentic System</span></a> - Advanced orchestration</p>
+</section>
+<section id="tutorial-features">
+<h2>Tutorial Features<a class="headerlink" href="#tutorial-features" title="Link to this heading">¶</a></h2>
+<p><strong>Complete Code</strong></p>
+<p>Every tutorial includes full, working code - not just snippets. You can copy, run, and modify the complete applications.</p>
+<p><strong>Incremental Development</strong></p>
+<p>Build applications step-by-step, testing at each stage. This helps you understand how components work together.</p>
+<p><strong>Production-Ready Patterns</strong></p>
+<p>Learn patterns used in real production systems, including error handling, logging, and monitoring.</p>
+<p><strong>Extension Points</strong></p>
+<p>Each tutorial includes optional enhancements and suggestions for taking the application further.</p>
+<p><strong>Clear Explanations</strong></p>
+<p>Code is explained with inline comments and accompanying documentation that describes the why, not just the what.</p>
+</section>
+<section id="getting-help">
+<h2>Getting Help<a class="headerlink" href="#getting-help" title="Link to this heading">¶</a></h2>
+<p><strong>Stuck on a Tutorial?</strong></p>
+<ul class="simple">
+<li><p>Re-read the prerequisites section</p></li>
+<li><p>Check the troubleshooting tips in each tutorial</p></li>
+<li><p>Review the <a class="reference internal" href="../getting-started/index.html"><span class="doc">Getting Started</span></a> section</p></li>
+<li><p>Consult the <a class="reference internal" href="../framework/index.html"><span class="doc">Framework Core</span></a> for detailed concepts</p></li>
+</ul>
+<p><strong>Found an Issue?</strong></p>
+<ul class="simple">
+<li><p>Report it on <a class="reference external" href="https://github.com/felesh-ai/arshai/issues">GitHub Issues</a></p></li>
+<li><p>Include which tutorial and step you’re on</p></li>
+<li><p>Provide error messages and context</p></li>
+</ul>
+<p><strong>Want to Share Your Work?</strong></p>
+<p>We’d love to see what you build! Share your projects with the community.</p>
+</section>
+<section id="after-the-tutorials">
+<h2>After the Tutorials<a class="headerlink" href="#after-the-tutorials" title="Link to this heading">¶</a></h2>
+<p>Once you’ve completed the tutorials, you’re ready to:</p>
+<p><strong>Build Your Own Applications</strong></p>
+<p>Apply the patterns you’ve learned to your specific use cases.</p>
+<p><strong>Explore Advanced Topics</strong></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="../implementations/orchestration/building-your-own.html"><span class="doc">Building Your Own Orchestration</span></a> - More orchestration patterns</p></li>
+<li><p><a class="reference internal" href="../implementations/memory/index.html"><span class="doc">Memory Reference Implementations</span></a> - Advanced memory strategies</p></li>
+<li><p><a class="reference internal" href="../implementations/components/index.html"><span class="doc">Component Reference Implementations</span></a> - Component integrations</p></li>
+</ul>
+<p><strong>Contribute</strong></p>
+<p>Help improve Arshai by:</p>
+<ul class="simple">
+<li><p>Sharing your implementations</p></li>
+<li><p>Contributing to documentation</p></li>
+<li><p>Reporting issues and suggesting features</p></li>
+<li><p>Helping other developers</p></li>
+</ul>
+</section>
+<section id="best-practices-from-tutorials">
+<h2>Best Practices from Tutorials<a class="headerlink" href="#best-practices-from-tutorials" title="Link to this heading">¶</a></h2>
+<p><strong>Direct Instantiation</strong></p>
+<p>Create components explicitly rather than relying on magic configuration:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">llm_client</span> <span class="o">=</span> <span class="n">OpenAIClient</span><span class="p">(</span><span class="n">ILLMConfig</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-3.5-turbo&quot;</span><span class="p">))</span>
+<span class="n">agent</span> <span class="o">=</span> <span class="n">MyAgent</span><span class="p">(</span><span class="n">llm_client</span><span class="p">,</span> <span class="n">system_prompt</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Error Handling</strong></p>
+<p>Always handle errors gracefully:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">agent</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fallback_response</span>
+</pre></div>
+</div>
+<p><strong>State Management</strong></p>
+<p>Keep state explicit and manageable:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">State</span><span class="p">:</span>
+    <span class="n">user_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">conversation_history</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Turn</span><span class="p">]</span>
+    <span class="n">metadata</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Testing</strong></p>
+<p>Write tests for your components:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_agent</span><span class="p">():</span>
+    <span class="n">mock_llm</span> <span class="o">=</span> <span class="n">AsyncMock</span><span class="p">()</span>
+    <span class="n">agent</span> <span class="o">=</span> <span class="n">MyAgent</span><span class="p">(</span><span class="n">mock_llm</span><span class="p">,</span> <span class="s2">&quot;test prompt&quot;</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">agent</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">test_input</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+</pre></div>
+</div>
+<p><strong>Documentation</strong></p>
+<p>Document your code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MyAgent</span><span class="p">(</span><span class="n">BaseAgent</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Custom agent that does X.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        llm_client: LLM client for processing</span>
+<span class="sd">        system_prompt: Agent&#39;s system prompt</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="common-patterns-learned">
+<h2>Common Patterns Learned<a class="headerlink" href="#common-patterns-learned" title="Link to this heading">¶</a></h2>
+<p><strong>Memory Integration</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">memory_manager</span> <span class="o">=</span> <span class="n">InMemoryManager</span><span class="p">()</span>
+<span class="n">agent</span> <span class="o">=</span> <span class="n">WorkingMemoryAgent</span><span class="p">(</span><span class="n">llm_client</span><span class="p">,</span> <span class="n">memory_manager</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Document Processing</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">chunker</span> <span class="o">=</span> <span class="n">DocumentChunker</span><span class="p">(</span><span class="n">chunk_size</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+<span class="n">chunks</span> <span class="o">=</span> <span class="n">chunker</span><span class="o">.</span><span class="n">process_document</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Vector Search</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">embedding</span> <span class="o">=</span> <span class="n">embedder</span><span class="o">.</span><span class="n">embed_query</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">vector_db</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">query_vector</span><span class="o">=</span><span class="n">embedding</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Multi-Agent Coordination</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">coordinator</span> <span class="o">=</span> <span class="n">Coordinator</span><span class="p">()</span>
+<span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">coordinator</span><span class="o">.</span><span class="n">process_request</span><span class="p">(</span><span class="n">user_input</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="start-your-journey">
+<h2>Start Your Journey<a class="headerlink" href="#start-your-journey" title="Link to this heading">¶</a></h2>
+<p>Ready to build? Choose your first tutorial:</p>
+<div class="table-wrapper colwidths-given docutils container">
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 40.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Tutorial</p></th>
+<th class="head"><p>Best For</p></th>
+<th class="head"><p>Duration</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="simple-chatbot.html"><span class="doc">Building a Simple Chatbot</span></a></p></td>
+<td><p>Beginners, learning basics</p></td>
+<td><p>30-45 min</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="rag-system.html"><span class="doc">Building a RAG System</span></a></p></td>
+<td><p>Document Q&amp;A systems</p></td>
+<td><p>60-90 min</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="custom-system.html"><span class="doc">Building a Custom Agentic System</span></a></p></td>
+<td><p>Multi-agent systems</p></td>
+<td><p>90-120 min</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Happy building! 🚀</p>
+<hr class="docutils" />
+<p><em>These tutorials are living documents. If you have suggestions for improvements or additional tutorials, please open an issue on GitHub.</em></p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="simple-chatbot.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Building a Simple Chatbot</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="../implementations/components/vector-databases.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Vector Database - Milvus Client</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2024, Nima Nazarian
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Tutorials</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#available-tutorials">Available Tutorials</a><ul>
+<li><a class="reference internal" href="#simple-chatbot">Simple Chatbot</a></li>
+<li><a class="reference internal" href="#rag-system">RAG System</a></li>
+<li><a class="reference internal" href="#custom-agentic-system">Custom Agentic System</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tutorial-structure">Tutorial Structure</a></li>
+<li><a class="reference internal" href="#prerequisites">Prerequisites</a><ul>
+<li><a class="reference internal" href="#general-requirements">General Requirements</a></li>
+<li><a class="reference internal" href="#api-keys">API Keys</a></li>
+<li><a class="reference internal" href="#installation">Installation</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#choosing-your-path">Choosing Your Path</a></li>
+<li><a class="reference internal" href="#tutorial-features">Tutorial Features</a></li>
+<li><a class="reference internal" href="#getting-help">Getting Help</a></li>
+<li><a class="reference internal" href="#after-the-tutorials">After the Tutorials</a></li>
+<li><a class="reference internal" href="#best-practices-from-tutorials">Best Practices from Tutorials</a></li>
+<li><a class="reference internal" href="#common-patterns-learned">Common Patterns Learned</a></li>
+<li><a class="reference internal" href="#start-your-journey">Start Your Journey</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=95e61db4"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=30646c52"></script>
+    </body>
+</html>

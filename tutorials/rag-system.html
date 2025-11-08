@@ -1,0 +1,1497 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Building a Custom Agentic System" href="custom-system.html"><link rel="prev" title="Building a Simple Chatbot" href="simple-chatbot.html">
+
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
+        <title>Building a RAG System - Arshai Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=580074bf" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">Arshai Documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">Arshai Documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../getting-started/index.html">Getting Started</a><input aria-label="Toggle navigation of Getting Started" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/comprehensive-guide.html">Comprehensive Agent Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/first-agent.html">Build Your First Custom Agent</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/comprehensive-guide.html">Comprehensive Agent Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Philosophy</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../philosophy/index.html">Philosophy</a><input aria-label="Toggle navigation of Philosophy" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../philosophy/introduction.html">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../philosophy/three-layer-architecture.html">Three-Layer Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../philosophy/developer-authority.html">Developer Authority</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../philosophy/design-decisions.html">Design Decisions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../philosophy/introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../philosophy/three-layer-architecture.html">Three-Layer Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../philosophy/developer-authority.html">Developer Authority</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../philosophy/design-decisions.html">Design Decisions</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Framework (Core)</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../framework/index.html">Framework Core</a><input aria-label="Toggle navigation of Framework Core" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../framework/llm-clients/index.html">LLM Clients (Layer 1)</a><input aria-label="Toggle navigation of LLM Clients (Layer 1)" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../framework/llm-clients/interface-overview.html">ILLM Interface Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../framework/llm-clients/openai-client.html">OpenAI Client</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../framework/llm-clients/azure-client.html">Azure OpenAI Client</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../framework/llm-clients/google-gemini-client.html">Google Gemini Client</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../framework/llm-clients/openrouter-client.html">OpenRouter Client</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../framework/llm-clients/extending-llm-clients.html">Extending LLM Clients</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../framework/agents/index.html">Agents (Layer 2)</a><input aria-label="Toggle navigation of Agents (Layer 2)" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../framework/agents/base-agent.html">BaseAgent Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../framework/agents/creating-agents.html">Creating Agents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../framework/agents/tools-and-callables.html">Tools and Callables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../framework/agents/agent-patterns.html">Agent Patterns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../framework/agents/stateless-design.html">Stateless Agent Design</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../framework/agents/examples/index.html">Agent Examples</a><input aria-label="Toggle navigation of Agent Examples" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../framework/agents/examples/01-basic-usage.html">Example 01: Basic Agent Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../framework/agents/examples/02-custom-agents.html">Example 02: Creating Custom Agents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../framework/agents/examples/03-memory-patterns.html">Example 3: Memory Patterns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../framework/agents/examples/04-tool-integration.html">Example 4: Tool Integration</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../implementations/agents/index.html">Agent Reference Implementations</a><input aria-label="Toggle navigation of Agent Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../implementations/agents/working-memory-agent.html">WorkingMemoryAgent Reference Implementation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../framework/building-systems/index.html">Building Systems (Layer 3)</a><input aria-label="Toggle navigation of Building Systems (Layer 3)" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../framework/building-systems/composition-patterns.html">Example 5: Agent Composition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../framework/building-systems/building-agentic-systems.html">Building Agentic Systems</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../framework/llm-clients/index.html">LLM Clients (Layer 1)</a><input aria-label="Toggle navigation of LLM Clients (Layer 1)" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../framework/llm-clients/interface-overview.html">ILLM Interface Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/llm-clients/openai-client.html">OpenAI Client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/llm-clients/azure-client.html">Azure OpenAI Client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/llm-clients/google-gemini-client.html">Google Gemini Client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/llm-clients/openrouter-client.html">OpenRouter Client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/llm-clients/extending-llm-clients.html">Extending LLM Clients</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../framework/agents/index.html">Agents (Layer 2)</a><input aria-label="Toggle navigation of Agents (Layer 2)" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../framework/agents/base-agent.html">BaseAgent Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/agents/creating-agents.html">Creating Agents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/agents/tools-and-callables.html">Tools and Callables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/agents/agent-patterns.html">Agent Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/agents/stateless-design.html">Stateless Agent Design</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../framework/agents/examples/index.html">Agent Examples</a><input aria-label="Toggle navigation of Agent Examples" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../framework/agents/examples/01-basic-usage.html">Example 01: Basic Agent Usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../framework/agents/examples/02-custom-agents.html">Example 02: Creating Custom Agents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../framework/agents/examples/03-memory-patterns.html">Example 3: Memory Patterns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../framework/agents/examples/04-tool-integration.html">Example 4: Tool Integration</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../implementations/agents/index.html">Agent Reference Implementations</a><input aria-label="Toggle navigation of Agent Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../implementations/agents/working-memory-agent.html">WorkingMemoryAgent Reference Implementation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../framework/building-systems/index.html">Building Systems (Layer 3)</a><input aria-label="Toggle navigation of Building Systems (Layer 3)" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../framework/building-systems/composition-patterns.html">Example 5: Agent Composition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../framework/building-systems/building-agentic-systems.html">Building Agentic Systems</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Implementations (Reference)</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../implementations/index.html">Reference Implementations</a><input aria-label="Toggle navigation of Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../implementations/agents/index.html">Agent Reference Implementations</a><input aria-label="Toggle navigation of Agent Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../implementations/agents/working-memory-agent.html">WorkingMemoryAgent Reference Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../implementations/orchestration/index.html">Orchestration Reference Implementations</a><input aria-label="Toggle navigation of Orchestration Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../implementations/orchestration/workflow-system.html">Workflow System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../implementations/orchestration/building-your-own.html">Building Your Own Orchestration</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../implementations/memory/index.html">Memory Reference Implementations</a><input aria-label="Toggle navigation of Memory Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../implementations/memory/in-memory.html">In-Memory Manager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../implementations/memory/redis-memory.html">Redis Memory Manager</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../implementations/components/index.html">Component Reference Implementations</a><input aria-label="Toggle navigation of Component Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../implementations/components/embeddings.html">Embedding Implementations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../implementations/components/vector-databases.html">Vector Database - Milvus Client</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../implementations/agents/index.html">Agent Reference Implementations</a><input aria-label="Toggle navigation of Agent Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-19" name="toctree-checkbox-19" role="switch" type="checkbox"/><label for="toctree-checkbox-19"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../implementations/agents/working-memory-agent.html">WorkingMemoryAgent Reference Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../implementations/orchestration/index.html">Orchestration Reference Implementations</a><input aria-label="Toggle navigation of Orchestration Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-20" name="toctree-checkbox-20" role="switch" type="checkbox"/><label for="toctree-checkbox-20"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../implementations/orchestration/workflow-system.html">Workflow System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../implementations/orchestration/building-your-own.html">Building Your Own Orchestration</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../implementations/memory/index.html">Memory Reference Implementations</a><input aria-label="Toggle navigation of Memory Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-21" name="toctree-checkbox-21" role="switch" type="checkbox"/><label for="toctree-checkbox-21"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../implementations/memory/in-memory.html">In-Memory Manager</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../implementations/memory/redis-memory.html">Redis Memory Manager</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../implementations/components/index.html">Component Reference Implementations</a><input aria-label="Toggle navigation of Component Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-22" name="toctree-checkbox-22" role="switch" type="checkbox"/><label for="toctree-checkbox-22"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../implementations/components/embeddings.html">Embedding Implementations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../implementations/components/vector-databases.html">Vector Database - Milvus Client</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="current">
+<li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Tutorials</a><input aria-label="Toggle navigation of Tutorials" checked="" class="toctree-checkbox" id="toctree-checkbox-23" name="toctree-checkbox-23" role="switch" type="checkbox"/><label for="toctree-checkbox-23"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="simple-chatbot.html">Building a Simple Chatbot</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Building a RAG System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="custom-system.html">Building a Custom Agentic System</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../reference/index.html">API Reference</a><input aria-label="Toggle navigation of API Reference" class="toctree-checkbox" id="toctree-checkbox-24" name="toctree-checkbox-24" role="switch" type="checkbox"/><label for="toctree-checkbox-24"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../reference/interfaces.html">Interfaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/base-classes.html">Base Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/models.html">Models</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extending</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../extending/index.html">Extending Arshai</a><input aria-label="Toggle navigation of Extending Arshai" class="toctree-checkbox" id="toctree-checkbox-25" name="toctree-checkbox-25" role="switch" type="checkbox"/><label for="toctree-checkbox-25"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../extending/custom-agents.html">Building Custom Agents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../extending/custom-llm-clients.html">Adding LLM Providers</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="https://github.com/nimunzn/arshai/blob/main/docs_sphinx/tutorials/rag-system.rst?plain=true" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div><div class="edit-this-page">
+  <a class="muted-link" href="https://github.com/nimunzn/arshai/edit/main/docs_sphinx/tutorials/rag-system.rst" rel="edit" title="Edit this page">
+    <svg><use href="#svg-pencil"></use></svg>
+    <span class="visually-hidden">Edit this page</span>
+  </a>
+</div><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="building-a-rag-system">
+<h1>Building a RAG System<a class="headerlink" href="#building-a-rag-system" title="Link to this heading">¶</a></h1>
+<p>This tutorial guides you through building a complete Retrieval-Augmented Generation (RAG) system using Arshai. You’ll create a document-based question-answering system that combines vector search with LLM reasoning.</p>
+<p><strong>What You’ll Build:</strong></p>
+<ul class="simple">
+<li><p>Document ingestion and chunking pipeline</p></li>
+<li><p>Vector embeddings and storage system</p></li>
+<li><p>Semantic search with ranking</p></li>
+<li><p>RAG-enabled conversational agent</p></li>
+<li><p>Complete Q&amp;A application</p></li>
+</ul>
+<p><strong>What You’ll Learn:</strong></p>
+<ul class="simple">
+<li><p>Document processing strategies</p></li>
+<li><p>Embedding generation and storage</p></li>
+<li><p>Vector similarity search</p></li>
+<li><p>RAG agent implementation</p></li>
+<li><p>Production patterns</p></li>
+</ul>
+<p><strong>Prerequisites:</strong></p>
+<ul class="simple">
+<li><p>Python 3.9+</p></li>
+<li><p>Arshai with extras: <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">arshai[openai,milvus]</span></code></p></li>
+<li><p>OpenAI API key</p></li>
+<li><p>Milvus running (Docker or cloud)</p></li>
+</ul>
+<p><strong>Time to Complete:</strong> 60-90 minutes</p>
+<section id="project-setup">
+<h2>Project Setup<a class="headerlink" href="#project-setup" title="Link to this heading">¶</a></h2>
+<section id="install-dependencies">
+<h3>Install Dependencies<a class="headerlink" href="#install-dependencies" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create project</span>
+mkdir<span class="w"> </span>rag-system
+<span class="nb">cd</span><span class="w"> </span>rag-system
+
+<span class="c1"># Create virtual environment</span>
+python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
+<span class="nb">source</span><span class="w"> </span>venv/bin/activate
+
+<span class="c1"># Install dependencies</span>
+pip<span class="w"> </span>install<span class="w"> </span>arshai<span class="o">[</span>openai,milvus<span class="o">]</span><span class="w"> </span>python-dotenv
+
+<span class="c1"># Create project structure</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span>documents<span class="w"> </span>data
+touch<span class="w"> </span>.env
+touch<span class="w"> </span>rag_system.py
+touch<span class="w"> </span>document_processor.py
+touch<span class="w"> </span>rag_agent.py
+</pre></div>
+</div>
+</section>
+<section id="configure-environment">
+<h3>Configure Environment<a class="headerlink" href="#configure-environment" title="Link to this heading">¶</a></h3>
+<p>Create <code class="docutils literal notranslate"><span class="pre">.env</span></code> file:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># .env</span>
+<span class="nv">OPENAI_API_KEY</span><span class="o">=</span>your-openai-key
+<span class="nv">MILVUS_HOST</span><span class="o">=</span>localhost
+<span class="nv">MILVUS_PORT</span><span class="o">=</span><span class="m">19530</span>
+<span class="nv">MILVUS_DB_NAME</span><span class="o">=</span>rag_db
+</pre></div>
+</div>
+<p>Start Milvus (Docker):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Download docker-compose</span>
+wget<span class="w"> </span>https://github.com/milvus-io/milvus/releases/download/v2.3.0/milvus-standalone-docker-compose.yml<span class="w"> </span>-O<span class="w"> </span>docker-compose.yml
+
+<span class="c1"># Start Milvus</span>
+docker-compose<span class="w"> </span>up<span class="w"> </span>-d
+
+<span class="c1"># Verify</span>
+docker-compose<span class="w"> </span>ps
+</pre></div>
+</div>
+</section>
+</section>
+<section id="step-1-document-processing">
+<h2>Step 1: Document Processing<a class="headerlink" href="#step-1-document-processing" title="Link to this heading">¶</a></h2>
+<p>Create document processor for chunking:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># document_processor.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">DocumentChunker</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Process and chunk documents for RAG.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">500</span><span class="p">,</span> <span class="n">chunk_overlap</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize chunker.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            chunk_size: Target size for each chunk in characters</span>
+<span class="sd">            chunk_overlap: Overlap between chunks in characters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chunk_size</span> <span class="o">=</span> <span class="n">chunk_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chunk_overlap</span> <span class="o">=</span> <span class="n">chunk_overlap</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_document</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load document from file.&quot;&quot;&quot;</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File not found: </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Handle different file types</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">suffix</span> <span class="o">==</span> <span class="s1">&#39;.txt&#39;</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">path</span><span class="o">.</span><span class="n">suffix</span> <span class="o">==</span> <span class="s1">&#39;.md&#39;</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported file type: </span><span class="si">{</span><span class="n">path</span><span class="o">.</span><span class="n">suffix</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">chunk_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Chunk text into smaller pieces with metadata.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            text: Text to chunk</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List of chunks with metadata</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Clean text</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clean_text</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+
+        <span class="c1"># Split into sentences</span>
+        <span class="n">sentences</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split_into_sentences</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+
+        <span class="c1"># Create chunks</span>
+        <span class="n">chunks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">current_chunk</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">current_length</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">sentence</span> <span class="ow">in</span> <span class="n">sentences</span><span class="p">:</span>
+            <span class="n">sentence_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sentence</span><span class="p">)</span>
+
+            <span class="c1"># If adding this sentence exceeds chunk size</span>
+            <span class="k">if</span> <span class="n">current_length</span> <span class="o">+</span> <span class="n">sentence_length</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">chunk_size</span> <span class="ow">and</span> <span class="n">current_chunk</span><span class="p">:</span>
+                <span class="c1"># Save current chunk</span>
+                <span class="n">chunk_text</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current_chunk</span><span class="p">)</span>
+                <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                    <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="n">chunk_text</span><span class="p">,</span>
+                    <span class="s1">&#39;length&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk_text</span><span class="p">),</span>
+                    <span class="s1">&#39;sentence_count&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_chunk</span><span class="p">)</span>
+                <span class="p">})</span>
+
+                <span class="c1"># Start new chunk with overlap</span>
+                <span class="n">overlap_sentences</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_overlap_sentences</span><span class="p">(</span>
+                    <span class="n">current_chunk</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">chunk_overlap</span>
+                <span class="p">)</span>
+                <span class="n">current_chunk</span> <span class="o">=</span> <span class="n">overlap_sentences</span>
+                <span class="n">current_length</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">current_chunk</span><span class="p">)</span>
+
+            <span class="c1"># Add sentence to current chunk</span>
+            <span class="n">current_chunk</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sentence</span><span class="p">)</span>
+            <span class="n">current_length</span> <span class="o">+=</span> <span class="n">sentence_length</span>
+
+        <span class="c1"># Add final chunk</span>
+        <span class="k">if</span> <span class="n">current_chunk</span><span class="p">:</span>
+            <span class="n">chunk_text</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current_chunk</span><span class="p">)</span>
+            <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="n">chunk_text</span><span class="p">,</span>
+                <span class="s1">&#39;length&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk_text</span><span class="p">),</span>
+                <span class="s1">&#39;sentence_count&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_chunk</span><span class="p">)</span>
+            <span class="p">})</span>
+
+        <span class="k">return</span> <span class="n">chunks</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">process_document</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">metadata</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Process document into chunks with metadata.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            file_path: Path to document</span>
+<span class="sd">            metadata: Additional metadata for chunks</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List of processed chunks</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Load document</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_document</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+
+        <span class="c1"># Chunk text</span>
+        <span class="n">chunks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chunk_text</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+
+        <span class="c1"># Add metadata</span>
+        <span class="n">file_name</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">base_metadata</span> <span class="o">=</span> <span class="n">metadata</span> <span class="ow">or</span> <span class="p">{}</span>
+
+        <span class="n">processed_chunks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">chunks</span><span class="p">):</span>
+            <span class="n">chunk_data</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;source&#39;</span><span class="p">:</span> <span class="n">file_name</span><span class="p">,</span>
+                <span class="s1">&#39;chunk_index&#39;</span><span class="p">:</span> <span class="n">i</span><span class="p">,</span>
+                <span class="s1">&#39;total_chunks&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunks</span><span class="p">),</span>
+                <span class="o">**</span><span class="n">base_metadata</span>
+            <span class="p">}</span>
+            <span class="n">processed_chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chunk_data</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">processed_chunks</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_clean_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clean and normalize text.&quot;&quot;&quot;</span>
+        <span class="c1"># Remove extra whitespace</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\s+&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+        <span class="c1"># Remove special characters (optional)</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">text</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_split_into_sentences</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Split text into sentences.&quot;&quot;&quot;</span>
+        <span class="c1"># Simple sentence splitting (can be improved)</span>
+        <span class="n">sentences</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(?&lt;=[.!?])\s+&#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sentences</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_overlap_sentences</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">sentences</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">target_overlap</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get sentences for overlap.&quot;&quot;&quot;</span>
+        <span class="n">overlap_sentences</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">overlap_length</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Take sentences from the end</span>
+        <span class="k">for</span> <span class="n">sentence</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">sentences</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">overlap_length</span> <span class="o">&gt;=</span> <span class="n">target_overlap</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">overlap_sentences</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">sentence</span><span class="p">)</span>
+            <span class="n">overlap_length</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sentence</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">overlap_sentences</span>
+</pre></div>
+</div>
+</section>
+<section id="step-2-build-rag-agent">
+<h2>Step 2: Build RAG Agent<a class="headerlink" href="#step-2-build-rag-agent" title="Link to this heading">¶</a></h2>
+<p>Create the RAG agent with retrieval:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># rag_agent.py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dotenv</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_dotenv</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">arshai.agents.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseAgent</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">arshai.core.interfaces.iagent</span><span class="w"> </span><span class="kn">import</span> <span class="n">IAgentInput</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">arshai.core.interfaces.illm</span><span class="w"> </span><span class="kn">import</span> <span class="n">ILLMInput</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">arshai.embeddings.openai_embeddings</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAIEmbedding</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">arshai.core.interfaces.iembedding</span><span class="w"> </span><span class="kn">import</span> <span class="n">EmbeddingConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">arshai.vector_db.milvus_client</span><span class="w"> </span><span class="kn">import</span> <span class="n">MilvusClient</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">arshai.core.interfaces.ivector_db_client</span><span class="w"> </span><span class="kn">import</span> <span class="n">ICollectionConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
+
+<span class="n">load_dotenv</span><span class="p">()</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">DocumentChunk</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Schema for document chunks in vector DB.&quot;&quot;&quot;</span>
+    <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">source</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">chunk_index</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">embedding</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">RAGAgent</span><span class="p">(</span><span class="n">BaseAgent</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Retrieval-Augmented Generation agent.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">llm_client</span><span class="p">,</span>
+        <span class="n">embedding_service</span><span class="p">,</span>
+        <span class="n">vector_client</span><span class="p">,</span>
+        <span class="n">collection_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;knowledge_base&quot;</span><span class="p">,</span>
+        <span class="n">top_k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize RAG agent.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            llm_client: LLM client for generation</span>
+<span class="sd">            embedding_service: Service for generating embeddings</span>
+<span class="sd">            vector_client: Vector database client</span>
+<span class="sd">            collection_name: Name of vector collection</span>
+<span class="sd">            top_k: Number of documents to retrieve</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">llm_client</span><span class="p">,</span>
+            <span class="n">system_prompt</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;You are a helpful AI assistant with access to a knowledge base.</span>
+<span class="s2">            Use the provided context to answer questions accurately.</span>
+<span class="s2">            If the context doesn&#39;t contain the answer, say so clearly.</span>
+<span class="s2">            Always cite the source when using information from the context.&quot;&quot;&quot;</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">embedding_service</span> <span class="o">=</span> <span class="n">embedding_service</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vector_client</span> <span class="o">=</span> <span class="n">vector_client</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">top_k</span> <span class="o">=</span> <span class="n">top_k</span>
+
+        <span class="c1"># Configure collection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">collection_config</span> <span class="o">=</span> <span class="n">ICollectionConfig</span><span class="p">(</span>
+            <span class="n">collection_name</span><span class="o">=</span><span class="n">collection_name</span><span class="p">,</span>
+            <span class="n">dimension</span><span class="o">=</span><span class="n">embedding_service</span><span class="o">.</span><span class="n">dimension</span><span class="p">,</span>
+            <span class="n">model_class</span><span class="o">=</span><span class="n">DocumentChunk</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Ensure collection exists</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vector_client</span><span class="o">.</span><span class="n">get_or_create_collection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">collection_config</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">:</span> <span class="n">IAgentInput</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process query with RAG.&quot;&quot;&quot;</span>
+
+        <span class="c1"># Step 1: Retrieve relevant documents</span>
+        <span class="n">retrieved_docs</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_retrieve_documents</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>
+
+        <span class="c1"># Step 2: Build context from retrieved documents</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_context</span><span class="p">(</span><span class="n">retrieved_docs</span><span class="p">)</span>
+
+        <span class="c1"># Step 3: Generate response with context</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_response</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">message</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;response&#39;</span><span class="p">:</span> <span class="n">response</span><span class="p">,</span>
+            <span class="s1">&#39;sources&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">doc</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">retrieved_docs</span><span class="p">],</span>
+            <span class="s1">&#39;retrieved_chunks&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">retrieved_docs</span><span class="p">),</span>
+            <span class="s1">&#39;context&#39;</span><span class="p">:</span> <span class="n">context</span>
+        <span class="p">}</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_retrieve_documents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieve relevant documents from vector store.&quot;&quot;&quot;</span>
+
+        <span class="c1"># Generate query embedding</span>
+        <span class="n">query_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_service</span><span class="o">.</span><span class="n">embed_query</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+        <span class="n">query_embedding</span> <span class="o">=</span> <span class="n">query_result</span><span class="p">[</span><span class="s1">&#39;embedding&#39;</span><span class="p">]</span>
+
+        <span class="c1"># Search vector database</span>
+        <span class="n">search_results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vector_client</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+            <span class="n">config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">collection_config</span><span class="p">,</span>
+            <span class="n">query_vectors</span><span class="o">=</span><span class="p">[</span><span class="n">query_embedding</span><span class="p">],</span>
+            <span class="n">limit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">top_k</span><span class="p">,</span>
+            <span class="n">output_fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;source&quot;</span><span class="p">,</span> <span class="s2">&quot;chunk_index&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Extract and format results</span>
+        <span class="n">retrieved_docs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">search_results</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">search_results</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">search_results</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">retrieved_docs</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                    <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+                    <span class="s1">&#39;source&#39;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">),</span>
+                    <span class="s1">&#39;chunk_index&#39;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;chunk_index&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                    <span class="s1">&#39;distance&#39;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;distance&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+                <span class="p">})</span>
+
+        <span class="k">return</span> <span class="n">retrieved_docs</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_build_context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">retrieved_docs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build context string from retrieved documents.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">retrieved_docs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;No relevant information found in the knowledge base.&quot;</span>
+
+        <span class="n">context_parts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">doc</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">retrieved_docs</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">context_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;[Source </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">doc</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">]</span><span class="se">\n</span><span class="si">{</span><span class="n">doc</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">context_parts</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_generate_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate response using LLM with context.&quot;&quot;&quot;</span>
+
+        <span class="c1"># Build enhanced prompt</span>
+        <span class="n">enhanced_prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;Context from knowledge base:</span>
+<span class="si">{</span><span class="n">context</span><span class="si">}</span>
+
+<span class="s2">Question: </span><span class="si">{</span><span class="n">query</span><span class="si">}</span>
+
+<span class="s2">Please provide a detailed answer based on the context above. If the context doesn&#39;t contain enough information, say so clearly.&quot;&quot;&quot;</span>
+
+        <span class="c1"># Call LLM</span>
+        <span class="n">llm_input</span> <span class="o">=</span> <span class="n">ILLMInput</span><span class="p">(</span>
+            <span class="n">system_prompt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">system_prompt</span><span class="p">,</span>
+            <span class="n">user_message</span><span class="o">=</span><span class="n">enhanced_prompt</span>
+        <span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">llm_client</span><span class="o">.</span><span class="n">chat</span><span class="p">(</span><span class="n">llm_input</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;llm_response&#39;</span><span class="p">,</span> <span class="s1">&#39;Unable to generate response&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_documents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chunks</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add document chunks to vector store.&quot;&quot;&quot;</span>
+
+        <span class="c1"># Extract texts for embedding</span>
+        <span class="n">texts</span> <span class="o">=</span> <span class="p">[</span><span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">chunks</span><span class="p">]</span>
+
+        <span class="c1"># Generate embeddings</span>
+        <span class="n">embedding_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_service</span><span class="o">.</span><span class="n">embed_documents</span><span class="p">(</span><span class="n">texts</span><span class="p">)</span>
+        <span class="n">embeddings</span> <span class="o">=</span> <span class="n">embedding_result</span><span class="p">[</span><span class="s1">&#39;embeddings&#39;</span><span class="p">]</span>
+
+        <span class="c1"># Prepare data for insertion</span>
+        <span class="n">insert_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">chunks</span><span class="p">):</span>
+            <span class="n">insert_data</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">chunk</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;chunk_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">),</span>
+                <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;source&#39;</span><span class="p">:</span> <span class="n">chunk</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">),</span>
+                <span class="s1">&#39;chunk_index&#39;</span><span class="p">:</span> <span class="n">chunk</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;chunk_index&#39;</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span>
+                <span class="s1">&#39;embedding&#39;</span><span class="p">:</span> <span class="n">embeddings</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="p">})</span>
+
+        <span class="c1"># Insert into vector database</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vector_client</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span>
+            <span class="n">config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">collection_config</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">insert_data</span>
+        <span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Added </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">chunks</span><span class="p">)</span><span class="si">}</span><span class="s2"> document chunks to knowledge base&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="step-3-build-complete-rag-system">
+<h2>Step 3: Build Complete RAG System<a class="headerlink" href="#step-3-build-complete-rag-system" title="Link to this heading">¶</a></h2>
+<p>Create the main application:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># rag_system.py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dotenv</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_dotenv</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">arshai.llms.openai</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAIClient</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">arshai.core.interfaces.illm</span><span class="w"> </span><span class="kn">import</span> <span class="n">ILLMConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">arshai.embeddings.openai_embeddings</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAIEmbedding</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">arshai.core.interfaces.iembedding</span><span class="w"> </span><span class="kn">import</span> <span class="n">EmbeddingConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">arshai.vector_db.milvus_client</span><span class="w"> </span><span class="kn">import</span> <span class="n">MilvusClient</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">document_processor</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentChunker</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">rag_agent</span><span class="w"> </span><span class="kn">import</span> <span class="n">RAGAgent</span>
+
+<span class="n">load_dotenv</span><span class="p">()</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">RAGSystem</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Complete RAG system with document ingestion and Q&amp;A.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize RAG system components.&quot;&quot;&quot;</span>
+
+        <span class="c1"># Create LLM client</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">llm_client</span> <span class="o">=</span> <span class="n">OpenAIClient</span><span class="p">(</span>
+            <span class="n">ILLMConfig</span><span class="p">(</span>
+                <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-3.5-turbo&quot;</span><span class="p">,</span>
+                <span class="n">temperature</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
+                <span class="n">max_tokens</span><span class="o">=</span><span class="mi">500</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Create embedding service</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">embedding_service</span> <span class="o">=</span> <span class="n">OpenAIEmbedding</span><span class="p">(</span>
+            <span class="n">EmbeddingConfig</span><span class="p">(</span>
+                <span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;text-embedding-3-small&quot;</span><span class="p">,</span>
+                <span class="n">batch_size</span><span class="o">=</span><span class="mi">100</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Create vector database client</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vector_client</span> <span class="o">=</span> <span class="n">MilvusClient</span><span class="p">()</span>
+
+        <span class="c1"># Create document processor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">document_processor</span> <span class="o">=</span> <span class="n">DocumentChunker</span><span class="p">(</span>
+            <span class="n">chunk_size</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+            <span class="n">chunk_overlap</span><span class="o">=</span><span class="mi">50</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Create RAG agent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rag_agent</span> <span class="o">=</span> <span class="n">RAGAgent</span><span class="p">(</span>
+            <span class="n">llm_client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">llm_client</span><span class="p">,</span>
+            <span class="n">embedding_service</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">embedding_service</span><span class="p">,</span>
+            <span class="n">vector_client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vector_client</span><span class="p">,</span>
+            <span class="n">collection_name</span><span class="o">=</span><span class="s2">&quot;knowledge_base&quot;</span><span class="p">,</span>
+            <span class="n">top_k</span><span class="o">=</span><span class="mi">3</span>
+        <span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ RAG system initialized&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">ingest_documents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">document_paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Ingest documents into the knowledge base.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            document_paths: List of paths to documents</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">all_chunks</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">doc_path</span> <span class="ow">in</span> <span class="n">document_paths</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing: </span><span class="si">{</span><span class="n">doc_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="c1"># Process document</span>
+                <span class="n">chunks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">document_processor</span><span class="o">.</span><span class="n">process_document</span><span class="p">(</span>
+                    <span class="n">doc_path</span><span class="p">,</span>
+                    <span class="n">metadata</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;documentation&#39;</span><span class="p">}</span>
+                <span class="p">)</span>
+
+                <span class="n">all_chunks</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">chunks</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  ✓ Created </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">chunks</span><span class="p">)</span><span class="si">}</span><span class="s2"> chunks&quot;</span><span class="p">)</span>
+
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  ✗ Error processing </span><span class="si">{</span><span class="n">doc_path</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">all_chunks</span><span class="p">:</span>
+            <span class="c1"># Add to vector store</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Adding </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">all_chunks</span><span class="p">)</span><span class="si">}</span><span class="s2"> chunks to knowledge base...&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rag_agent</span><span class="o">.</span><span class="n">add_documents</span><span class="p">(</span><span class="n">all_chunks</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Document ingestion complete&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No chunks to add&quot;</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">question</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Query the RAG system.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            question: User question</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Response with answer and sources</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">arshai.core.interfaces.iagent</span><span class="w"> </span><span class="kn">import</span> <span class="n">IAgentInput</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">rag_agent</span><span class="o">.</span><span class="n">process</span><span class="p">(</span>
+            <span class="n">IAgentInput</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="n">question</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">interactive_session</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run interactive Q&amp;A session.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;RAG System - Interactive Q&amp;A&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Commands:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  /quit   - Exit&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  /stats  - Show system statistics&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Ask questions about your documents!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Get user question</span>
+                <span class="n">question</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">❓ Question: &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">question</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="c1"># Handle commands</span>
+                <span class="k">if</span> <span class="n">question</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;/quit&#39;</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">👋 Goodbye!&quot;</span><span class="p">)</span>
+                    <span class="k">break</span>
+
+                <span class="k">if</span> <span class="n">question</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;/stats&#39;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_show_statistics</span><span class="p">()</span>
+                    <span class="k">continue</span>
+
+                <span class="c1"># Process question</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;🔍 Searching knowledge base...&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">question</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="mi">40</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+                <span class="c1"># Display answer</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">💡 Answer:</span><span class="se">\n</span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;response&#39;</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="c1"># Display sources</span>
+                <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;sources&#39;</span><span class="p">]:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;📚 Sources: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;sources&#39;</span><span class="p">]))</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;📊 Retrieved </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;retrieved_chunks&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> relevant chunks&quot;</span><span class="p">)</span>
+
+            <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">👋 Goodbye!&quot;</span><span class="p">)</span>
+                <span class="k">break</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">❌ Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_show_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Show system statistics.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">📊 System Statistics:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Embedding Model: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">embedding_service</span><span class="o">.</span><span class="n">model_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Embedding Dimension: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">embedding_service</span><span class="o">.</span><span class="n">dimension</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  LLM Model: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">llm_client</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">model</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Top-K Retrieval: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">rag_agent</span><span class="o">.</span><span class="n">top_k</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Main application entry point.&quot;&quot;&quot;</span>
+
+    <span class="c1"># Create RAG system</span>
+    <span class="n">rag_system</span> <span class="o">=</span> <span class="n">RAGSystem</span><span class="p">()</span>
+
+    <span class="c1"># Ingest documents</span>
+    <span class="n">documents_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;documents&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">documents_dir</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">document_files</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">documents_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*.txt&quot;</span><span class="p">))</span> <span class="o">+</span> \
+                        <span class="nb">list</span><span class="p">(</span><span class="n">documents_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*.md&quot;</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">document_files</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">document_files</span><span class="p">)</span><span class="si">}</span><span class="s2"> documents to ingest</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">rag_system</span><span class="o">.</span><span class="n">ingest_documents</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">document_files</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">⚠️ No documents found in &#39;documents/&#39; directory&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Add .txt or .md files to get started</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">⚠️ &#39;documents/&#39; directory not found&quot;</span><span class="p">)</span>
+        <span class="n">documents_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Created &#39;documents/&#39; directory - add your files there</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Start interactive session</span>
+    <span class="k">await</span> <span class="n">rag_system</span><span class="o">.</span><span class="n">interactive_session</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
+<section id="step-4-test-the-system">
+<h2>Step 4: Test the System<a class="headerlink" href="#step-4-test-the-system" title="Link to this heading">¶</a></h2>
+<p>Create sample documents:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create sample document</span>
+cat<span class="w"> </span>&gt;<span class="w"> </span>documents/arshai_intro.txt<span class="w"> </span><span class="s">&lt;&lt; &#39;EOF&#39;</span>
+<span class="s">Arshai Framework</span>
+
+<span class="s">Arshai is a framework for building agentic AI systems. It provides three main layers:</span>
+
+<span class="s">Layer 1 - LLM Clients: Standardized interfaces for different language model providers including OpenAI, Google Gemini, Azure OpenAI, and OpenRouter.</span>
+
+<span class="s">Layer 2 - Agents: Building blocks for creating conversational agents with BaseAgent as the foundation. Agents can have memory, use tools, and handle complex interactions.</span>
+
+<span class="s">Layer 3 - Systems: Patterns for composing multiple agents into complete agentic systems through orchestration and workflow management.</span>
+
+<span class="s">The framework follows these core principles:</span>
+<span class="s">- Direct Control: Developers explicitly create and configure all components</span>
+<span class="s">- Building Blocks: Framework provides foundations, developers build solutions</span>
+<span class="s">- Progressive Complexity: Start simple and scale to sophisticated systems as needed</span>
+<span class="s">EOF</span>
+</pre></div>
+</div>
+<p>Run the system:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>rag_system.py
+</pre></div>
+</div>
+<p>Test queries:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>RAG System - Interactive Q&amp;A
+============================================================
+
+Commands:
+  /quit   - Exit
+  /stats  - Show system statistics
+
+Ask questions about your documents!
+
+❓ Question: What is Arshai?
+
+💡 Answer:
+Arshai is a framework for building agentic AI systems. It provides a three-layer architecture consisting of LLM Clients (Layer 1), Agents (Layer 2), and Systems (Layer 3). The framework emphasizes direct control, provides building blocks for developers, and supports progressive complexity.
+
+📚 Sources: arshai_intro.txt
+📊 Retrieved 3 relevant chunks
+
+❓ Question: What are the three layers?
+
+💡 Answer:
+The three layers in Arshai are:
+1. Layer 1 - LLM Clients: Standardized interfaces for language model providers
+2. Layer 2 - Agents: Building blocks for conversational agents
+3. Layer 3 - Systems: Patterns for composing agents into complete systems
+
+📚 Sources: arshai_intro.txt
+📊 Retrieved 3 relevant chunks
+</pre></div>
+</div>
+</section>
+<section id="step-5-add-advanced-features">
+<h2>Step 5: Add Advanced Features<a class="headerlink" href="#step-5-add-advanced-features" title="Link to this heading">¶</a></h2>
+<section id="hybrid-search-with-reranking">
+<h3>Hybrid Search with Reranking<a class="headerlink" href="#hybrid-search-with-reranking" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">AdvancedRAGAgent</span><span class="p">(</span><span class="n">RAGAgent</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;RAG agent with reranking.&quot;&quot;&quot;</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_retrieve_documents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieve with reranking.&quot;&quot;&quot;</span>
+
+        <span class="c1"># Step 1: Initial retrieval (more candidates)</span>
+        <span class="n">query_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_service</span><span class="o">.</span><span class="n">embed_query</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+        <span class="n">query_embedding</span> <span class="o">=</span> <span class="n">query_result</span><span class="p">[</span><span class="s1">&#39;embedding&#39;</span><span class="p">]</span>
+
+        <span class="n">search_results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vector_client</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+            <span class="n">config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">collection_config</span><span class="p">,</span>
+            <span class="n">query_vectors</span><span class="o">=</span><span class="p">[</span><span class="n">query_embedding</span><span class="p">],</span>
+            <span class="n">limit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">top_k</span> <span class="o">*</span> <span class="mi">3</span><span class="p">,</span>  <span class="c1"># Get 3x candidates</span>
+            <span class="n">output_fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;source&quot;</span><span class="p">,</span> <span class="s2">&quot;chunk_index&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Step 2: Rerank using cross-encoder (simplified)</span>
+        <span class="n">candidates</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">search_results</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">search_results</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">search_results</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">candidates</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                    <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+                    <span class="s1">&#39;source&#39;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">),</span>
+                    <span class="s1">&#39;chunk_index&#39;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;chunk_index&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                    <span class="s1">&#39;distance&#39;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;distance&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+                    <span class="s1">&#39;score&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_relevance_score</span><span class="p">(</span>
+                        <span class="n">query</span><span class="p">,</span>
+                        <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="p">})</span>
+
+        <span class="c1"># Sort by reranked score and return top-k</span>
+        <span class="n">candidates</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;score&#39;</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">candidates</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">top_k</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_relevance_score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Simple relevance scoring (can be improved with cross-encoder).&quot;&quot;&quot;</span>
+        <span class="c1"># Simple keyword matching score</span>
+        <span class="n">query_terms</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+        <span class="n">text_terms</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">query_terms</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+
+        <span class="n">overlap</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">query_terms</span> <span class="o">&amp;</span> <span class="n">text_terms</span><span class="p">)</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="n">overlap</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">query_terms</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">score</span>
+</pre></div>
+</div>
+</section>
+<section id="conversation-memory-with-rag">
+<h3>Conversation Memory with RAG<a class="headerlink" href="#conversation-memory-with-rag" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arshai.memory.working_memory.in_memory_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">InMemoryManager</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ConversationalRAGAgent</span><span class="p">(</span><span class="n">RAGAgent</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;RAG agent with conversation memory.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memory_manager</span> <span class="o">=</span> <span class="n">InMemoryManager</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conversation_id</span> <span class="o">=</span> <span class="s2">&quot;rag_session&quot;</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process with conversation history.&quot;&quot;&quot;</span>
+
+        <span class="c1"># Get conversation history</span>
+        <span class="n">history</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_conversation_history</span><span class="p">()</span>
+
+        <span class="c1"># Enhance query with history context</span>
+        <span class="n">enhanced_query</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_query_with_history</span><span class="p">(</span>
+            <span class="nb">input</span><span class="o">.</span><span class="n">message</span><span class="p">,</span>
+            <span class="n">history</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Standard RAG processing</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">process</span><span class="p">(</span>
+            <span class="n">IAgentInput</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="n">enhanced_query</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Store conversation turn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_store_conversation_turn</span><span class="p">(</span>
+            <span class="nb">input</span><span class="o">.</span><span class="n">message</span><span class="p">,</span>
+            <span class="n">result</span><span class="p">[</span><span class="s1">&#39;response&#39;</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_conversation_history</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get recent conversation history.&quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">arshai.core.interfaces.imemorymanager</span><span class="w"> </span><span class="kn">import</span> <span class="n">IMemoryInput</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">arshai.memory.memory_types</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConversationMemoryType</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">memory_input</span> <span class="o">=</span> <span class="n">IMemoryInput</span><span class="p">(</span>
+                <span class="n">conversation_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">conversation_id</span><span class="p">,</span>
+                <span class="n">memory_type</span><span class="o">=</span><span class="n">ConversationMemoryType</span><span class="o">.</span><span class="n">WORKING_MEMORY</span>
+            <span class="p">)</span>
+            <span class="n">memories</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory_manager</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">memory_input</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">memories</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">memories</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">working_memory</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_build_query_with_history</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">history</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build query enhanced with conversation history.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">history</span><span class="p">:</span>
+            <span class="c1"># Only use last 3 turns</span>
+            <span class="n">history_lines</span> <span class="o">=</span> <span class="n">history</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">6</span><span class="p">:]</span>  <span class="c1"># 3 turns * 2 lines</span>
+            <span class="n">recent_history</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">history_lines</span><span class="p">)</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Previous conversation:</span><span class="se">\n</span><span class="si">{</span><span class="n">recent_history</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">Current question: </span><span class="si">{</span><span class="n">query</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="n">query</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_store_conversation_turn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">question</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">answer</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Store conversation turn.&quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">arshai.core.interfaces.imemorymanager</span><span class="w"> </span><span class="kn">import</span> <span class="n">IMemoryInput</span><span class="p">,</span> <span class="n">IWorkingMemory</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">arshai.memory.memory_types</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConversationMemoryType</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">history</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_conversation_history</span><span class="p">()</span>
+            <span class="n">new_turn</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Q: </span><span class="si">{</span><span class="n">question</span><span class="si">}</span><span class="se">\n</span><span class="s2">A: </span><span class="si">{</span><span class="n">answer</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">updated_history</span> <span class="o">=</span> <span class="n">history</span> <span class="o">+</span> <span class="n">new_turn</span>
+
+            <span class="n">memory_input</span> <span class="o">=</span> <span class="n">IMemoryInput</span><span class="p">(</span>
+                <span class="n">conversation_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">conversation_id</span><span class="p">,</span>
+                <span class="n">memory_type</span><span class="o">=</span><span class="n">ConversationMemoryType</span><span class="o">.</span><span class="n">WORKING_MEMORY</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="n">IWorkingMemory</span><span class="p">(</span><span class="n">working_memory</span><span class="o">=</span><span class="n">updated_history</span><span class="p">)]</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">memory_manager</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">memory_input</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error storing conversation: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="document-metadata-filtering">
+<h3>Document Metadata Filtering<a class="headerlink" href="#document-metadata-filtering" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">FilteredRAGAgent</span><span class="p">(</span><span class="n">RAGAgent</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;RAG with metadata filtering.&quot;&quot;&quot;</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">:</span> <span class="n">IAgentInput</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process with optional metadata filters.&quot;&quot;&quot;</span>
+
+        <span class="c1"># Extract filters from input metadata</span>
+        <span class="n">filters</span> <span class="o">=</span> <span class="nb">input</span><span class="o">.</span><span class="n">metadata</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="n">document_type</span> <span class="o">=</span> <span class="n">filters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;document_type&#39;</span><span class="p">)</span>
+        <span class="n">date_range</span> <span class="o">=</span> <span class="n">filters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;date_range&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Build filter expression</span>
+        <span class="n">filter_expr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_filter_expression</span><span class="p">(</span>
+            <span class="n">document_type</span><span class="o">=</span><span class="n">document_type</span><span class="p">,</span>
+            <span class="n">date_range</span><span class="o">=</span><span class="n">date_range</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Retrieve with filters</span>
+        <span class="n">retrieved_docs</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_retrieve_documents</span><span class="p">(</span>
+            <span class="nb">input</span><span class="o">.</span><span class="n">message</span><span class="p">,</span>
+            <span class="n">filter_expr</span><span class="o">=</span><span class="n">filter_expr</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Rest of processing...</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_context</span><span class="p">(</span><span class="n">retrieved_docs</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_response</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">message</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;response&#39;</span><span class="p">:</span> <span class="n">response</span><span class="p">,</span>
+            <span class="s1">&#39;sources&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">doc</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">retrieved_docs</span><span class="p">],</span>
+            <span class="s1">&#39;filters_applied&#39;</span><span class="p">:</span> <span class="n">filter_expr</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_build_filter_expression</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build Milvus filter expression.&quot;&quot;&quot;</span>
+        <span class="n">filters</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;document_type&#39;</span><span class="p">):</span>
+            <span class="n">filters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;type == &#39;</span><span class="si">{</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;document_type&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;date_range&#39;</span><span class="p">):</span>
+            <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;date_range&#39;</span><span class="p">]</span>
+            <span class="n">filters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;date &gt;= &#39;</span><span class="si">{</span><span class="n">start</span><span class="si">}</span><span class="s2">&#39; and date &lt;= &#39;</span><span class="si">{</span><span class="n">end</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="s2">&quot; and &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">filters</span><span class="p">)</span> <span class="k">if</span> <span class="n">filters</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="production-deployment">
+<h2>Production Deployment<a class="headerlink" href="#production-deployment" title="Link to this heading">¶</a></h2>
+<section id="environment-based-configuration">
+<h3>Environment-Based Configuration<a class="headerlink" href="#environment-based-configuration" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ProductionRAGSystem</span><span class="p">(</span><span class="n">RAGSystem</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Production-ready RAG system.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize with environment-based config.&quot;&quot;&quot;</span>
+
+        <span class="c1"># Determine environment</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;ENVIRONMENT&#39;</span><span class="p">,</span> <span class="s1">&#39;development&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Environment-specific configuration</span>
+        <span class="k">if</span> <span class="n">env</span> <span class="o">==</span> <span class="s1">&#39;production&#39;</span><span class="p">:</span>
+            <span class="n">llm_config</span> <span class="o">=</span> <span class="n">ILLMConfig</span><span class="p">(</span>
+                <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4&quot;</span><span class="p">,</span>  <span class="c1"># Better model for production</span>
+                <span class="n">temperature</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>  <span class="c1"># Lower temperature for consistency</span>
+                <span class="n">max_tokens</span><span class="o">=</span><span class="mi">1000</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Use Redis for production memory</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">arshai.memory.working_memory.redis_memory_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">RedisWorkingMemoryManager</span>
+            <span class="n">memory_manager</span> <span class="o">=</span> <span class="n">RedisWorkingMemoryManager</span><span class="p">()</span>
+
+            <span class="n">chunk_size</span> <span class="o">=</span> <span class="mi">1000</span>  <span class="c1"># Larger chunks</span>
+            <span class="n">top_k</span> <span class="o">=</span> <span class="mi">5</span>  <span class="c1"># More context</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">llm_config</span> <span class="o">=</span> <span class="n">ILLMConfig</span><span class="p">(</span>
+                <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-3.5-turbo&quot;</span><span class="p">,</span>
+                <span class="n">temperature</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
+                <span class="n">max_tokens</span><span class="o">=</span><span class="mi">500</span>
+            <span class="p">)</span>
+
+            <span class="n">memory_manager</span> <span class="o">=</span> <span class="n">InMemoryManager</span><span class="p">()</span>
+            <span class="n">chunk_size</span> <span class="o">=</span> <span class="mi">500</span>
+            <span class="n">top_k</span> <span class="o">=</span> <span class="mi">3</span>
+
+        <span class="c1"># Initialize components with env-specific config</span>
+        <span class="c1"># ... rest of initialization</span>
+</pre></div>
+</div>
+</section>
+<section id="error-handling-and-monitoring">
+<h3>Error Handling and Monitoring<a class="headerlink" href="#error-handling-and-monitoring" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
+    <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+    <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(name)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span>
+    <span class="n">handlers</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="s1">&#39;rag_system.log&#39;</span><span class="p">),</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MonitoredRAGAgent</span><span class="p">(</span><span class="n">RAGAgent</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;RAG agent with monitoring.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;RAGAgent&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">query_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_count</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">:</span> <span class="n">IAgentInput</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process with monitoring.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">query_count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing query: </span><span class="si">{</span><span class="nb">input</span><span class="o">.</span><span class="n">message</span><span class="p">[:</span><span class="mi">100</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+
+            <span class="c1"># Log success</span>
+            <span class="n">duration</span> <span class="o">=</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Query successful - Duration: </span><span class="si">{</span><span class="n">duration</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s, &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Sources: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;sources&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">result</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error_count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Query failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="c1"># Return error response</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s1">&#39;response&#39;</span><span class="p">:</span> <span class="s1">&#39;I encountered an error processing your question. Please try again.&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span>
+                <span class="s1">&#39;sources&#39;</span><span class="p">:</span> <span class="p">[]</span>
+            <span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading">¶</a></h2>
+<p><strong>Enhance the RAG system:</strong></p>
+<ul class="simple">
+<li><p>Add support for more document types (PDF, DOCX, HTML)</p></li>
+<li><p>Implement citation tracking and verification</p></li>
+<li><p>Add query expansion and rephrasing</p></li>
+<li><p>Implement answer validation</p></li>
+</ul>
+<p><strong>Scale for production:</strong></p>
+<ul class="simple">
+<li><p>Deploy with Redis memory: <a class="reference internal" href="../implementations/memory/redis-memory.html"><span class="doc">Redis Memory Manager</span></a></p></li>
+<li><p>Use production vector database (Zilliz Cloud, Pinecone)</p></li>
+<li><p>Add caching layer for frequent queries</p></li>
+<li><p>Implement rate limiting and authentication</p></li>
+</ul>
+<p><strong>Learn more:</strong></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="custom-system.html"><span class="doc">Building a Custom Agentic System</span></a> - Build custom orchestration</p></li>
+<li><p><a class="reference internal" href="../implementations/components/embeddings.html"><span class="doc">Embedding Implementations</span></a> - Explore embedding options</p></li>
+<li><p><a class="reference internal" href="../implementations/components/vector-databases.html"><span class="doc">Vector Database - Milvus Client</span></a> - Vector DB patterns</p></li>
+</ul>
+<p>Congratulations! You’ve built a complete RAG system with Arshai! 🎉</p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="custom-system.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Building a Custom Agentic System</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="simple-chatbot.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Building a Simple Chatbot</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2024, Nima Nazarian
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Building a RAG System</a><ul>
+<li><a class="reference internal" href="#project-setup">Project Setup</a><ul>
+<li><a class="reference internal" href="#install-dependencies">Install Dependencies</a></li>
+<li><a class="reference internal" href="#configure-environment">Configure Environment</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#step-1-document-processing">Step 1: Document Processing</a></li>
+<li><a class="reference internal" href="#step-2-build-rag-agent">Step 2: Build RAG Agent</a></li>
+<li><a class="reference internal" href="#step-3-build-complete-rag-system">Step 3: Build Complete RAG System</a></li>
+<li><a class="reference internal" href="#step-4-test-the-system">Step 4: Test the System</a></li>
+<li><a class="reference internal" href="#step-5-add-advanced-features">Step 5: Add Advanced Features</a><ul>
+<li><a class="reference internal" href="#hybrid-search-with-reranking">Hybrid Search with Reranking</a></li>
+<li><a class="reference internal" href="#conversation-memory-with-rag">Conversation Memory with RAG</a></li>
+<li><a class="reference internal" href="#document-metadata-filtering">Document Metadata Filtering</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#production-deployment">Production Deployment</a><ul>
+<li><a class="reference internal" href="#environment-based-configuration">Environment-Based Configuration</a></li>
+<li><a class="reference internal" href="#error-handling-and-monitoring">Error Handling and Monitoring</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=95e61db4"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=30646c52"></script>
+    </body>
+</html>
