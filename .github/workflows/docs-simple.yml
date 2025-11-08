@@ -10,10 +10,15 @@ on:
       - 'scripts/generate_api_docs.py'
       - '.github/workflows/docs-simple.yml'
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
