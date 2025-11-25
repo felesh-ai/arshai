@@ -106,7 +106,7 @@ def enable_compatibility_mode():
 # Convenience imports for backward compatibility
 def __getattr__(name):
     """Handle dynamic attribute access for backward compatibility."""
-    if name in ['IAgent', 'IAgentConfig', 'IWorkflow', 'ITool']:
+    if name in ['IAgent', 'IWorkflow']:
         warnings.warn(
             f"Importing '{name}' from arshai.compat is deprecated. "
             f"Please import from arshai.core.interfaces instead.",

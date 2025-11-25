@@ -8,7 +8,7 @@ from pathlib import Path
 from arshai import Settings
 from arshai.extensions import PluginLoader, get_plugin_registry, get_hook_manager
 from arshai.extensions.hooks import HookType
-from arshai.core.interfaces import IAgentConfig, IAgentInput
+from arshai.core.interfaces import IAgentInput
 
 
 async def main():
@@ -43,7 +43,8 @@ async def main():
     # 5. Use the plugin's custom tool
     print("\nUsing plugin's word count tool:")
     word_count_tool = example_plugin.get_word_count_tool()
-    result = await word_count_tool.execute(
+    # Tool is now a simple callable function
+    result = word_count_tool(
         text="This is a test sentence with eight words."
     )
     print(f"  Result: {result}")
@@ -55,7 +56,7 @@ async def main():
     # Simulate agent processing with hooks
     agent_input = IAgentInput(
         message="Hello, how can you help me?",
-        conversation_id="test_123"
+        metadata={"conversation_id": "test_123"}
     )
     
     # Execute before hooks

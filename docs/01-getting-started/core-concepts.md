@@ -337,7 +337,7 @@ agent = MyAgent(client, prompt)
 ### 2. Dependency Injection
 ```python
 # Dependencies passed in, not created internally
-def __init__(self, llm: ILLM, memory: IMemory):
+def __init__(self, llm: ILLM, memory: IMemoryManager):
     self.llm = llm
     self.memory = memory
 ```

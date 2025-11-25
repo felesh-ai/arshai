@@ -112,8 +112,8 @@ else:
 
 **Before:**
 ```python
-agent_config = IAgentConfig(task_context="...", tools=[])
-agent = settings.create_agent("conversation", agent_config)
+# Old Settings-based approach (deprecated)
+agent = settings.create_agent("conversation", system_prompt="...")
 ```
 
 **After:**
@@ -277,7 +277,7 @@ Here's a complete before/after example:
 ```python
 #!/usr/bin/env python3
 from src.config.settings import Settings
-from arshai.core.interfaces.iagent import IAgentConfig, IAgentInput
+from arshai.core.interfaces import IAgentInput
 
 # Settings-controlled creation
 settings = Settings("app.yaml")
@@ -288,12 +288,11 @@ memory = settings.create_memory_manager()
 vector_db, collection_config, embedding = settings.create_vector_db()
 web_search = settings.create_web_search()
 
-# Agent creation through settings
-agent_config = IAgentConfig(
-    task_context="You are a helpful assistant",
-    tools=[]
+# Agent creation through settings (deprecated pattern)
+agent = settings.create_agent(
+    "conversation",
+    system_prompt="You are a helpful assistant"
 )
-agent = settings.create_agent("conversation", agent_config)
 
 # Usage
 response = await agent.process(IAgentInput(message="Hello!"))

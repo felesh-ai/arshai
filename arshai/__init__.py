@@ -12,13 +12,12 @@ __all__ = [
     "__email__",
     # Config utilities (optional)
     "load_config",
-    # Interfaces  
+    # Interfaces
     "IAgent",
     "IAgentInput",
     "IWorkflow",
     "IWorkflowState",
-    "ITool",
-    "IMemoryManager", 
+    "IMemoryManager",
     "ILLM",
     # Implementations
     "WorkflowRunner",
@@ -35,7 +34,7 @@ def __getattr__(name):
         except ImportError as e:
             raise ImportError(f"Cannot import load_config: {e}")
     
-    elif name in ["IAgent", "IAgentInput", "IWorkflow", "IWorkflowState", "ITool", "IMemoryManager", "ILLM"]:
+    elif name in ["IAgent", "IAgentInput", "IWorkflow", "IWorkflowState", "IMemoryManager", "ILLM"]:
         try:
             from arshai.core.interfaces import __dict__ as interfaces
             if name in interfaces:

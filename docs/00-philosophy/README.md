@@ -46,8 +46,9 @@ Everything is visible and controllable:
 ```python
 # Dependencies are explicit
 class MyAgent(BaseAgent):
-    def __init__(self, llm_client: ILLM, memory: IMemory, tools: List[ITool]):
+    def __init__(self, llm_client: ILLM, memory: IMemoryManager, tools: Dict[str, Callable]):
         # You see exactly what this agent needs
+        # Tools are simple callable functions
 ```
 
 ### 4. **Composability**

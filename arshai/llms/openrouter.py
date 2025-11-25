@@ -102,7 +102,7 @@ class OpenRouterClient(BaseLLMClient):
         
         try:
             # Import the safe factory for better HTTP handling
-            from arshai.clients.utils.safe_http_client import SafeHttpClientFactory
+            from arshai.clients.safe_http_client import SafeHttpClientFactory
             
             self.logger.info("Creating OpenRouter client with safe HTTP configuration")
             

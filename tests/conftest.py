@@ -11,7 +11,6 @@ from unittest.mock import MagicMock
 from arshai.core.interfaces import IAgentInput
 from arshai.core.interfaces import ILLMConfig, ILLMInput
 from arshai.core.interfaces import ConversationMemoryType, IMemoryInput, IWorkingMemory, IMemoryManager
-from arshai.core.interfaces import ITool
 
 
 @pytest.fixture
@@ -106,22 +105,16 @@ def mock_settings():
 
 @pytest.fixture
 def mock_tool():
-    """Create a mock tool for testing."""
-    tool = MagicMock(spec=ITool)
-    tool.name = "mock_tool"
-    tool.description = "A mock tool for testing"
-    tool.function_definition = {
-        "name": "mock_tool",
-        "description": "A mock tool for testing",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "param1": {"type": "string"}
-            }
-        }
-    }
-    tool.execute.return_value = "Mock tool execution result"
-    return tool
+    """
+    Create a mock tool function for testing.
+
+    Returns a callable that can be used in regular_functions dict.
+    """
+    def mock_tool_function(param1: str) -> str:
+        """A mock tool for testing."""
+        return f"Mock tool execution result for: {param1}"
+
+    return mock_tool_function
 
 
 @pytest.fixture

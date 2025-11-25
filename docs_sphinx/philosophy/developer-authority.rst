@@ -156,7 +156,7 @@ Dependency Injection Over Service Location
 .. code-block:: python
 
    class GoodAgent:
-       def __init__(self, llm: ILLM, memory: IMemory):
+       def __init__(self, llm: ILLM, memory: IMemoryManager):
            # Dependencies are injected
            self.llm = llm
            self.memory = memory
@@ -176,7 +176,7 @@ Testing Made Simple
        mock_llm = Mock(spec=ILLM)
        mock_llm.chat.return_value = {"llm_response": "Test response"}
        
-       mock_memory = Mock(spec=IMemory)
+       mock_memory = Mock(spec=IMemoryManager)
        
        # Inject mocks
        agent = MyAgent(mock_llm, mock_memory)

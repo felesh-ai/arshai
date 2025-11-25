@@ -9,7 +9,7 @@ import importlib
 import inspect
 from pathlib import Path
 
-from arshai.core.interfaces import IAgent, ITool, IWorkflow, IMemoryManager, ILLM
+from arshai.core.interfaces import IAgent, IWorkflow, IMemoryManager, ILLM
 
 
 @dataclass
@@ -77,24 +77,20 @@ class Plugin(ABC):
         pass
     
     def register_agent(self, name: str, agent_class: Type[IAgent]) -> None:
-        """Register a new agent type."""
-        from arshai.utils.agent_utils import register_agent_type
-        register_agent_type(name, agent_class)
-    
-    def register_tool(self, tool: ITool) -> None:
-        """Register a new tool."""
-        # Tools are typically registered with agents
+        """Register a new agent type. Override in subclasses."""
         pass
-    
+
+    def register_tool(self, tool_name: str, tool_function: callable) -> None:
+        """Register a new tool function. Override in subclasses."""
+        pass
+
     def register_llm_provider(self, name: str, llm_class: Type[ILLM]) -> None:
-        """Register a new LLM provider."""
-        from arshai.utils.llm_utils import register_llm_provider
-        register_llm_provider(name, llm_class)
-    
+        """Register a new LLM provider. Override in subclasses."""
+        pass
+
     def register_memory_provider(self, name: str, memory_class: Type[IMemoryManager]) -> None:
-        """Register a new memory provider."""
-        from arshai.utils.memory_utils import register_memory_provider
-        register_memory_provider(name, memory_class)
+        """Register a new memory provider. Override in subclasses."""
+        pass
 
 
 class PluginRegistry:

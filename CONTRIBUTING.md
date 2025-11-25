@@ -334,28 +334,35 @@ LLMFactory.register("new_provider", NewLLMProvider)
 
 ```python
 # 1. Implement the IAgent protocol
-from arshai.core.interfaces.iagent import IAgent, IAgentConfig, IAgentInput, IAgentOutput
+from arshai.core.interfaces import IAgent, IAgentInput
+from typing import Any, Dict
 
-class NewAgent(IAgent):
+class NewAgent:
     """A new agent implementation."""
-    
-    def __init__(self, config: IAgentConfig, settings):
-        """Initialize with configuration and settings."""
-        self.config = config
-        self.settings = settings
-        # Additional initialization...
-    
-    def process_message(self, input: IAgentInput) -> IAgentOutput:
-        """Process a message and return a response."""
-        # Implementation...
-    
-    async def aprocess_message(self, input: IAgentInput) -> IAgentOutput:
-        """Async version of process_message."""
-        # Implementation...
 
-# 2. Register in the factory
-from src.factories.agent_factory import AgentFactory
-from src.agents.new_agent import NewAgent
+    def __init__(self, llm_client, system_prompt: str = ""):
+        """Initialize with dependencies."""
+        self.llm_client = llm_client
+        self.system_prompt = system_prompt
+        # Additional initialization...
+
+    async def process(self, input: IAgentInput) -> Any:
+        """
+        Process the input and return a response.
+
+        The return type is flexible - can be a string, dict, tuple, etc.
+        based on your agent's needs.
+        """
+        # Your implementation here
+        response = f"Processed: {input.message}"
+        return {
+            "response": response,
+            "metadata": {"processed": True}
+        }
+
+# 2. Register in the factory (if using factory pattern)
+from arshai.factories.agent_factory import AgentFactory
+from arshai.agents.new_agent import NewAgent
 
 AgentFactory.register("new_agent", NewAgent)
 ```

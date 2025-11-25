@@ -7,38 +7,22 @@ import asyncio
 
 from arshai.extensions.base import Plugin, PluginMetadata
 from arshai.extensions.hooks import hook, HookType, HookContext
-from arshai.core.interfaces import ITool, IAgent, IAgentConfig, IAgentInput
+from arshai.core.interfaces import IAgent, IAgentInput
 
 
-class WordCountTool(ITool):
-    """Example tool that counts words in text."""
-    
-    @property
-    def name(self) -> str:
-        return "word_count"
-    
-    @property
-    def description(self) -> str:
-        return "Count the number of words in a text"
-    
-    @property
-    def parameters(self) -> Dict[str, Any]:
-        return {
-            "type": "object",
-            "properties": {
-                "text": {
-                    "type": "string",
-                    "description": "The text to count words in"
-                }
-            },
-            "required": ["text"]
-        }
-    
-    async def execute(self, **kwargs) -> str:
-        """Execute the tool."""
-        text = kwargs.get("text", "")
-        word_count = len(text.split())
-        return f"The text contains {word_count} words."
+# Function-based tool implementatio
+def word_count_tool(text: str) -> str:
+    """
+    Count the number of words in a text.
+
+    Args:
+        text: The text to count words in
+
+    Returns:
+        A string with the word count
+    """
+    word_count = len(text.split())
+    return f"The text contains {word_count} words."
 
 
 class ExamplePlugin(Plugin):
@@ -65,13 +49,13 @@ class ExamplePlugin(Plugin):
     def initialize(self) -> None:
         """Initialize the plugin."""
         print(f"Initializing {self._metadata.name} v{self._metadata.version}")
-        
-        # Register our custom tool
-        self.word_count_tool = WordCountTool()
-        
+
+        # Store tool function for later use
+        self.word_count_func = word_count_tool
+
         # Register hooks
         self._register_hooks()
-        
+
         # Use configuration
         if self.config.get("verbose", False):
             print("Verbose mode enabled")
@@ -127,9 +111,14 @@ class ExamplePlugin(Plugin):
             }
         return {}
     
-    def get_word_count_tool(self) -> ITool:
-        """Get the word count tool for use with agents."""
-        return self.word_count_tool
+    def get_word_count_tool(self) -> callable:
+        """
+        Get the word count tool function for use with agents.
+
+        Returns:
+            Callable function that can be used in regular_functions
+        """
+        return self.word_count_func
 
 
 # Example of using hooks with decorators (outside the class)

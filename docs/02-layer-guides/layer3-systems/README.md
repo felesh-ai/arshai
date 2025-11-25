@@ -484,7 +484,7 @@ from arshai.workflows import WorkflowRunner, WorkflowConfig
 class CustomWorkflowSystem(WorkflowConfig):
     """Your custom workflow configuration."""
     
-    def __init__(self, llm_client: ILLM, memory_manager: IMemory):
+    def __init__(self, llm_client: ILLM, memory_manager: IMemoryManager):
         # Direct dependency injection
         super().__init__(debug_mode=True)
         self.llm_client = llm_client

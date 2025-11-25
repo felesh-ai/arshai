@@ -83,14 +83,13 @@ Arshai is an AI application framework built on **clean architecture principles**
 - **IAgent**: Core agent contract for user interactions
 - **IWorkflowOrchestrator/IWorkflowRunner**: Workflow system contracts
 - **IMemoryManager**: Memory management interface
-- **ITool**: Tool integration protocol
 - **ILLM**: Language model provider interface
 - **IVectorDBClient/IEmbedding**: Vector storage and embeddings
 
 ### Extension Points
 
 - **Custom Agents**: Implement `IAgent` interface
-- **New Tools**: Implement `ITool` interface  
+- **Custom Tools**: Create callable functions with proper type hints and docstrings
 - **LLM Providers**: Implement `ILLM` interface
 - **Memory Backends**: Implement `IMemoryManager` interface
 - **Workflow Nodes**: Extend base node classes for business logic
@@ -106,20 +105,33 @@ agent = settings.create_agent("conversation", agent_config)
 input_data = IAgentInput(message="...", conversation_id="...")
 response, usage = await agent.process_message(input_data)
 
-# Tool integration
-tools = [WebSearchTool(settings), KnowledgeBaseTool(settings)]
-agent_config = IAgentConfig(task_context="...", tools=tools)
+# Tool integration (function-based pattern)
+def search_web(query: str) -> str:
+    """Search the web for information."""
+    # Tool implementation
+    return "search results"
+
+def query_knowledge_base(question: str) -> str:
+    """Query the knowledge base."""
+    # Tool implementation
+    return "knowledge base answer"
 
 # Background tasks (fire-and-forget execution)
 def notify_admin(event: str, details: str = ""):
-    # Background task that runs independently
+    """Background task that runs independently."""
     print(f"Admin notification: {event} - {details}")
 
-background_tasks = {"send_admin_notification": notify_admin}
+# Use tools with LLM
+regular_functions = {
+    "search_web": search_web,
+    "query_knowledge_base": query_knowledge_base
+}
+background_tasks = {"notify_admin": notify_admin}
+
 llm_input = ILLMInput(
     system_prompt="...",
     user_message="...",
-    tools_list=tools,
+    regular_functions=regular_functions,
     background_tasks=background_tasks
 )
 

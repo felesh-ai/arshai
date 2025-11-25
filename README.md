@@ -350,28 +350,29 @@ class CustomerServiceAgent(BaseAgent):
 
 #### **Custom Tool Development**
 ```python
-from arshai.core.interfaces.itool import ITool
+# Function-based tool pattern - simple and powerful
+class DatabaseTools:
+    """Collection of database tool functions."""
 
-class DatabaseTool(ITool):
     def __init__(self, db_connection):
         self.db = db_connection
-    
-    async def search_products(self, query: str, category: str = None) -> List[Dict]:
+
+    def search_products(self, query: str, category: str = None) -> List[Dict]:
         """Search products in database."""
         # Your database logic
         return results
-    
+
     async def log_interaction(self, user_id: str, action: str) -> None:
         """BACKGROUND TASK: Log user interaction."""
         # Background logging, doesn't affect conversation
         await self.db.log(user_id, action)
 
 # Easy integration with agents
-db_tool = DatabaseTool(connection)
+db_tools = DatabaseTools(connection)
 agent = CustomAgent(
-    llm_client, 
-    regular_functions={"search_products": db_tool.search_products},
-    background_tasks={"log_interaction": db_tool.log_interaction}
+    llm_client,
+    regular_functions={"search_products": db_tools.search_products},
+    background_tasks={"log_interaction": db_tools.log_interaction}
 )
 ```
 

@@ -137,7 +137,7 @@ class BadAgent:
 **✅ Dependency Injection**
 ```python
 class GoodAgent:
-    def __init__(self, llm: ILLM, memory: IMemory):
+    def __init__(self, llm: ILLM, memory: IMemoryManager):
         # Dependencies are injected
         self.llm = llm
         self.memory = memory
@@ -155,7 +155,7 @@ def test_agent():
     mock_llm = Mock(spec=ILLM)
     mock_llm.chat.return_value = {"llm_response": "Test response"}
     
-    mock_memory = Mock(spec=IMemory)
+    mock_memory = Mock(spec=IMemoryManager)
     
     # Inject mocks
     agent = MyAgent(mock_llm, mock_memory)

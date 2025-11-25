@@ -132,7 +132,7 @@ class GeminiClient(BaseLLMClient):
         """
         try:
             # Import the safe factory for better HTTP handling
-            from arshai.clients.utils.safe_http_client import SafeHttpClientFactory
+            from arshai.clients.safe_http_client import SafeHttpClientFactory
             
             # Try API key authentication first (simpler)
             if self.api_key:

@@ -30,7 +30,7 @@ class BaseNode(INode):
         
         Example:
             # Create agent first
-            from arshai.agents.working_memory import WorkingMemoryAgent
+            from arshai.agents.hub.working_memory import WorkingMemoryAgent
             from arshai.llms.openai import OpenAIClient
             
             llm_client = OpenAIClient(config)
