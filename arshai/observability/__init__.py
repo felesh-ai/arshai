@@ -42,7 +42,6 @@ from .llm_observability import (
 )
 from .telemetry_manager import TelemetryManager, get_telemetry_manager, reset_telemetry_manager
 from .package_config import PackageObservabilityConfig, ObservabilityLevel, SpanKind
-from .metrics import TimingData
 from .utils import (
     observe_llm_method,
     observe_agent_operation,
@@ -74,8 +73,6 @@ __all__ = [
     "disable_observability",
     "create_provider_config",
     
-    # Data containers
-    "TimingData",
     
     # Utilities and decorators
     "observe_llm_method",

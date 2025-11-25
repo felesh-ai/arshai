@@ -30,7 +30,7 @@ from arshai.core.interfaces.illm import ILLM, ILLMConfig, ILLMInput
 from arshai.llms.utils.function_execution import FunctionOrchestrator, FunctionExecutionInput, FunctionCall, StreamingExecutionState
 
 # Import new observability system
-from arshai.observability import get_llm_observability, PackageObservabilityConfig, TimingData
+from arshai.observability import get_llm_observability, PackageObservabilityConfig
 
 T = TypeVar("T")
 
