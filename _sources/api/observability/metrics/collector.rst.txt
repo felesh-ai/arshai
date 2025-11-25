@@ -1,0 +1,28 @@
+Collector
+=========
+
+Metrics collection for performance monitoring.
+
+Classes
+-------
+
+.. autoclass:: arshai.observability.metrics.collector.Metric
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.observability.metrics.collector.MetricType
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.observability.metrics.collector.MetricsCollector
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.observability.metrics.collector.TimerContext
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

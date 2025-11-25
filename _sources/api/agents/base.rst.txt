@@ -1,0 +1,17 @@
+Base
+====
+
+Base agent implementation for the Arshai framework.
+
+This module provides the foundational BaseAgent class that all other agents
+must extend. It provides common functionality while requiring developers
+to implement their own process method.
+
+Classes
+-------
+
+.. autoclass:: arshai.agents.base.BaseAgent
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

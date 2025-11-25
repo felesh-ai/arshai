@@ -1,0 +1,17 @@
+Working Memory
+==============
+
+Working Memory Agent for the Arshai framework.
+
+This module provides an agent specialized in managing conversation working memory.
+It handles fetching conversation history, updating memory in storage systems,
+and generating memory summaries.
+
+Classes
+-------
+
+.. autoclass:: arshai.agents.hub.working_memory.WorkingMemoryAgent
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

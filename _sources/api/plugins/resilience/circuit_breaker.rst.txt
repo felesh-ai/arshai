@@ -1,0 +1,28 @@
+Circuit Breaker
+===============
+
+Circuit breaker plugin for resilient external service calls.
+
+Classes
+-------
+
+.. autoclass:: arshai.plugins.resilience.circuit_breaker.CircuitBreakerConfig
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.plugins.resilience.circuit_breaker.CircuitBreakerError
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.plugins.resilience.circuit_breaker.CircuitBreakerPlugin
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.plugins.resilience.circuit_breaker.CircuitState
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

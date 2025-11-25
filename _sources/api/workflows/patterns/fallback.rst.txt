@@ -1,0 +1,13 @@
+Fallback
+========
+
+Fallback workflow pattern for resilient execution.
+
+Classes
+-------
+
+.. autoclass:: arshai.workflows.patterns.fallback.FallbackWorkflow
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

@@ -1,0 +1,23 @@
+Safe Http Client
+================
+
+Safe HTTP client factory with version compatibility and graceful degradation.
+Resistant to package upgrades and dependency changes.
+
+This module provides a robust factory for creating HTTP clients that work across
+different package versions and gracefully degrade when advanced features are
+not available.
+
+Classes
+-------
+
+.. autoclass:: arshai.clients.safe_http_client.SafeHttpClientFactory
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.clients.safe_http_client.VersionMonitor
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

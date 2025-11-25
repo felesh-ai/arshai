@@ -1,0 +1,19 @@
+Response Parsing
+================
+
+Response parsing utilities for LLM structured outputs.
+
+Provides generic parsing and validation for structured responses
+from language models.
+
+Functions
+---------
+
+.. autofunction:: arshai.llms.utils.response_parsing.convert_typeddict_to_basemodel
+
+.. autofunction:: arshai.llms.utils.response_parsing.extract_text_from_structure
+
+.. autofunction:: arshai.llms.utils.response_parsing.parse_to_structure
+
+.. autofunction:: arshai.llms.utils.response_parsing.validate_structure_fields
+

@@ -1,0 +1,21 @@
+Config Loader
+=============
+
+Configuration loader utilities for Arshai framework.
+
+Provides optional configuration loading without imposing patterns on developers.
+Configuration files are optional - functions return empty dict if file doesn't exist.
+
+Classes
+-------
+
+.. autoclass:: arshai.config.config_loader.ConfigLoader
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Functions
+---------
+
+.. autofunction:: arshai.config.config_loader.load_config
+

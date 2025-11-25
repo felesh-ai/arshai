@@ -1,0 +1,36 @@
+Function Execution
+==================
+
+Function execution utilities for LLM tool calling - Version 2.
+
+Provides structured function orchestration with clear input/output contracts
+and resilient error handling for the Arshai agentic framework.
+
+Classes
+-------
+
+.. autoclass:: arshai.llms.utils.function_execution.FunctionCall
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.llms.utils.function_execution.FunctionExecutionInput
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.llms.utils.function_execution.FunctionExecutionResult
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.llms.utils.function_execution.FunctionOrchestrator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: arshai.llms.utils.function_execution.StreamingExecutionState
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

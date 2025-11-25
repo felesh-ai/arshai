@@ -1,0 +1,1019 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="Building Your Own Orchestration" href="building-your-own.html"><link rel="prev" title="Orchestration Reference Implementations" href="index.html">
+
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
+        <title>Workflow System - Arshai Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=580074bf" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../index.html"><div class="brand">Arshai Documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../index.html">
+  
+  <span class="sidebar-brand-text">Arshai Documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../getting-started/index.html">Getting Started</a><input aria-label="Toggle navigation of Getting Started" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/comprehensive-guide.html">Comprehensive Agent Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/first-agent.html">Build Your First Custom Agent</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting-started/quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting-started/comprehensive-guide.html">Comprehensive Agent Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Philosophy</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../philosophy/index.html">Philosophy</a><input aria-label="Toggle navigation of Philosophy" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../philosophy/introduction.html">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../philosophy/three-layer-architecture.html">Three-Layer Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../philosophy/developer-authority.html">Developer Authority</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../philosophy/design-decisions.html">Design Decisions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../philosophy/introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../philosophy/three-layer-architecture.html">Three-Layer Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../philosophy/developer-authority.html">Developer Authority</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../philosophy/design-decisions.html">Design Decisions</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Framework (Core)</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../framework/index.html">Framework Core</a><input aria-label="Toggle navigation of Framework Core" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../framework/llm-clients/index.html">LLM Clients (Layer 1)</a><input aria-label="Toggle navigation of LLM Clients (Layer 1)" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../framework/llm-clients/interface-overview.html">ILLM Interface Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../framework/llm-clients/openai-client.html">OpenAI Client</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../framework/llm-clients/azure-client.html">Azure OpenAI Client</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../framework/llm-clients/google-gemini-client.html">Google Gemini Client</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../framework/llm-clients/openrouter-client.html">OpenRouter Client</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../framework/llm-clients/extending-llm-clients.html">Extending LLM Clients</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../framework/agents/index.html">Agents (Layer 2)</a><input aria-label="Toggle navigation of Agents (Layer 2)" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../framework/agents/base-agent.html">BaseAgent Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../framework/agents/creating-agents.html">Creating Agents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../framework/agents/tools-and-callables.html">Tools and Callables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../framework/agents/agent-patterns.html">Agent Patterns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../framework/agents/stateless-design.html">Stateless Agent Design</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../framework/agents/examples/index.html">Agent Examples</a><input aria-label="Toggle navigation of Agent Examples" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../framework/agents/examples/01-basic-usage.html">Example 01: Basic Agent Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../framework/agents/examples/02-custom-agents.html">Example 02: Creating Custom Agents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../framework/agents/examples/03-memory-patterns.html">Example 3: Memory Patterns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../framework/agents/examples/04-tool-integration.html">Example 4: Tool Integration</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../agents/index.html">Agent Reference Implementations</a><input aria-label="Toggle navigation of Agent Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../agents/working-memory-agent.html">WorkingMemoryAgent Reference Implementation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../framework/building-systems/index.html">Building Systems (Layer 3)</a><input aria-label="Toggle navigation of Building Systems (Layer 3)" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../framework/building-systems/composition-patterns.html">Example 5: Agent Composition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../framework/building-systems/building-agentic-systems.html">Building Agentic Systems</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../framework/llm-clients/index.html">LLM Clients (Layer 1)</a><input aria-label="Toggle navigation of LLM Clients (Layer 1)" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../framework/llm-clients/interface-overview.html">ILLM Interface Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../framework/llm-clients/openai-client.html">OpenAI Client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../framework/llm-clients/azure-client.html">Azure OpenAI Client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../framework/llm-clients/google-gemini-client.html">Google Gemini Client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../framework/llm-clients/openrouter-client.html">OpenRouter Client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../framework/llm-clients/extending-llm-clients.html">Extending LLM Clients</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../framework/agents/index.html">Agents (Layer 2)</a><input aria-label="Toggle navigation of Agents (Layer 2)" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../framework/agents/base-agent.html">BaseAgent Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../framework/agents/creating-agents.html">Creating Agents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../framework/agents/tools-and-callables.html">Tools and Callables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../framework/agents/agent-patterns.html">Agent Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../framework/agents/stateless-design.html">Stateless Agent Design</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../framework/agents/examples/index.html">Agent Examples</a><input aria-label="Toggle navigation of Agent Examples" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../framework/agents/examples/01-basic-usage.html">Example 01: Basic Agent Usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../framework/agents/examples/02-custom-agents.html">Example 02: Creating Custom Agents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../framework/agents/examples/03-memory-patterns.html">Example 3: Memory Patterns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../framework/agents/examples/04-tool-integration.html">Example 4: Tool Integration</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../agents/index.html">Agent Reference Implementations</a><input aria-label="Toggle navigation of Agent Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../agents/working-memory-agent.html">WorkingMemoryAgent Reference Implementation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../framework/building-systems/index.html">Building Systems (Layer 3)</a><input aria-label="Toggle navigation of Building Systems (Layer 3)" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../framework/building-systems/composition-patterns.html">Example 5: Agent Composition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../framework/building-systems/building-agentic-systems.html">Building Agentic Systems</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Implementations (Reference)</span></p>
+<ul class="current">
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../index.html">Reference Implementations</a><input aria-label="Toggle navigation of Reference Implementations" checked="" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2 has-children"><a class="reference internal" href="../agents/index.html">Agent Reference Implementations</a><input aria-label="Toggle navigation of Agent Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../agents/working-memory-agent.html">WorkingMemoryAgent Reference Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l2 current has-children"><a class="reference internal" href="index.html">Orchestration Reference Implementations</a><input aria-label="Toggle navigation of Orchestration Reference Implementations" checked="" class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Workflow System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="building-your-own.html">Building Your Own Orchestration</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../memory/index.html">Memory Reference Implementations</a><input aria-label="Toggle navigation of Memory Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../memory/in-memory.html">In-Memory Manager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../memory/redis-memory.html">Redis Memory Manager</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../components/index.html">Component Reference Implementations</a><input aria-label="Toggle navigation of Component Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../components/embeddings.html">Embedding Implementations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../components/vector-databases.html">Vector Database - Milvus Client</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../agents/index.html">Agent Reference Implementations</a><input aria-label="Toggle navigation of Agent Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-19" name="toctree-checkbox-19" role="switch" type="checkbox"/><label for="toctree-checkbox-19"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../agents/working-memory-agent.html">WorkingMemoryAgent Reference Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Orchestration Reference Implementations</a><input aria-label="Toggle navigation of Orchestration Reference Implementations" checked="" class="toctree-checkbox" id="toctree-checkbox-20" name="toctree-checkbox-20" role="switch" type="checkbox"/><label for="toctree-checkbox-20"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Workflow System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="building-your-own.html">Building Your Own Orchestration</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../memory/index.html">Memory Reference Implementations</a><input aria-label="Toggle navigation of Memory Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-21" name="toctree-checkbox-21" role="switch" type="checkbox"/><label for="toctree-checkbox-21"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../memory/in-memory.html">In-Memory Manager</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../memory/redis-memory.html">Redis Memory Manager</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../components/index.html">Component Reference Implementations</a><input aria-label="Toggle navigation of Component Reference Implementations" class="toctree-checkbox" id="toctree-checkbox-22" name="toctree-checkbox-22" role="switch" type="checkbox"/><label for="toctree-checkbox-22"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../components/embeddings.html">Embedding Implementations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../components/vector-databases.html">Vector Database - Milvus Client</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../tutorials/index.html">Tutorials</a><input aria-label="Toggle navigation of Tutorials" class="toctree-checkbox" id="toctree-checkbox-23" name="toctree-checkbox-23" role="switch" type="checkbox"/><label for="toctree-checkbox-23"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/simple-chatbot.html">Building a Simple Chatbot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/rag-system.html">Building a RAG System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/custom-system.html">Building a Custom Agentic System</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../reference/index.html">API Reference</a><input aria-label="Toggle navigation of API Reference" class="toctree-checkbox" id="toctree-checkbox-24" name="toctree-checkbox-24" role="switch" type="checkbox"/><label for="toctree-checkbox-24"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../reference/interfaces.html">Interfaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../reference/base-classes.html">Base Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../reference/models.html">Models</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extending</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../extending/index.html">Extending Arshai</a><input aria-label="Toggle navigation of Extending Arshai" class="toctree-checkbox" id="toctree-checkbox-25" name="toctree-checkbox-25" role="switch" type="checkbox"/><label for="toctree-checkbox-25"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../extending/custom-agents.html">Building Custom Agents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../extending/custom-llm-clients.html">Adding LLM Providers</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="https://github.com/nimunzn/arshai/blob/main/docs_sphinx/implementations/orchestration/workflow-system.rst?plain=true" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div><div class="edit-this-page">
+  <a class="muted-link" href="https://github.com/nimunzn/arshai/edit/main/docs_sphinx/implementations/orchestration/workflow-system.rst" rel="edit" title="Edit this page">
+    <svg><use href="#svg-pencil"></use></svg>
+    <span class="visually-hidden">Edit this page</span>
+  </a>
+</div><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="workflow-system">
+<h1>Workflow System<a class="headerlink" href="#workflow-system" title="Link to this heading">¶</a></h1>
+<p>The Arshai workflow system provides a reference implementation for orchestrating multiple agents and nodes into a coordinated multi-step process. This is <strong>one way</strong> to build agentic systems in Arshai - not <strong>the way</strong>.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p><strong>This is a Reference Implementation</strong></p>
+<p>The workflow system is provided as an example of how to orchestrate agents in Arshai. You are encouraged to:</p>
+<ul class="simple">
+<li><p>Use it as-is if it fits your needs</p></li>
+<li><p>Adapt it for your specific use case</p></li>
+<li><p>Build your own custom orchestration from scratch</p></li>
+</ul>
+<p>The framework provides the building blocks - you create the solution that works for you.</p>
+</div>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>The workflow system consists of three main components:</p>
+<ol class="arabic simple">
+<li><p><strong>WorkflowRunner</strong> - Manages workflow execution and state</p></li>
+<li><p><strong>WorkflowOrchestrator</strong> - Coordinates nodes and routing logic</p></li>
+<li><p><strong>WorkflowConfig</strong> - Defines workflow structure and dependencies</p></li>
+</ol>
+<p><strong>Key Features:</strong></p>
+<ul class="simple">
+<li><p>Multi-step agent coordination</p></li>
+<li><p>State management across workflow steps</p></li>
+<li><p>Dynamic routing based on input</p></li>
+<li><p>Node-based execution graph</p></li>
+<li><p>Error handling and recovery</p></li>
+<li><p>Callback support for custom logic</p></li>
+</ul>
+</section>
+<section id="core-concepts">
+<h2>Core Concepts<a class="headerlink" href="#core-concepts" title="Link to this heading">¶</a></h2>
+<section id="workflow-architecture">
+<h3>Workflow Architecture<a class="headerlink" href="#workflow-architecture" title="Link to this heading">¶</a></h3>
+<p>The workflow system follows a node-based execution model:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>[Input] → [WorkflowRunner] → [WorkflowOrchestrator]
+                                    ↓
+                      [Node 1] → [Node 2] → [Node 3]
+                         ↓          ↓          ↓
+                      [State] ← [State] ← [State]
+                                    ↓
+                                [Output]
+</pre></div>
+</div>
+<p><strong>Workflow State</strong></p>
+<p>Carries information across the entire workflow:</p>
+<ul class="simple">
+<li><p>User context (ID, interaction count, etc.)</p></li>
+<li><p>Current step and processing path</p></li>
+<li><p>Agent-specific data</p></li>
+<li><p>Working memories</p></li>
+<li><p>Errors and notifications</p></li>
+</ul>
+<p><strong>Nodes</strong></p>
+<p>Individual processing units that:</p>
+<ul class="simple">
+<li><p>Receive workflow state as input</p></li>
+<li><p>Perform specific operations (agent processing, data transformation, etc.)</p></li>
+<li><p>Return updated state</p></li>
+<li><p>Determine next node via routing logic</p></li>
+</ul>
+</section>
+</section>
+<section id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading">¶</a></h2>
+<section id="basic-workflow-example">
+<h3>Basic Workflow Example<a class="headerlink" href="#basic-workflow-example" title="Link to this heading">¶</a></h3>
+<p>Here’s a simple workflow with three nodes:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arshai.workflows.workflow_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">WorkflowConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">arshai.workflows.workflow_runner</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseWorkflowRunner</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">arshai.workflows.node</span><span class="w"> </span><span class="kn">import</span> <span class="n">Node</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">arshai.core.interfaces.iworkflow</span><span class="w"> </span><span class="kn">import</span> <span class="n">IWorkflowState</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
+
+<span class="c1"># Step 1: Create workflow nodes</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">GreetingNode</span><span class="p">(</span><span class="n">Node</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Node that greets the user.&quot;&quot;&quot;</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">IWorkflowState</span><span class="p">,</span> <span class="n">input_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">IWorkflowState</span><span class="p">:</span>
+        <span class="c1"># Add greeting to state</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">agent_data</span><span class="p">[</span><span class="s2">&quot;greeting&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Hello, </span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">user_context</span><span class="o">.</span><span class="n">user_id</span><span class="si">}</span><span class="s2">!&quot;</span>
+        <span class="k">return</span> <span class="n">state</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ProcessingNode</span><span class="p">(</span><span class="n">Node</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Node that processes user input.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span> <span class="o">=</span> <span class="n">agent</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">IWorkflowState</span><span class="p">,</span> <span class="n">input_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">IWorkflowState</span><span class="p">:</span>
+        <span class="c1"># Process message with agent</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="n">input_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;message&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">agent_data</span><span class="p">[</span><span class="s2">&quot;response&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">response</span>
+        <span class="k">return</span> <span class="n">state</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ResponseNode</span><span class="p">(</span><span class="n">Node</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Node that formats final response.&quot;&quot;&quot;</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">IWorkflowState</span><span class="p">,</span> <span class="n">input_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">IWorkflowState</span><span class="p">:</span>
+        <span class="c1"># Combine greeting and response</span>
+        <span class="n">greeting</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">agent_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;greeting&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">agent_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;response&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">agent_data</span><span class="p">[</span><span class="s2">&quot;final_response&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">greeting</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">response</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="n">state</span>
+
+<span class="c1"># Step 2: Create workflow configuration</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SimpleWorkflowConfig</span><span class="p">(</span><span class="n">WorkflowConfig</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span> <span class="o">=</span> <span class="n">agent</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_configure_workflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workflow</span><span class="p">):</span>
+        <span class="c1"># Create nodes</span>
+        <span class="n">greeting</span> <span class="o">=</span> <span class="n">GreetingNode</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;greeting&quot;</span><span class="p">)</span>
+        <span class="n">processing</span> <span class="o">=</span> <span class="n">ProcessingNode</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;processing&quot;</span><span class="p">,</span> <span class="n">agent</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">ResponseNode</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;response&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Add nodes to workflow</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;greeting&quot;</span><span class="p">,</span> <span class="n">greeting</span><span class="p">)</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;processing&quot;</span><span class="p">,</span> <span class="n">processing</span><span class="p">)</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;response&quot;</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
+
+        <span class="c1"># Define edges (node connections)</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s2">&quot;greeting&quot;</span><span class="p">,</span> <span class="s2">&quot;processing&quot;</span><span class="p">)</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s2">&quot;processing&quot;</span><span class="p">,</span> <span class="s2">&quot;response&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Set entry point</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">set_entry_point</span><span class="p">(</span><span class="s2">&quot;greeting&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_route_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="c1"># Route all input to greeting node</span>
+        <span class="k">return</span> <span class="s2">&quot;greeting&quot;</span>
+
+<span class="c1"># Step 3: Use the workflow</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">arshai.llms.openai</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAIClient</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">arshai.core.interfaces.illm</span><span class="w"> </span><span class="kn">import</span> <span class="n">ILLMConfig</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">arshai.agents.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseAgent</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">arshai.core.interfaces.iagent</span><span class="w"> </span><span class="kn">import</span> <span class="n">IAgentInput</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">arshai.core.interfaces.illm</span><span class="w"> </span><span class="kn">import</span> <span class="n">ILLMInput</span>
+
+    <span class="c1"># Create agent</span>
+    <span class="n">llm_config</span> <span class="o">=</span> <span class="n">ILLMConfig</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-3.5-turbo&quot;</span><span class="p">)</span>
+    <span class="n">llm_client</span> <span class="o">=</span> <span class="n">OpenAIClient</span><span class="p">(</span><span class="n">llm_config</span><span class="p">)</span>
+
+    <span class="k">class</span><span class="w"> </span><span class="nc">SimpleAgent</span><span class="p">(</span><span class="n">BaseAgent</span><span class="p">):</span>
+        <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="n">llm_input</span> <span class="o">=</span> <span class="n">ILLMInput</span><span class="p">(</span>
+                <span class="n">system_prompt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">system_prompt</span><span class="p">,</span>
+                <span class="n">user_message</span><span class="o">=</span><span class="n">message</span>
+            <span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">llm_client</span><span class="o">.</span><span class="n">chat</span><span class="p">(</span><span class="n">llm_input</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;llm_response&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="n">agent</span> <span class="o">=</span> <span class="n">SimpleAgent</span><span class="p">(</span><span class="n">llm_client</span><span class="p">,</span> <span class="s2">&quot;You are a helpful assistant&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Create workflow</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">SimpleWorkflowConfig</span><span class="p">(</span><span class="n">agent</span><span class="p">)</span>
+    <span class="n">runner</span> <span class="o">=</span> <span class="n">BaseWorkflowRunner</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="c1"># Execute workflow</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">runner</span><span class="o">.</span><span class="n">execute_workflow</span><span class="p">(</span>
+        <span class="n">user_id</span><span class="o">=</span><span class="s2">&quot;user_123&quot;</span><span class="p">,</span>
+        <span class="n">input_data</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Tell me about AI&quot;</span><span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;state&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">agent_data</span><span class="p">[</span><span class="s1">&#39;final_response&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="advanced-patterns">
+<h2>Advanced Patterns<a class="headerlink" href="#advanced-patterns" title="Link to this heading">¶</a></h2>
+<section id="conditional-routing">
+<h3>Conditional Routing<a class="headerlink" href="#conditional-routing" title="Link to this heading">¶</a></h3>
+<p>Route to different nodes based on input conditions:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ConditionalWorkflowConfig</span><span class="p">(</span><span class="n">WorkflowConfig</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simple_agent</span><span class="p">,</span> <span class="n">complex_agent</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">simple_agent</span> <span class="o">=</span> <span class="n">simple_agent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">complex_agent</span> <span class="o">=</span> <span class="n">complex_agent</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_configure_workflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workflow</span><span class="p">):</span>
+        <span class="c1"># Create nodes for different complexity levels</span>
+        <span class="n">simple_node</span> <span class="o">=</span> <span class="n">SimpleProcessingNode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">simple_agent</span><span class="p">)</span>
+        <span class="n">complex_node</span> <span class="o">=</span> <span class="n">ComplexProcessingNode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">complex_agent</span><span class="p">)</span>
+        <span class="n">analysis_node</span> <span class="o">=</span> <span class="n">AnalysisNode</span><span class="p">()</span>
+
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;analyze&quot;</span><span class="p">,</span> <span class="n">analysis_node</span><span class="p">)</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;simple&quot;</span><span class="p">,</span> <span class="n">simple_node</span><span class="p">)</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;complex&quot;</span><span class="p">,</span> <span class="n">complex_node</span><span class="p">)</span>
+
+        <span class="c1"># Conditional edges based on analysis result</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_conditional_edges</span><span class="p">(</span>
+            <span class="s2">&quot;analyze&quot;</span><span class="p">,</span>
+            <span class="k">lambda</span> <span class="n">state</span><span class="p">:</span> <span class="s2">&quot;simple&quot;</span> <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">agent_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;complexity&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;low&quot;</span> <span class="k">else</span> <span class="s2">&quot;complex&quot;</span>
+        <span class="p">)</span>
+
+        <span class="n">workflow</span><span class="o">.</span><span class="n">set_entry_point</span><span class="p">(</span><span class="s2">&quot;analyze&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_route_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;analyze&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="agent-integration">
+<h3>Agent Integration<a class="headerlink" href="#agent-integration" title="Link to this heading">¶</a></h3>
+<p>Integrate multiple agents in a workflow:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MultiAgentWorkflow</span><span class="p">(</span><span class="n">WorkflowConfig</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">triage_agent</span><span class="p">,</span> <span class="n">support_agent</span><span class="p">,</span> <span class="n">escalation_agent</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">triage</span> <span class="o">=</span> <span class="n">triage_agent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">support</span> <span class="o">=</span> <span class="n">support_agent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">escalation</span> <span class="o">=</span> <span class="n">escalation_agent</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_configure_workflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workflow</span><span class="p">):</span>
+        <span class="c1"># Create nodes wrapping agents</span>
+        <span class="n">triage_node</span> <span class="o">=</span> <span class="n">AgentNode</span><span class="p">(</span><span class="s2">&quot;triage&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">triage</span><span class="p">)</span>
+        <span class="n">support_node</span> <span class="o">=</span> <span class="n">AgentNode</span><span class="p">(</span><span class="s2">&quot;support&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="p">)</span>
+        <span class="n">escalation_node</span> <span class="o">=</span> <span class="n">AgentNode</span><span class="p">(</span><span class="s2">&quot;escalation&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">escalation</span><span class="p">)</span>
+
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;triage&quot;</span><span class="p">,</span> <span class="n">triage_node</span><span class="p">)</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;support&quot;</span><span class="p">,</span> <span class="n">support_node</span><span class="p">)</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;escalation&quot;</span><span class="p">,</span> <span class="n">escalation_node</span><span class="p">)</span>
+
+        <span class="c1"># Route based on triage decision</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_conditional_edges</span><span class="p">(</span>
+            <span class="s2">&quot;triage&quot;</span><span class="p">,</span>
+            <span class="k">lambda</span> <span class="n">state</span><span class="p">:</span> <span class="n">state</span><span class="o">.</span><span class="n">agent_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;next_agent&quot;</span><span class="p">,</span> <span class="s2">&quot;support&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s2">&quot;support&quot;</span><span class="p">,</span> <span class="s2">&quot;END&quot;</span><span class="p">)</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s2">&quot;escalation&quot;</span><span class="p">,</span> <span class="s2">&quot;END&quot;</span><span class="p">)</span>
+
+        <span class="n">workflow</span><span class="o">.</span><span class="n">set_entry_point</span><span class="p">(</span><span class="s2">&quot;triage&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_route_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;triage&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="memory-enabled-workflows">
+<h3>Memory-Enabled Workflows<a class="headerlink" href="#memory-enabled-workflows" title="Link to this heading">¶</a></h3>
+<p>Workflows with conversation memory:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arshai.agents.working_memory</span><span class="w"> </span><span class="kn">import</span> <span class="n">WorkingMemoryAgent</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">arshai.memory.working_memory.in_memory_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">InMemoryManager</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MemoryWorkflowConfig</span><span class="p">(</span><span class="n">WorkflowConfig</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">llm_client</span><span class="p">,</span> <span class="n">memory_manager</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">llm_client</span> <span class="o">=</span> <span class="n">llm_client</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memory_manager</span> <span class="o">=</span> <span class="n">memory_manager</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_configure_workflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workflow</span><span class="p">):</span>
+        <span class="c1"># Create memory-enabled agent</span>
+        <span class="n">agent</span> <span class="o">=</span> <span class="n">WorkingMemoryAgent</span><span class="p">(</span>
+            <span class="n">llm_client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">llm_client</span><span class="p">,</span>
+            <span class="n">memory_manager</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memory_manager</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Create node with memory agent</span>
+        <span class="n">chat_node</span> <span class="o">=</span> <span class="n">AgentNode</span><span class="p">(</span><span class="s2">&quot;chat&quot;</span><span class="p">,</span> <span class="n">agent</span><span class="p">)</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;chat&quot;</span><span class="p">,</span> <span class="n">chat_node</span><span class="p">)</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">set_entry_point</span><span class="p">(</span><span class="s2">&quot;chat&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_route_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;chat&quot;</span>
+
+<span class="c1"># Usage</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">use_memory_workflow</span><span class="p">():</span>
+    <span class="n">llm_client</span> <span class="o">=</span> <span class="n">OpenAIClient</span><span class="p">(</span><span class="n">ILLMConfig</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-3.5-turbo&quot;</span><span class="p">))</span>
+    <span class="n">memory_manager</span> <span class="o">=</span> <span class="n">InMemoryManager</span><span class="p">()</span>
+
+    <span class="n">config</span> <span class="o">=</span> <span class="n">MemoryWorkflowConfig</span><span class="p">(</span><span class="n">llm_client</span><span class="p">,</span> <span class="n">memory_manager</span><span class="p">)</span>
+    <span class="n">runner</span> <span class="o">=</span> <span class="n">BaseWorkflowRunner</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="c1"># First interaction</span>
+    <span class="n">result1</span> <span class="o">=</span> <span class="k">await</span> <span class="n">runner</span><span class="o">.</span><span class="n">execute_workflow</span><span class="p">(</span>
+        <span class="n">user_id</span><span class="o">=</span><span class="s2">&quot;user_123&quot;</span><span class="p">,</span>
+        <span class="n">input_data</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;My name is Alice&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;conversation_id&quot;</span><span class="p">:</span> <span class="s2">&quot;conv_123&quot;</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Second interaction (agent remembers)</span>
+    <span class="n">result2</span> <span class="o">=</span> <span class="k">await</span> <span class="n">runner</span><span class="o">.</span><span class="n">execute_workflow</span><span class="p">(</span>
+        <span class="n">user_id</span><span class="o">=</span><span class="s2">&quot;user_123&quot;</span><span class="p">,</span>
+        <span class="n">input_data</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;What&#39;s my name?&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;conversation_id&quot;</span><span class="p">:</span> <span class="s2">&quot;conv_123&quot;</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="state-management">
+<h2>State Management<a class="headerlink" href="#state-management" title="Link to this heading">¶</a></h2>
+<section id="workflow-state-structure">
+<h3>Workflow State Structure<a class="headerlink" href="#workflow-state-structure" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arshai.core.interfaces.iworkflow</span><span class="w"> </span><span class="kn">import</span> <span class="n">IWorkflowState</span><span class="p">,</span> <span class="n">IUserContext</span>
+
+<span class="c1"># Workflow state contains:</span>
+<span class="n">state</span> <span class="o">=</span> <span class="n">IWorkflowState</span><span class="p">(</span>
+    <span class="n">user_context</span><span class="o">=</span><span class="n">IUserContext</span><span class="p">(</span>
+        <span class="n">user_id</span><span class="o">=</span><span class="s2">&quot;user_123&quot;</span><span class="p">,</span>
+        <span class="n">last_active</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">(),</span>
+        <span class="n">interaction_count</span><span class="o">=</span><span class="mi">0</span>
+    <span class="p">),</span>
+    <span class="n">current_step</span><span class="o">=</span><span class="s2">&quot;processing&quot;</span><span class="p">,</span>
+    <span class="n">step_count</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="n">processing_path</span><span class="o">=</span><span class="s2">&quot;simple&quot;</span><span class="p">,</span>
+    <span class="n">agent_data</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;response&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span><span class="o">...</span><span class="p">}</span>
+    <span class="p">},</span>
+    <span class="n">working_memories</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;conversation_id&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span>
+    <span class="p">},</span>
+    <span class="n">errors</span><span class="o">=</span><span class="p">[]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="accessing-state-in-nodes">
+<h3>Accessing State in Nodes<a class="headerlink" href="#accessing-state-in-nodes" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">CustomNode</span><span class="p">(</span><span class="n">Node</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">IWorkflowState</span><span class="p">,</span> <span class="n">input_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">IWorkflowState</span><span class="p">:</span>
+        <span class="c1"># Access user context</span>
+        <span class="n">user_id</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">user_context</span><span class="o">.</span><span class="n">user_id</span>
+
+        <span class="c1"># Read from agent_data</span>
+        <span class="n">previous_response</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">agent_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;previous_response&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Update agent_data</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">agent_data</span><span class="p">[</span><span class="s2">&quot;new_data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;some value&quot;</span>
+
+        <span class="c1"># Track errors</span>
+        <span class="k">if</span> <span class="n">some_error</span><span class="p">:</span>
+            <span class="n">state</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Error description&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Increment step count</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">step_count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">state</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="error-handling">
+<h2>Error Handling<a class="headerlink" href="#error-handling" title="Link to this heading">¶</a></h2>
+<section id="handling-errors-in-workflows">
+<h3>Handling Errors in Workflows<a class="headerlink" href="#handling-errors-in-workflows" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ErrorHandlingNode</span><span class="p">(</span><span class="n">Node</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">IWorkflowState</span><span class="p">,</span> <span class="n">input_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">IWorkflowState</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Attempt processing</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span>
+            <span class="n">state</span><span class="o">.</span><span class="n">agent_data</span><span class="p">[</span><span class="s2">&quot;result&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># Log error</span>
+            <span class="n">state</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing error: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Set error state</span>
+            <span class="n">state</span><span class="o">.</span><span class="n">agent_data</span><span class="p">[</span><span class="s2">&quot;has_error&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">state</span><span class="o">.</span><span class="n">agent_data</span><span class="p">[</span><span class="s2">&quot;error_message&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">state</span>
+
+<span class="c1"># Configure error handling in workflow</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RobustWorkflowConfig</span><span class="p">(</span><span class="n">WorkflowConfig</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_configure_workflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workflow</span><span class="p">):</span>
+        <span class="n">processing_node</span> <span class="o">=</span> <span class="n">ErrorHandlingNode</span><span class="p">(</span><span class="s2">&quot;processing&quot;</span><span class="p">)</span>
+        <span class="n">error_node</span> <span class="o">=</span> <span class="n">ErrorRecoveryNode</span><span class="p">(</span><span class="s2">&quot;error_recovery&quot;</span><span class="p">)</span>
+        <span class="n">success_node</span> <span class="o">=</span> <span class="n">SuccessNode</span><span class="p">(</span><span class="s2">&quot;success&quot;</span><span class="p">)</span>
+
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;processing&quot;</span><span class="p">,</span> <span class="n">processing_node</span><span class="p">)</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;error_recovery&quot;</span><span class="p">,</span> <span class="n">error_node</span><span class="p">)</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;success&quot;</span><span class="p">,</span> <span class="n">success_node</span><span class="p">)</span>
+
+        <span class="c1"># Conditional routing based on errors</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_conditional_edges</span><span class="p">(</span>
+            <span class="s2">&quot;processing&quot;</span><span class="p">,</span>
+            <span class="k">lambda</span> <span class="n">state</span><span class="p">:</span> <span class="s2">&quot;error_recovery&quot;</span> <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">agent_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;has_error&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;success&quot;</span>
+        <span class="p">)</span>
+
+        <span class="n">workflow</span><span class="o">.</span><span class="n">set_entry_point</span><span class="p">(</span><span class="s2">&quot;processing&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="callbacks">
+<h2>Callbacks<a class="headerlink" href="#callbacks" title="Link to this heading">¶</a></h2>
+<section id="using-callbacks-for-custom-logic">
+<h3>Using Callbacks for Custom Logic<a class="headerlink" href="#using-callbacks-for-custom-logic" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">execute_with_callbacks</span><span class="p">():</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_node_start</span><span class="p">(</span><span class="n">node_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Starting node: </span><span class="si">{</span><span class="n">node_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_node_complete</span><span class="p">(</span><span class="n">node_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">IWorkflowState</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Completed node: </span><span class="si">{</span><span class="n">node_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current step: </span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">current_step</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">callbacks</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;on_node_start&quot;</span><span class="p">:</span> <span class="n">on_node_start</span><span class="p">,</span>
+        <span class="s2">&quot;on_node_complete&quot;</span><span class="p">:</span> <span class="n">on_node_complete</span>
+    <span class="p">}</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">runner</span><span class="o">.</span><span class="n">execute_workflow</span><span class="p">(</span>
+        <span class="n">user_id</span><span class="o">=</span><span class="s2">&quot;user_123&quot;</span><span class="p">,</span>
+        <span class="n">input_data</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Hello&quot;</span><span class="p">},</span>
+        <span class="n">callbacks</span><span class="o">=</span><span class="n">callbacks</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="best-practices">
+<h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p><strong>Single Responsibility Nodes</strong>
+Each node should have one clear purpose.</p></li>
+<li><p><strong>Immutable State</strong>
+Create new state objects rather than modifying existing ones when possible.</p></li>
+<li><p><strong>Error Handling</strong>
+Always handle errors in nodes to prevent workflow crashes.</p></li>
+<li><p><strong>State Validation</strong>
+Validate state before and after node execution.</p></li>
+<li><p><strong>Testing</strong>
+Test nodes independently before integrating into workflows.</p></li>
+<li><p><strong>Documentation</strong>
+Document node purpose, inputs, and outputs clearly.</p></li>
+</ol>
+</section>
+<section id="example-complete-customer-service-workflow">
+<h2>Example: Complete Customer Service Workflow<a class="headerlink" href="#example-complete-customer-service-workflow" title="Link to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">CustomerServiceWorkflow</span><span class="p">(</span><span class="n">WorkflowConfig</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">llm_client</span><span class="p">,</span> <span class="n">memory_manager</span><span class="p">,</span> <span class="n">knowledge_base</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">llm_client</span> <span class="o">=</span> <span class="n">llm_client</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memory_manager</span> <span class="o">=</span> <span class="n">memory_manager</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">knowledge_base</span> <span class="o">=</span> <span class="n">knowledge_base</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_configure_workflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workflow</span><span class="p">):</span>
+        <span class="c1"># Create specialized agents</span>
+        <span class="n">triage_agent</span> <span class="o">=</span> <span class="n">TriageAgent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">llm_client</span><span class="p">)</span>
+        <span class="n">support_agent</span> <span class="o">=</span> <span class="n">SupportAgent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">llm_client</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">knowledge_base</span><span class="p">)</span>
+        <span class="n">escalation_agent</span> <span class="o">=</span> <span class="n">EscalationAgent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">llm_client</span><span class="p">)</span>
+
+        <span class="c1"># Create nodes</span>
+        <span class="n">triage_node</span> <span class="o">=</span> <span class="n">AgentNode</span><span class="p">(</span><span class="s2">&quot;triage&quot;</span><span class="p">,</span> <span class="n">triage_agent</span><span class="p">)</span>
+        <span class="n">support_node</span> <span class="o">=</span> <span class="n">AgentNode</span><span class="p">(</span><span class="s2">&quot;support&quot;</span><span class="p">,</span> <span class="n">support_agent</span><span class="p">)</span>
+        <span class="n">escalation_node</span> <span class="o">=</span> <span class="n">AgentNode</span><span class="p">(</span><span class="s2">&quot;escalation&quot;</span><span class="p">,</span> <span class="n">escalation_agent</span><span class="p">)</span>
+        <span class="n">memory_node</span> <span class="o">=</span> <span class="n">MemoryNode</span><span class="p">(</span><span class="s2">&quot;memory&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory_manager</span><span class="p">)</span>
+
+        <span class="c1"># Add to workflow</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;triage&quot;</span><span class="p">,</span> <span class="n">triage_node</span><span class="p">)</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;support&quot;</span><span class="p">,</span> <span class="n">support_node</span><span class="p">)</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;escalation&quot;</span><span class="p">,</span> <span class="n">escalation_node</span><span class="p">)</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;memory&quot;</span><span class="p">,</span> <span class="n">memory_node</span><span class="p">)</span>
+
+        <span class="c1"># Define routing</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_conditional_edges</span><span class="p">(</span>
+            <span class="s2">&quot;triage&quot;</span><span class="p">,</span>
+            <span class="k">lambda</span> <span class="n">state</span><span class="p">:</span> <span class="n">state</span><span class="o">.</span><span class="n">agent_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;route&quot;</span><span class="p">,</span> <span class="s2">&quot;support&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s2">&quot;support&quot;</span><span class="p">,</span> <span class="s2">&quot;memory&quot;</span><span class="p">)</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s2">&quot;escalation&quot;</span><span class="p">,</span> <span class="s2">&quot;memory&quot;</span><span class="p">)</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s2">&quot;memory&quot;</span><span class="p">,</span> <span class="s2">&quot;END&quot;</span><span class="p">)</span>
+
+        <span class="n">workflow</span><span class="o">.</span><span class="n">set_entry_point</span><span class="p">(</span><span class="s2">&quot;triage&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_route_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;triage&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="when-to-use-workflows">
+<h2>When to Use Workflows<a class="headerlink" href="#when-to-use-workflows" title="Link to this heading">¶</a></h2>
+<p><strong>Use the workflow system when:</strong></p>
+<ul class="simple">
+<li><p>You have multi-step processes with clear stages</p></li>
+<li><p>You need state management across steps</p></li>
+<li><p>You want declarative orchestration</p></li>
+<li><p>You have conditional routing requirements</p></li>
+</ul>
+<p><strong>Consider alternatives when:</strong></p>
+<ul class="simple">
+<li><p>You have simple sequential processing (use pipelines)</p></li>
+<li><p>You need dynamic, LLM-driven orchestration (build custom)</p></li>
+<li><p>You have very complex routing (build custom)</p></li>
+<li><p>The workflow structure is too rigid for your needs</p></li>
+</ul>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong>Build Your Own</strong>: See <a class="reference internal" href="building-your-own.html"><span class="doc">Building Your Own Orchestration</span></a> for custom orchestration patterns</p></li>
+<li><p><strong>Examples</strong>: Check the <a class="reference external" href="https://github.com/felesh-ai/arshai/tree/main/examples">examples/ directory</a> for complete workflow examples</p></li>
+<li><p><strong>Framework Patterns</strong>: Review <a class="reference internal" href="../../framework/building-systems/index.html"><span class="doc">Building Systems (Layer 3)</span></a> for system building concepts</p></li>
+</ul>
+<p>Remember: This is <strong>one way</strong> to orchestrate agents in Arshai. The framework empowers you to build the solution that fits your specific needs.</p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="building-your-own.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Building Your Own Orchestration</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="index.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Orchestration Reference Implementations</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2024, Nima Nazarian
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Workflow System</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#core-concepts">Core Concepts</a><ul>
+<li><a class="reference internal" href="#workflow-architecture">Workflow Architecture</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#getting-started">Getting Started</a><ul>
+<li><a class="reference internal" href="#basic-workflow-example">Basic Workflow Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#advanced-patterns">Advanced Patterns</a><ul>
+<li><a class="reference internal" href="#conditional-routing">Conditional Routing</a></li>
+<li><a class="reference internal" href="#agent-integration">Agent Integration</a></li>
+<li><a class="reference internal" href="#memory-enabled-workflows">Memory-Enabled Workflows</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#state-management">State Management</a><ul>
+<li><a class="reference internal" href="#workflow-state-structure">Workflow State Structure</a></li>
+<li><a class="reference internal" href="#accessing-state-in-nodes">Accessing State in Nodes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#error-handling">Error Handling</a><ul>
+<li><a class="reference internal" href="#handling-errors-in-workflows">Handling Errors in Workflows</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#callbacks">Callbacks</a><ul>
+<li><a class="reference internal" href="#using-callbacks-for-custom-logic">Using Callbacks for Custom Logic</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#best-practices">Best Practices</a></li>
+<li><a class="reference internal" href="#example-complete-customer-service-workflow">Example: Complete Customer Service Workflow</a></li>
+<li><a class="reference internal" href="#when-to-use-workflows">When to Use Workflows</a></li>
+<li><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../../_static/documentation_options.js?v=95e61db4"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=30646c52"></script>
+    </body>
+</html>

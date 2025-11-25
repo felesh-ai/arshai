@@ -1,0 +1,11 @@
+Searxng
+=======
+
+Classes
+-------
+
+.. autoclass:: arshai.web_search.searxng.SearxNGClient
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

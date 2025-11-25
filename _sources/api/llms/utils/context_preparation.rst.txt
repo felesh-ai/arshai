@@ -1,0 +1,13 @@
+Context Preparation
+===================
+
+Context preparation utilities for LLM inputs.
+
+Provides generic instruction building that can be reused across different LLM providers.
+Conversation context building remains provider-specific.
+
+Functions
+---------
+
+.. autofunction:: arshai.llms.utils.context_preparation.build_enhanced_instructions
+
