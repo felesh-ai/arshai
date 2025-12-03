@@ -32,7 +32,7 @@ except ImportError:
 
 from .package_config import PackageObservabilityConfig
 from .telemetry_manager import get_telemetry_manager, TelemetryManager
-from .metrics import TimingData
+from .timing_data import TimingData
 
 # OpenInference SpanAttributes for compatibility
 try:

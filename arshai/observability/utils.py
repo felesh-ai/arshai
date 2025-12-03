@@ -12,7 +12,7 @@ from contextlib import asynccontextmanager
 
 from .llm_observability import get_llm_observability
 from .package_config import PackageObservabilityConfig
-from .metrics import TimingData
+from .timing_data import TimingData
 
 
 logger = logging.getLogger(__name__)

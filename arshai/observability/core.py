@@ -17,7 +17,8 @@ except ImportError:
     OTEL_AVAILABLE = False
 
 from .config import ObservabilityConfig
-from .metrics import MetricsCollector, TimingData
+from .metrics import MetricsCollector
+from .timing_data import TimingData
 
 
 class ObservabilityManager:

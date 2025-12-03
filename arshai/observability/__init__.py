@@ -37,11 +37,12 @@ Example usage:
 # Comprehensive observability system supporting all span types
 from .llm_observability import (
     ArshaiObservability, LLMObservability,  # LLMObservability is backwards compatibility alias
-    get_llm_observability, get_observability, 
+    get_llm_observability, get_observability,
     reset_llm_observability, reset_observability
 )
 from .telemetry_manager import TelemetryManager, get_telemetry_manager, reset_telemetry_manager
 from .package_config import PackageObservabilityConfig, ObservabilityLevel, SpanKind
+from .timing_data import TimingData
 from .utils import (
     observe_llm_method,
     observe_agent_operation,
@@ -55,28 +56,30 @@ from .utils import (
 # Main exports
 __all__ = [
     # Core observability system
-    "ArshaiObservability", 
+    "ArshaiObservability",
     "LLMObservability",  # Backwards compatibility
     "get_observability",
-    "get_llm_observability", 
+    "get_llm_observability",
     "reset_observability",
     "reset_llm_observability",
     "TelemetryManager",
     "get_telemetry_manager",
     "reset_telemetry_manager",
-    
+
+    # Data classes
+    "TimingData",
+
     # Configuration
     "PackageObservabilityConfig",
-    "ObservabilityLevel", 
+    "ObservabilityLevel",
     "SpanKind",
     "configure_observability_from_env",
     "disable_observability",
     "create_provider_config",
-    
-    
+
     # Utilities and decorators
     "observe_llm_method",
-    "observe_agent_operation", 
+    "observe_agent_operation",
     "observe_workflow_step",
     "ObservabilityMixin",
 ]
