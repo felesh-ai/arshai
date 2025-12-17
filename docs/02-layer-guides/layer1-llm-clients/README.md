@@ -22,24 +22,27 @@ graph TB
         UI --> BT[background_tasks]
         UI --> ST[structure_type]
     end
-    
+
     subgraph "Provider Implementations"
         O[OpenAI Client<br/>• Direct API integration<br/>• Function-based structured output<br/>• Delta streaming]
         G[Gemini Client<br/>• Native SDK integration<br/>• Dual authentication<br/>• Auto-schema generation]
         A[Azure Client<br/>• Enterprise deployment<br/>• Native structured parsing<br/>• Event-driven streaming]
         R[OpenRouter Client<br/>• HTTP proxy access<br/>• Safe connection handling<br/>• Multi-model access]
+        CF[Cloudflare Gateway<br/>• BYOK mode<br/>• Multi-provider unified endpoint<br/>• Centralized caching]
     end
-    
+
     UI --> O
     UI --> G
     UI --> A
     UI --> R
-    
+    UI --> CF
+
     style UI fill:#e1f5fe
     style O fill:#fff3e0
     style G fill:#e8f5e8
     style A fill:#f3e5f5
     style R fill:#ffebee
+    style CF fill:#fff9c4
 ```
 
 **Provider-Specific Strengths:**
@@ -47,6 +50,7 @@ graph TB
 - **Google Gemini**: Native SDK with dual authentication support
 - **Azure OpenAI**: Enterprise deployment with native structured parsing
 - **OpenRouter**: HTTP proxy client with safe connection handling
+- **Cloudflare Gateway**: BYOK mode with centralized key management and caching
 
 ## Basic Usage
 
@@ -310,6 +314,44 @@ config = ILLMConfig(
     temperature=0.7
 )
 ```
+
+### Cloudflare AI Gateway Configuration (BYOK)
+
+Cloudflare AI Gateway uses BYOK (Bring Your Own Key) mode where provider API keys are stored in the Cloudflare dashboard, not in your code. Only the gateway token is needed.
+
+```python
+from arshai.llms import CloudflareGatewayLLM, CloudflareGatewayLLMConfig
+
+# CLOUDFLARE_GATEWAY_TOKEN=your_gateway_token (or pass in config)
+
+config = CloudflareGatewayLLMConfig(
+    account_id="your-cloudflare-account-id",
+    gateway_id="your-gateway-id",
+    gateway_token="your-gateway-token",  # Or use env var
+    provider="openrouter",               # Provider name
+    model="openai/gpt-4o-mini",          # Model name
+    temperature=0.7,
+)
+
+client = CloudflareGatewayLLM(config)
+```
+
+**Benefits of Cloudflare Gateway:**
+- Centralized API key management (keys stored in Cloudflare)
+- Multi-provider access from single gateway
+- Built-in caching and rate limiting
+- Unified analytics dashboard
+- Easy provider switching without code changes
+
+**Supported Providers:**
+- `openai` - GPT-4, GPT-4o, GPT-3.5
+- `anthropic` - Claude 3.5 Sonnet, Claude 3 Opus
+- `google-ai-studio` - Gemini Pro, Gemini Flash
+- `openrouter` - Access to 100+ models
+- `groq` - Llama, Mixtral
+- `mistral` - Mistral Large, Medium
+- `cohere` - Command R+
+- And more...
 
 ## Best Practices
 
