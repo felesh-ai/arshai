@@ -23,6 +23,7 @@ Overview
 1. **OpenAI Embeddings** - High-quality general-purpose embeddings
 2. **VoyageAI Embeddings** - Specialized embeddings for various domains
 3. **MGTE Embeddings** - Multi-granularity text embeddings
+4. **Cloudflare AI Gateway Embeddings** - Multi-provider embeddings via Cloudflare (BYOK mode)
 
 All implementations provide:
 
@@ -319,6 +320,144 @@ Basic Usage
    result = embedder.embed_documents(documents)
    print(f"Dimension: {embedder.dimension}")
 
+Cloudflare AI Gateway Embeddings
+--------------------------------
+
+Multi-provider embeddings through Cloudflare AI Gateway using BYOK (Bring Your Own Key) mode.
+Provider API keys are stored securely in Cloudflare, and you only need the gateway token.
+
+.. note::
+   **BYOK Mode**: Provider API keys are configured in Cloudflare AI Gateway dashboard.
+   Only the gateway token is needed in your application code.
+
+Configuration
+~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   from arshai.embeddings import CloudflareGatewayEmbedding, CloudflareGatewayEmbeddingConfig
+
+   # Configure (BYOK mode)
+   config = CloudflareGatewayEmbeddingConfig(
+       account_id="your-cloudflare-account-id",
+       gateway_id="your-gateway-id",
+       gateway_token="your-gateway-token",  # Or set CLOUDFLARE_GATEWAY_TOKEN env var
+       provider="openrouter",               # Provider name
+       model_name="openai/text-embedding-3-small",  # Model name
+   )
+
+   # Create embedding instance
+   embedder = CloudflareGatewayEmbedding(config)
+   print(f"Dimension: {embedder.dimension}")
+
+Supported Providers
+~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 35 35
+
+   * - Provider
+     - Example Models
+     - Dimension
+   * - ``openrouter``
+     - openai/text-embedding-3-small
+     - 1536
+   * - ``openai``
+     - text-embedding-3-small, text-embedding-3-large
+     - 1536 / 3072
+   * - ``cohere``
+     - embed-english-v3.0, embed-multilingual-v3.0
+     - 1024
+   * - ``mistral``
+     - mistral-embed
+     - 1024
+   * - ``workers-ai``
+     - bge-base-en-v1.5, bge-large-en-v1.5
+     - 768 / 1024
+
+Basic Usage
+~~~~~~~~~~~
+
+.. code-block:: python
+
+   from arshai.embeddings import CloudflareGatewayEmbedding, CloudflareGatewayEmbeddingConfig
+
+   # Initialize
+   config = CloudflareGatewayEmbeddingConfig(
+       account_id="xxx",
+       gateway_id="my-gateway",
+       gateway_token="xxx",
+       provider="openrouter",
+       model_name="openai/text-embedding-3-small",
+   )
+   embedder = CloudflareGatewayEmbedding(config)
+
+   # Embed documents
+   documents = [
+       "Artificial intelligence is transforming technology",
+       "Machine learning powers modern AI systems",
+   ]
+
+   result = embedder.embed_documents(documents)
+   vectors = result["dense"]
+
+   print(f"Embedded {len(vectors)} documents")
+   print(f"Vector dimension: {len(vectors[0])}")
+
+   # Embed single document
+   single_result = embedder.embed_document("What is AI?")
+   print(f"Single embedding dimension: {len(single_result['dense'])}")
+
+Async Usage
+~~~~~~~~~~~
+
+.. code-block:: python
+
+   import asyncio
+
+   async def embed_async():
+       config = CloudflareGatewayEmbeddingConfig(
+           account_id="xxx",
+           gateway_id="my-gateway",
+           gateway_token="xxx",
+           provider="openrouter",
+           model_name="openai/text-embedding-3-small",
+       )
+       embedder = CloudflareGatewayEmbedding(config)
+
+       documents = ["Document 1", "Document 2", "Document 3"]
+
+       # Async embedding
+       result = await embedder.aembed_documents(documents)
+       print(f"Embedded {len(result['dense'])} documents asynchronously")
+
+   asyncio.run(embed_async())
+
+Health Check
+~~~~~~~~~~~~
+
+.. code-block:: python
+
+   # Check if embedding service is healthy
+   health = embedder.health_check()
+
+   print(f"Initialized: {health['initialized']}")
+   print(f"Provider: {health['provider']}")
+   print(f"Model: {health['model']}")
+   print(f"Healthy: {health['healthy']}")
+   if health.get('latency_ms'):
+       print(f"Latency: {health['latency_ms']:.2f}ms")
+
+Benefits of Cloudflare Gateway
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. **Centralized Key Management** - Provider keys stored in Cloudflare, not in code
+2. **Multi-Provider Access** - Switch providers by changing config
+3. **Unified Caching** - Built-in caching reduces costs
+4. **Analytics** - Monitor usage across all providers
+5. **Rate Limiting** - Unified rate limit management
+
 Advanced Usage
 --------------
 
@@ -495,6 +634,14 @@ Choosing an Embedding Provider
 - You have GPU resources available
 - Privacy is a concern
 
+**Use Cloudflare Gateway when:**
+
+- You want centralized API key management
+- You need multi-provider access from one interface
+- You want unified caching and analytics
+- You're already using Cloudflare AI Gateway for LLMs
+- You need to switch providers without code changes
+
 Performance Comparison
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -518,6 +665,10 @@ Performance Comparison
      - Medium
      - Good
      - Free (local)
+   * - Cloudflare Gateway
+     - Fast
+     - Depends on provider
+     - API calls + caching savings
 
 Building Custom Embeddings
 ---------------------------

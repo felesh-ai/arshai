@@ -12,6 +12,7 @@ Layer 1 provides standardized access to different language model providers throu
    azure-client
    google-gemini-client
    openrouter-client
+   cloudflare-gateway-client
    extending-llm-clients
 
 Core Philosophy
@@ -128,7 +129,7 @@ Available Providers
    - Features: Same as OpenAI with Azure-specific configuration
    - Configuration: Azure endpoint, API key, deployment names
 
-**Google Gemini** (``arshai.llms.google_genai.GoogleGenAIClient``)
+**Google Gemini** (``arshai.llms.google_genai.GeminiClient``)
    - Models: Gemini Pro, Gemini Pro Vision
    - Features: Chat, streaming, function calling (reference implementation)
    - Configuration: Google AI API key
@@ -137,6 +138,11 @@ Available Providers
    - Models: Access to multiple providers through OpenRouter
    - Features: Unified access to Claude, GPT, Llama, and more
    - Configuration: OpenRouter API key
+
+**Cloudflare AI Gateway** (``arshai.llms.CloudflareGatewayLLM``)
+   - Models: Access to multiple providers through Cloudflare's unified endpoint
+   - Features: BYOK mode, centralized caching, unified analytics
+   - Configuration: Gateway token (provider keys stored in Cloudflare)
 
 Interface Details
 -----------------
