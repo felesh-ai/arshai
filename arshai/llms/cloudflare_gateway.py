@@ -57,13 +57,24 @@ class CloudflareGatewayLLMConfig(ILLMConfig):
     The gateway routes requests to multiple providers through a unified endpoint.
     Users specify provider and model separately for clarity.
 
-    Example:
+    Examples:
+        # Basic usage
         config = CloudflareGatewayLLMConfig(
             account_id="your-account-id",
             gateway_id="your-gateway-id",
             gateway_token="your-gateway-token",  # or set CLOUDFLARE_GATEWAY_TOKEN env var
             provider="anthropic",
             model="claude-sonnet-4-5",
+        )
+
+        # Custom Cloudflare endpoint (e.g., regional)
+        config = CloudflareGatewayLLMConfig(
+            account_id="your-account-id",
+            gateway_id="your-gateway-id",
+            gateway_token="your-gateway-token",
+            provider="openai",
+            model="gpt-4o",
+            cloudflare_base_url="https://gateway.ai.cloudflare.cn",
         )
     """
 
@@ -86,6 +97,12 @@ class CloudflareGatewayLLMConfig(ILLMConfig):
         description="Cloudflare AI Gateway token. Falls back to CLOUDFLARE_GATEWAY_TOKEN env var."
     )
 
+    # Cloudflare Gateway base URL (configurable for custom/regional endpoints)
+    cloudflare_base_url: str = Field(
+        default="https://gateway.ai.cloudflare.com",
+        description="Cloudflare AI Gateway base URL. Override for custom or regional endpoints."
+    )
+
     # Standard LLM settings (inherited from ILLMConfig)
     temperature: float = Field(default=0.7)
     max_tokens: Optional[int] = Field(default=None)
@@ -97,8 +114,8 @@ class CloudflareGatewayLLMConfig(ILLMConfig):
 
     @property
     def base_url(self) -> str:
-        """Get the Cloudflare AI Gateway base URL."""
-        return f"https://gateway.ai.cloudflare.com/v1/{self.account_id}/{self.gateway_id}"
+        """Get the base URL for Cloudflare AI Gateway."""
+        return f"{self.cloudflare_base_url}/v1/{self.account_id}/{self.gateway_id}"
 
     @property
     def compat_base_url(self) -> str:
@@ -132,7 +149,7 @@ class CloudflareGatewayLLM(BaseLLMClient):
     The /compat endpoint uses model format: "{provider}/{model}"
     Example: "openrouter/openai/gpt-4o-mini", "anthropic/claude-sonnet-4-5"
 
-    Example:
+    Examples:
         config = CloudflareGatewayLLMConfig(
             account_id="xxx",
             gateway_id="my-gateway",

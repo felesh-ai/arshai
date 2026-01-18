@@ -776,6 +776,79 @@ class TestCloudflareGatewayLLMClient:
             client.close()
 
 
+class TestCloudflareGatewayCustomBaseUrl:
+    """Test class for Cloudflare Gateway custom base URL configuration (no API calls required)"""
+
+    def test_default_cloudflare_base_url(self):
+        """Test that default config uses standard Cloudflare base URL"""
+        config = CloudflareGatewayLLMConfig(
+            account_id="test-account",
+            gateway_id="test-gateway",
+            gateway_token="test-token",
+            provider="openai",
+            model="gpt-4o",
+        )
+
+        assert config.cloudflare_base_url == "https://gateway.ai.cloudflare.com"
+        assert config.base_url == "https://gateway.ai.cloudflare.com/v1/test-account/test-gateway"
+        assert config.compat_base_url == "https://gateway.ai.cloudflare.com/v1/test-account/test-gateway/compat"
+        logger.info("✅ Default Cloudflare base URL test passed")
+
+    def test_custom_cloudflare_base_url(self):
+        """Test config with custom Cloudflare base URL (e.g., regional endpoint)"""
+        config = CloudflareGatewayLLMConfig(
+            account_id="test-account",
+            gateway_id="test-gateway",
+            gateway_token="test-token",
+            provider="openai",
+            model="gpt-4o",
+            cloudflare_base_url="https://gateway.ai.cloudflare.cn",
+        )
+
+        assert config.cloudflare_base_url == "https://gateway.ai.cloudflare.cn"
+        assert config.base_url == "https://gateway.ai.cloudflare.cn/v1/test-account/test-gateway"
+        assert config.compat_base_url == "https://gateway.ai.cloudflare.cn/v1/test-account/test-gateway/compat"
+        logger.info("✅ Custom Cloudflare base URL test passed")
+
+    def test_provider_base_url_with_custom_base(self):
+        """Test provider_base_url property with custom base URL"""
+        config = CloudflareGatewayLLMConfig(
+            account_id="test-account",
+            gateway_id="test-gateway",
+            gateway_token="test-token",
+            provider="anthropic",
+            model="claude-sonnet-4-5",
+            cloudflare_base_url="https://custom-gateway.example.com",
+        )
+
+        assert config.provider_base_url == "https://custom-gateway.example.com/v1/test-account/test-gateway/anthropic/v1"
+        logger.info("✅ Provider base URL with custom base test passed")
+
+    def test_full_model_name_unchanged_by_base_url(self):
+        """Test that full_model_name is not affected by base URL settings"""
+        config_default = CloudflareGatewayLLMConfig(
+            account_id="test-account",
+            gateway_id="test-gateway",
+            gateway_token="test-token",
+            provider="openrouter",
+            model="openai/gpt-4o-mini",
+        )
+
+        config_custom = CloudflareGatewayLLMConfig(
+            account_id="test-account",
+            gateway_id="test-gateway",
+            gateway_token="test-token",
+            provider="openrouter",
+            model="openai/gpt-4o-mini",
+            cloudflare_base_url="https://custom-gateway.example.com",
+        )
+
+        assert config_default.full_model_name == "openrouter/openai/gpt-4o-mini"
+        assert config_custom.full_model_name == "openrouter/openai/gpt-4o-mini"
+        assert config_default.full_model_name == config_custom.full_model_name
+        logger.info("✅ Full model name unchanged by base URL test passed")
+
+
 # Run tests with: pytest tests/unit/llms/test_cloudflare_gateway.py -v
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])
