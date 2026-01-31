@@ -9,7 +9,8 @@ Available clients:
 - AzureClient: Azure OpenAI Service
 - GeminiClient: Google AI (Gemini models)
 - OpenRouterClient: OpenRouter multi-provider gateway
-- CloudflareGatewayLLM: Cloudflare AI Gateway (multi-provider)
+- AIGatewayLLM: Generic AI gateway/proxy for OpenAI-compatible endpoints (recommended)
+- CloudflareGatewayLLM: Cloudflare AI Gateway (deprecated, use AIGatewayLLM)
 """
 
 from arshai.llms.base_llm_client import BaseLLMClient
@@ -17,6 +18,10 @@ from arshai.llms.openai import OpenAIClient
 from arshai.llms.azure import AzureClient
 from arshai.llms.google_genai import GeminiClient
 from arshai.llms.openrouter import OpenRouterClient
+from arshai.llms.ai_gateway import (
+    AIGatewayLLM,
+    AIGatewayConfig,
+)
 from arshai.llms.cloudflare_gateway import (
     CloudflareGatewayLLM,
     CloudflareGatewayLLMConfig,
@@ -30,7 +35,10 @@ __all__ = [
     "AzureClient",
     "GeminiClient",
     "OpenRouterClient",
-    # Cloudflare Gateway
+    # Generic AI gateway (recommended)
+    "AIGatewayLLM",
+    "AIGatewayConfig",
+    # Cloudflare Gateway (deprecated)
     "CloudflareGatewayLLM",
     "CloudflareGatewayLLMConfig",
 ]

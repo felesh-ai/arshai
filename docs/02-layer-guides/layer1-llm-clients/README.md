@@ -28,21 +28,24 @@ graph TB
         G[Gemini Client<br/>• Native SDK integration<br/>• Dual authentication<br/>• Auto-schema generation]
         A[Azure Client<br/>• Enterprise deployment<br/>• Native structured parsing<br/>• Event-driven streaming]
         R[OpenRouter Client<br/>• HTTP proxy access<br/>• Safe connection handling<br/>• Multi-model access]
-        CF[Cloudflare Gateway<br/>• BYOK mode<br/>• Multi-provider unified endpoint<br/>• Centralized caching]
+        AG[AI Gateway<br/>• Universal OpenAI-compatible<br/>• Custom headers support<br/>• Gateway agnostic]
+        CF[Cloudflare Gateway<br/>• DEPRECATED<br/>• Use AI Gateway instead]
     end
 
     UI --> O
     UI --> G
     UI --> A
     UI --> R
-    UI --> CF
+    UI --> AG
+    UI -.-> CF
 
     style UI fill:#e1f5fe
     style O fill:#fff3e0
     style G fill:#e8f5e8
     style A fill:#f3e5f5
     style R fill:#ffebee
-    style CF fill:#fff9c4
+    style AG fill:#e8f5e9
+    style CF fill:#ffcccc
 ```
 
 **Provider-Specific Strengths:**
@@ -50,7 +53,8 @@ graph TB
 - **Google Gemini**: Native SDK with dual authentication support
 - **Azure OpenAI**: Enterprise deployment with native structured parsing
 - **OpenRouter**: HTTP proxy client with safe connection handling
-- **Cloudflare Gateway**: BYOK mode with centralized key management and caching
+- **AI Gateway**: Universal client for any OpenAI-compatible gateway (Cloudflare, LiteLLM, custom gateways)
+- **Cloudflare Gateway**: ⚠️ DEPRECATED - Use AI Gateway instead
 
 ## Basic Usage
 
@@ -315,7 +319,92 @@ config = ILLMConfig(
 )
 ```
 
-### Cloudflare AI Gateway Configuration (BYOK)
+### AI Gateway Configuration (Recommended)
+
+AI Gateway is a universal client that works with any OpenAI-compatible gateway or proxy, providing maximum flexibility.
+
+```python
+from arshai.llms import AIGatewayLLM, AIGatewayConfig
+
+# GATEWAY_BASE_URL=your_gateway_url
+# GATEWAY_TOKEN=your_token
+
+config = AIGatewayConfig(
+    base_url="https://your-gateway.com/v1",  # Gateway endpoint
+    gateway_token="your-token",              # Authentication token
+    model="gpt-4o",                          # Model name
+    temperature=0.7,
+    headers={                                # Optional custom headers
+        "X-Organization": "your-org",
+        "X-Environment": "production"
+    }
+)
+
+client = AIGatewayLLM(config)
+```
+
+**Use Cases:**
+- **Cloudflare AI Gateway**: Multi-provider unified endpoint with caching
+- **LiteLLM Proxy**: Unified interface to 100+ LLM providers
+- **Custom Enterprise Gateways**: Internal proxies with custom authentication
+- **Regional Endpoints**: Region-specific OpenAI deployments
+- **Azure OpenAI**: Microsoft's OpenAI service
+
+**Example Configurations:**
+
+```python
+# Cloudflare AI Gateway
+config = AIGatewayConfig(
+    base_url="https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_id}/compat",
+    gateway_token=os.getenv("CLOUDFLARE_GATEWAY_TOKEN"),
+    model="anthropic/claude-sonnet-4-5"
+)
+
+# LiteLLM Proxy
+config = AIGatewayConfig(
+    base_url="http://localhost:4000",
+    gateway_token=os.getenv("LITELLM_TOKEN"),
+    model="gpt-4o"
+)
+
+# Custom Enterprise Gateway
+config = AIGatewayConfig(
+    base_url="https://api.mycompany.com/v1",
+    gateway_token=os.getenv("ENTERPRISE_TOKEN"),
+    model="custom-model",
+    headers={"X-Department": "engineering"}
+)
+```
+
+### Cloudflare AI Gateway Configuration (BYOK) - DEPRECATED
+
+⚠️ **DEPRECATED**: Use `AIGatewayLLM` instead. This client will be removed in a future version.
+
+**Migration Guide:**
+```python
+# Old (deprecated)
+from arshai.llms import CloudflareGatewayLLM, CloudflareGatewayLLMConfig
+config = CloudflareGatewayLLMConfig(
+    account_id="xxx",
+    gateway_id="my-gateway",
+    gateway_token="token",
+    provider="anthropic",
+    model="claude-sonnet-4-5"
+)
+
+# New (recommended) - Use AI Gateway
+from arshai.llms import AIGatewayLLM, AIGatewayConfig
+config = AIGatewayConfig(
+    base_url="https://gateway.ai.cloudflare.com/v1/xxx/my-gateway/compat",
+    gateway_token="token",
+    model="anthropic/claude-sonnet-4-5"
+)
+```
+
+<details>
+<summary>Legacy Cloudflare Configuration (click to expand)</summary>
+
+### Cloudflare AI Gateway Configuration (BYOK) - Legacy
 
 Cloudflare AI Gateway uses BYOK (Bring Your Own Key) mode where provider API keys are stored in the Cloudflare dashboard, not in your code. Only the gateway token is needed.
 
@@ -352,6 +441,8 @@ client = CloudflareGatewayLLM(config)
 - `mistral` - Mistral Large, Medium
 - `cohere` - Command R+
 - And more...
+
+</details>
 
 ## Best Practices
 

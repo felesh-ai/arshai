@@ -47,6 +47,7 @@ response = await client.chat(input_data)
 - `GeminiClient` - Google Gemini models
 - `AzureClient` - Azure OpenAI service
 - `OpenRouterClient` - OpenRouter proxy service
+- `AIGatewayLLM` - Universal gateway for any OpenAI-compatible endpoint (Cloudflare, LiteLLM, custom gateways)
 
 ## Layer 2: Agents
 
