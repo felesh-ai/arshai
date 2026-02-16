@@ -16,6 +16,7 @@ Compatible gateways include:
 import os
 import json
 import time
+import base64
 import inspect
 from typing import Dict, Any, TypeVar, AsyncGenerator, List, Callable, Optional
 from pydantic import Field, field_validator
@@ -364,11 +365,43 @@ class AIGatewayLLM(BaseLLMClient):
         }
 
     def _create_openai_messages(self, input: ILLMInput) -> List[Dict[str, Any]]:
-        """Create OpenAI-compatible messages from input."""
-        return [
-            {"role": "system", "content": input.system_prompt},
-            {"role": "user", "content": input.user_message}
+        """
+        Create OpenAI-compatible messages with images support for gateway passthrough.
+
+        Tasks 6.1-6.4: Build OpenAI-compatible content array for gateway passthrough,
+        ensure data URL format, maintain backward compatibility.
+
+        Args:
+            input: ILLMInput with optional images_base64
+
+        Returns:
+            List of OpenAI-formatted messages with multimodal content
+        """
+        messages = [
+            {"role": "system", "content": input.system_prompt}
         ]
+
+        # Task 6.2: Check for images_base64
+        if input.images_base64:
+            # Build content array with text and image_url objects
+            content = [{"type": "text", "text": input.user_message}]
+
+            # Task 6.3: Ensure data URL format
+            for img_data in input.images_base64:
+                if not img_data.startswith('data:'):
+                    img_data = f"data:image/jpeg;base64,{img_data}"
+
+                content.append({
+                    "type": "image_url",
+                    "image_url": {"url": img_data}
+                })
+
+            messages.append({"role": "user", "content": content})
+        else:
+            # Task 6.4: Text-only path for backward compatibility
+            messages.append({"role": "user", "content": input.user_message})
+
+        return messages
 
     def _convert_callables_to_provider_format(self, functions: Dict[str, Callable]) -> List[Dict[str, Any]]:
         """Convert python callables to OpenAI-compatible function declarations."""

@@ -1,3 +1,4 @@
+
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
@@ -195,6 +196,166 @@ response = await llm_client.chat(llm_input)
 - **Cleanup**: Tasks auto-remove from tracking set on completion via `add_done_callback()`
 - **Error Handling**: Background task failures don't affect main conversation
 - **Performance**: Uses `asyncio.create_task()` for true parallel execution
+
+## Multimodal Support
+
+### Overview
+Arshai provides multimodal support through a developer-first approach. All LLM providers support base64-encoded images universally. The framework accepts base64 strings, and developers handle conversion from files/URLs using their preferred tools and strategies.
+
+### Philosophy
+- **Developer-First**: Framework provides the interface; developers control implementation
+- **Base64-Only**: Simple, universal format supported by all providers (Gemini, OpenAI, Azure, OpenRouter)
+- **No File I/O in Framework**: No filesystem coupling, no network calls
+- **Full Control**: Developers choose image processing libraries, caching strategies, and optimizations
+
+### Basic Usage
+
+#### Single Image
+```python
+import base64
+from arshai.core.interfaces.illm import ILLMInput
+
+# Your conversion logic (use any library you prefer)
+with open("image.jpg", "rb") as f:
+    img_base64 = base64.b64encode(f.read()).decode('utf-8')
+
+# Use with framework
+input = ILLMInput(
+    system_prompt="You are a helpful assistant",
+    user_message="Describe this image",
+    images_base64=[img_base64]
+)
+
+response = await llm.chat(input)
+```
+
+#### Multiple Images
+```python
+# Load multiple images
+images = []
+for path in ["photo1.jpg", "photo2.jpg", "photo3.jpg"]:
+    with open(path, "rb") as f:
+        images.append(base64.b64encode(f.read()).decode('utf-8'))
+
+input = ILLMInput(
+    system_prompt="Compare these images",
+    user_message="What are the differences?",
+    images_base64=images
+)
+
+response = await llm.chat(input)
+```
+
+#### Both Raw Base64 and Data URL Formats Accepted
+```python
+# Raw base64 (without prefix)
+raw_base64 = "iVBORw0KGgoAAAANS..."
+
+# Data URL format (with prefix)
+data_url = "data:image/jpeg;base64,/9j/4AAQ..."
+
+# Both formats work
+input = ILLMInput(
+    system_prompt="Analyze these",
+    user_message="Compare",
+    images_base64=[raw_base64, data_url]  # Mix formats freely
+)
+```
+
+### Optional Utility Helpers
+
+Basic helpers are provided for convenience, but developers should implement their own for production:
+
+```python
+from arshai.llms.utils.images import image_file_to_base64, image_url_to_base64
+
+# Basic file conversion (stdlib only)
+img = image_file_to_base64("photo.jpg")
+
+# Basic URL fetching (no retries, no caching)
+img = image_url_to_base64("https://example.com/image.jpg")
+```
+
+**For production**, implement your own logic with:
+- Image preprocessing (resize, compress, format conversion using PIL/Pillow)
+- Async loading (`aiofiles`, `httpx`, `aiohttp`)
+- Caching strategies (memory, Redis, disk)
+- Error handling and retries
+- Optimization for your use case
+
+### Provider-Specific Notes
+
+#### Size Limits
+- **Gemini**: 20MB for inline base64 images
+- **OpenAI**: ~4MB typical (varies by model)
+- **Azure**: ~4MB typical (varies by deployment)
+- **OpenRouter**: Varies by underlying model
+
+**Recommendation**: Resize images to 2048x2048 max and compress before encoding.
+
+#### Image Tokens & Costs
+- **OpenAI/Azure**: Image tokens calculated based on size and detail level
+  - Low detail: ~85 tokens
+  - High detail: 85 + (170 × tiles)
+- **Gemini**: Separate image token counting in usage metadata
+- **OpenRouter**: Varies by provider
+
+### Advanced Patterns
+
+#### Custom Preprocessing
+```python
+from PIL import Image
+import base64
+from io import BytesIO
+
+def preprocess_image(path: str, max_size: int = 1024) -> str:
+    """Your custom preprocessing pipeline"""
+    img = Image.open(path)
+
+    # Resize if too large
+    if max(img.size) > max_size:
+        img.thumbnail((max_size, max_size))
+
+    # Convert to RGB
+    if img.mode != 'RGB':
+        img = img.convert('RGB')
+
+    # Compress to JPEG
+    buffer = BytesIO()
+    img.save(buffer, format='JPEG', quality=85)
+
+    return base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+# Use your custom preprocessing
+img = preprocess_image("large_image.png")
+```
+
+#### Async Loading with Caching
+```python
+import aiofiles
+import base64
+from functools import lru_cache
+
+@lru_cache(maxsize=100)
+def load_image_cached(path: str) -> str:
+    """Your custom caching strategy"""
+    with open(path, 'rb') as f:
+        return base64.b64encode(f.read()).decode('utf-8')
+
+async def load_image_async(path: str) -> str:
+    """Your async implementation"""
+    async with aiofiles.open(path, 'rb') as f:
+        data = await f.read()
+        return base64.b64encode(data).decode('utf-8')
+```
+
+### Important Limitations
+
+1. **Images Apply to Initial Request Only**: Images are included in the initial user message. Multi-turn function-calling conversations don't re-send images in subsequent turns (the model retains context).
+
+2. **Streaming Behavior**: Images are sent before streaming begins. Text responses stream progressively after images are processed.
+
+3. **No Framework Validation**: The framework doesn't validate base64 content, image format, or MIME types. Providers handle validation and return clear errors if issues occur.
 
 ## LLM Client Architecture Standards
 

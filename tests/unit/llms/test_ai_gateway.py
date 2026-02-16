@@ -166,10 +166,17 @@ def ai_gateway_config():
     if not base_url or not gateway_token:
         pytest.skip("GATEWAY_BASE_URL and GATEWAY_TOKEN environment variables required for AI Gateway tests")
 
+    # Add User-Agent header to bypass Cloudflare bot detection
+    # Use a curl-like User-Agent that Cloudflare allows
+    headers = {
+        "User-Agent": "curl/8.7.1"
+    }
+
     return AIGatewayConfig(
         base_url=base_url,
         gateway_token=gateway_token,
         model=model,
+        headers=headers,  # Add custom headers including User-Agent
         temperature=0.2,  # Low temperature for consistent results
         max_tokens=500
     )
@@ -576,3 +583,191 @@ async def test_stream_background_tasks(ai_gateway_client):
         test_case["expected_patterns"],
         test_case["min_matches"]
     ), "Stream background task response did not match expected semantic patterns"
+
+
+def test_convert_base64_to_openai_messages(ai_gateway_client):
+    """Test conversion of base64 strings to OpenAI-compatible message format"""
+    import base64
+
+    # Sample 1x1 red pixel PNG
+    png_bytes = base64.b64decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=="
+    )
+    sample_image_raw = base64.b64encode(png_bytes).decode("utf-8")
+    sample_image_data_url = f"data:image/png;base64,{sample_image_raw}"
+
+    # Test with raw base64
+    input_raw = ILLMInput(
+        system_prompt="You are a vision assistant.",
+        user_message="Describe this image.",
+        images_base64=[sample_image_raw]
+    )
+    messages_raw = ai_gateway_client._create_openai_messages(input_raw)
+
+    # Check structure: system message + user message with content array
+    assert len(messages_raw) == 2
+    assert messages_raw[0]["role"] == "system"
+    assert messages_raw[1]["role"] == "user"
+    assert isinstance(messages_raw[1]["content"], list)
+    assert any(item["type"] == "text" for item in messages_raw[1]["content"])
+    assert any(item["type"] == "image_url" for item in messages_raw[1]["content"])
+
+    # Test with multiple images
+    input_multi = ILLMInput(
+        system_prompt="You are a vision assistant.",
+        user_message="Compare these images.",
+        images_base64=[sample_image_raw, sample_image_data_url]
+    )
+    messages_multi = ai_gateway_client._create_openai_messages(input_multi)
+    image_items = [item for item in messages_multi[1]["content"] if item["type"] == "image_url"]
+    assert len(image_items) == 2
+
+    logger.info("✅ Base64 to OpenAI messages conversion test passed")
+
+
+@pytest.mark.asyncio
+@retry_on_rate_limit(max_retries=2, wait_seconds=5)
+async def test_chat_with_single_image(ai_gateway_client):
+    """Test chat with a single base64-encoded image"""
+    await asyncio.sleep(1)
+
+    import base64
+    png_bytes = base64.b64decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=="
+    )
+    sample_image = base64.b64encode(png_bytes).decode("utf-8")
+
+    input_data = ILLMInput(
+        system_prompt="You are a vision assistant. You can see and analyze images.",
+        user_message="I'm sending you an image. Can you see it? If yes, describe what you see in detail including colors, shapes, and size.",
+        images_base64=[sample_image]
+    )
+
+    logger.info("=" * 80)
+    logger.info("📸 TESTING IMAGE CHAT WITH AI GATEWAY")
+    logger.info(f"Image size: {len(sample_image)} chars (base64)")
+    logger.info(f"Sending image to: {ai_gateway_client.config.model}")
+    logger.info("-" * 80)
+
+    response = await ai_gateway_client.chat(input_data)
+
+    assert isinstance(response, dict), "Response should be a dict"
+    assert "llm_response" in response, "Response should have llm_response key"
+    response_text = response["llm_response"]
+    assert isinstance(response_text, str), "Response text should be a string"
+    assert len(response_text) > 0, "Response text should not be empty"
+
+    logger.info("📝 FULL LLM RESPONSE:")
+    logger.info(response_text)
+    logger.info("-" * 80)
+
+    vision_keywords = ["image", "picture", "pixel", "see", "visual", "color", "colour", "1x1", "square", "small", "tiny"]
+    keywords_found = [kw for kw in vision_keywords if kw.lower() in response_text.lower()]
+
+    logger.info(f"🔍 Vision keywords found: {keywords_found}")
+    assert len(keywords_found) > 0, f"Response should contain vision-related keywords. Response: {response_text}"
+    assert len(response_text) > 20, f"Expected detailed image description, got: {response_text}"
+
+    logger.info("✅ Chat with single image test passed - Image was processed by LLM")
+    logger.info("=" * 80)
+
+
+@pytest.mark.asyncio
+@retry_on_rate_limit(max_retries=2, wait_seconds=5)
+async def test_stream_with_single_image(ai_gateway_client):
+    """Test streaming with a single base64-encoded image"""
+    await asyncio.sleep(1)
+
+    import base64
+    png_bytes = base64.b64decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=="
+    )
+    sample_image = base64.b64encode(png_bytes).decode("utf-8")
+
+    input_data = ILLMInput(
+        system_prompt="You are a vision assistant. Analyze images and describe what you see in detail.",
+        user_message="What do you see in this image? Describe the color and any details.",
+        images_base64=[sample_image]
+    )
+
+    stream_chunks = []
+    final_text = ""
+    text_chunks_received = 0
+
+    async for chunk in ai_gateway_client.stream(input_data):
+        stream_chunks.append(chunk)
+        if chunk.get("llm_response") and isinstance(chunk["llm_response"], str):
+            final_text = chunk["llm_response"]
+            text_chunks_received += 1
+
+    assert len(stream_chunks) > 0, "No stream chunks received"
+    assert text_chunks_received > 0, "No text chunks received"
+    assert len(final_text) > 0, "No final text received"
+    assert len(final_text) > 10, "Expected meaningful image description"
+
+    logger.info(f"✅ Stream with single image test passed - Response: {final_text[:100]}..., Chunks: {text_chunks_received}")
+
+
+@pytest.mark.asyncio
+@retry_on_rate_limit(max_retries=2, wait_seconds=5)
+async def test_chat_with_multiple_images(ai_gateway_client):
+    """Test chat with multiple base64-encoded images"""
+    await asyncio.sleep(1)
+
+    import base64
+    png_bytes = base64.b64decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=="
+    )
+    sample_image_1 = base64.b64encode(png_bytes).decode("utf-8")
+    sample_image_2 = f"data:image/png;base64,{sample_image_1}"
+
+    input_data = ILLMInput(
+        system_prompt="You are a vision assistant. Analyze all provided images and compare them.",
+        user_message="I'm providing you with two images. Compare them and describe any similarities or differences.",
+        images_base64=[sample_image_1, sample_image_2]
+    )
+
+    response = await ai_gateway_client.chat(input_data)
+    assert isinstance(response, dict)
+    assert "llm_response" in response
+    response_text = response["llm_response"]
+    assert isinstance(response_text, str)
+    assert len(response_text) > 0
+    assert len(response_text) > 20, "Expected meaningful comparison of multiple images"
+
+    logger.info(f"✅ Chat with multiple images test passed - Response: {response_text[:100]}...")
+
+
+@pytest.mark.asyncio
+@retry_on_rate_limit(max_retries=2, wait_seconds=5)
+async def test_chat_with_image_and_tools(ai_gateway_client):
+    """Test chat with image input combined with tool calling"""
+    await asyncio.sleep(1)
+
+    import base64
+    png_bytes = base64.b64decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=="
+    )
+    sample_image = base64.b64encode(png_bytes).decode("utf-8")
+
+    def count_objects(count: int) -> str:
+        """Count the number of objects detected in the image."""
+        return f"Counted {count} object(s) in the image."
+
+    input_data = ILLMInput(
+        system_prompt="You are a vision assistant with object counting capabilities. Analyze the image and use the count_objects tool to report what you see.",
+        user_message="Analyze this image and count how many distinct objects or elements you can identify. Use the count_objects tool with your count.",
+        images_base64=[sample_image],
+        regular_functions={"count_objects": count_objects},
+        max_turns=5
+    )
+
+    response = await ai_gateway_client.chat(input_data)
+    assert isinstance(response, dict)
+    assert "llm_response" in response
+    response_text = str(response["llm_response"])
+    assert len(response_text) > 0
+    assert len(response_text) > 10, "Expected meaningful response with tool usage"
+
+    logger.info(f"✅ Chat with image and tools test passed - Response: {response_text[:100]}...")
+

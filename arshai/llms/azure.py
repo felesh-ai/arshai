@@ -8,6 +8,7 @@ and standardized patterns from the Arshai framework.
 import os
 import json
 import time
+import base64
 import inspect
 from typing import Dict, Any, TypeVar, Type, Union, AsyncGenerator, List, Callable
 from openai import AzureOpenAI
@@ -225,14 +226,69 @@ class AzureClient(BaseLLMClient):
             "request_id": getattr(response, 'id', None)
         }
 
+    def _create_multimodal_response_input(self, input: ILLMInput) -> List[Dict]:
+        """
+        Create Azure ResponseInputParam with multimodal support.
+
+        Tasks 4.1-4.5: Build ResponseInputParam content array with text and image_url types,
+        ensure data URL format for Azure Responses API, maintain backward compatibility.
+
+        Args:
+            input: ILLMInput with optional images_base64
+
+        Returns:
+            List of Azure ResponseInputParam messages with multimodal content
+        """
+        response_input = [
+            {
+                "type": "message",
+                "role": "system",
+                "content": input.system_prompt
+            }
+        ]
+
+        # Task 4.2: Check for images_base64
+        if input.images_base64:
+            # Task 4.3: Build content array with text and image_url types
+            content = [{"type": "text", "text": input.user_message}]
+
+            # Task 4.4: Ensure data URL format for Azure Responses API
+            for img_data in input.images_base64:
+                if not img_data.startswith('data:'):
+                    img_data = f"data:image/jpeg;base64,{img_data}"
+
+                content.append({
+                    "type": "image_url",
+                    "image_url": {"url": img_data}
+                })
+
+            response_input.append({
+                "type": "message",
+                "role": "user",
+                "content": content
+            })
+        else:
+            # Task 4.5: Text-only path for backward compatibility
+            response_input.append({
+                "type": "message",
+                "role": "user",
+                "content": input.user_message
+            })
+
+        return response_input
+
     def _convert_messages_to_response_input(self, messages: List[Dict]) -> List[Dict]:
-        """Convert OpenAI-style messages to Azure ResponseInputParam format."""
+        """
+        Convert OpenAI-style messages to Azure ResponseInputParam format.
+
+        Updated to handle both string content and content arrays (for multimodal).
+        """
         response_input = []
         for message in messages:
             response_message = {
                 "type": "message",
                 "role": message["role"],
-                "content": message["content"]
+                "content": message["content"]  # Can be string or array
             }
             response_input.append(response_message)
         return response_input
@@ -433,15 +489,9 @@ class AzureClient(BaseLLMClient):
     # ========================================================================
 
     async def _chat_simple(self, input: ILLMInput) -> Dict[str, Any]:
-        """Handle simple chat without tools or background tasks."""
-        # Build base context in OpenAI format first
-        messages = [
-            {"role": "system", "content": input.system_prompt},
-            {"role": "user", "content": input.user_message}
-        ]
-        
-        # Convert to Azure ResponseInputParam format
-        response_input = self._convert_messages_to_response_input(messages)
+        """Handle simple chat without tools or background tasks. Task 4.6: Updated to use multimodal response input."""
+        # Build base context in Azure format (now supports images)
+        response_input = self._create_multimodal_response_input(input)
         
         # Prepare arguments for responses.parse()
         kwargs = {
@@ -481,29 +531,23 @@ class AzureClient(BaseLLMClient):
             return {"llm_response": response.output_text, "usage": usage}
 
     async def _chat_with_functions(self, input: ILLMInput) -> Dict[str, Any]:
-        """Handle complex chat with tools and/or background tasks."""
-        # Build base context and prepare tools
-        messages = [
-            {"role": "system", "content": input.system_prompt},
-            {"role": "user", "content": input.user_message}
-        ]
-        
+        """Handle complex chat with tools and/or background tasks. Task 4.7: Updated to use multimodal response input."""
+        # Build base context (now supports images)
+        response_input = self._create_multimodal_response_input(input)
+
         # Prepare tools for Azure
         azure_tools = []
-        
+
         # Convert all functions using the new unified approach
         all_functions = {}
         if input.regular_functions:
             all_functions.update(input.regular_functions)
         if input.background_tasks:
             all_functions.update(input.background_tasks)
-        
+
         if all_functions:
             azure_tools.extend(self._convert_callables_to_provider_format(all_functions))
-        
-        # Convert to Azure ResponseInputParam format
-        response_input = self._convert_messages_to_response_input(messages)
-        
+
         # Multi-turn conversation for function calling
         current_turn = 0
         accumulated_usage = None
@@ -612,15 +656,9 @@ class AzureClient(BaseLLMClient):
         }
 
     async def _stream_simple(self, input: ILLMInput) -> AsyncGenerator[Dict[str, Any], None]:
-        """Handle simple streaming without tools or background tasks."""
-        # Build base context in OpenAI format first
-        messages = [
-            {"role": "system", "content": input.system_prompt},
-            {"role": "user", "content": input.user_message}
-        ]
-        
-        # Convert to Azure ResponseInputParam format  
-        response_input = self._convert_messages_to_response_input(messages)
+        """Handle simple streaming without tools or background tasks. Task 4.8: Updated to use multimodal response input."""
+        # Build base context (now supports images)
+        response_input = self._create_multimodal_response_input(input)
         
         # Prepare arguments for responses.stream()
         kwargs = {
@@ -667,28 +705,22 @@ class AzureClient(BaseLLMClient):
             yield {"llm_response": None, "usage": accumulated_usage}
 
     async def _stream_with_functions(self, input: ILLMInput) -> AsyncGenerator[Dict[str, Any], None]:
-        """Handle complex streaming with tools and/or background tasks."""
-        # Build base context and prepare tools
-        messages = [
-            {"role": "system", "content": input.system_prompt},
-            {"role": "user", "content": input.user_message}
-        ]
-        
+        """Handle complex streaming with tools and/or background tasks. Task 4.9: Updated to use multimodal response input."""
+        # Build base context (now supports images)
+        response_input = self._create_multimodal_response_input(input)
+
         # Prepare tools for Azure
         azure_tools = []
-        
+
         # Convert all functions using the new unified approach
         all_functions = {}
         if input.regular_functions:
             all_functions.update(input.regular_functions)
         if input.background_tasks:
             all_functions.update(input.background_tasks)
-        
+
         if all_functions:
             azure_tools.extend(self._convert_callables_to_provider_format(all_functions))
-        
-        # Convert to Azure ResponseInputParam format
-        response_input = self._convert_messages_to_response_input(messages)
         
         # Multi-turn streaming conversation for function calling  
         current_turn = 0

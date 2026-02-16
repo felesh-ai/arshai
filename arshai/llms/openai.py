@@ -9,11 +9,11 @@ import os
 import json
 import time
 import inspect
-from typing import Dict, Any, TypeVar, Type, Union, AsyncGenerator, List, Callable
+from typing import Dict, Any, TypeVar, AsyncGenerator, List, Callable
 from openai import OpenAI
 from openai.types.responses import ParsedResponse
 
-from arshai.core.interfaces.illm import ILLMConfig, ILLMInput
+from arshai.core.interfaces.illm import ILLMInput
 from arshai.llms.base_llm_client import BaseLLMClient
 from arshai.llms.utils import (
     is_json_complete,
@@ -192,21 +192,67 @@ class OpenAIClient(BaseLLMClient):
             "request_id": getattr(response, 'id', None)
         }
 
-    def _create_openai_messages(self, input: ILLMInput) -> List[Dict[str, Any]]:
-        """Create OpenAI-compatible messages from input."""
-        return [
-            {"role": "system", "content": input.system_prompt},
-            {"role": "user", "content": input.user_message}
+    def _create_multimodal_messages(self, input: ILLMInput) -> List[Dict[str, Any]]:
+        """
+        Create OpenAI-compatible messages with images support.
+
+        Tasks 3.1-3.5: Build content array with text and image_url objects,
+        maintain backward compatibility for text-only requests.
+
+        Args:
+            input: ILLMInput with optional images_base64
+
+        Returns:
+            List of OpenAI-formatted messages with multimodal content
+        """
+        messages = [
+            {"role": "system", "content": input.system_prompt}
         ]
 
+        # Task 3.2: Check for images_base64
+        if input.images_base64:
+            # Task 3.3: Build content array with text type
+            content = [{"type": "text", "text": input.user_message}]
+
+            # Task 3.4: Add image_url objects (ensure data URL format)
+            for img_data in input.images_base64:
+                # Ensure data URL format
+                if not img_data.startswith('data:'):
+                    # Assume JPEG if no prefix (most common)
+                    img_data = f"data:image/jpeg;base64,{img_data}"
+
+                content.append({
+                    "type": "image_url",
+                    "image_url": {"url": img_data}
+                })
+
+            messages.append({"role": "user", "content": content})
+        else:
+            # Task 3.5: Text-only path for backward compatibility
+            messages.append({"role": "user", "content": input.user_message})
+
+        return messages
+
+    def _create_openai_messages(self, input: ILLMInput) -> List[Dict[str, Any]]:
+        """
+        Create OpenAI-compatible messages from input.
+
+        Updated to use _create_multimodal_messages() for image support.
+        """
+        return self._create_multimodal_messages(input)
+
     def _convert_messages_to_response_input(self, messages: List[Dict]) -> List[Dict]:
-        """Convert OpenAI-style messages to OpenAI ResponseInputParam format."""
+        """
+        Convert OpenAI-style messages to OpenAI ResponseInputParam format.
+
+        Updated to handle both string content and content arrays (for multimodal).
+        """
         response_input = []
         for message in messages:
             response_message = {
                 "type": "message",
                 "role": message["role"],
-                "content": message["content"]
+                "content": message["content"]  # Can be string or array
             }
             response_input.append(response_message)
         return response_input
@@ -383,13 +429,10 @@ class OpenAIClient(BaseLLMClient):
     # ========================================================================
 
     async def _chat_simple(self, input: ILLMInput) -> Dict[str, Any]:
-        """Handle simple chat without tools or background tasks."""
-        # Build base context in OpenAI format first
-        messages = [
-            {"role": "system", "content": input.system_prompt},
-            {"role": "user", "content": input.user_message}
-        ]
-        
+        """Handle simple chat without tools or background tasks. Task 3.6: Updated to use multimodal messages."""
+        # Build base context in OpenAI format (now supports images)
+        messages = self._create_openai_messages(input)
+
         # Convert to OpenAI ResponseInputParam format
         response_input = self._convert_messages_to_response_input(messages)
         
@@ -431,12 +474,9 @@ class OpenAIClient(BaseLLMClient):
             return {"llm_response": response.output_text, "usage": usage}
 
     async def _chat_with_functions(self, input: ILLMInput) -> Dict[str, Any]:
-        """Handle complex chat with tools and/or background tasks."""
-        # Build base context and prepare tools
-        messages = [
-            {"role": "system", "content": input.system_prompt},
-            {"role": "user", "content": input.user_message}
-        ]
+        """Handle complex chat with tools and/or background tasks. Task 3.7: Updated to use multimodal messages."""
+        # Build base context (now supports images)
+        messages = self._create_openai_messages(input)
         
         # Prepare tools for OpenAI
         openai_tools = []
@@ -590,14 +630,11 @@ class OpenAIClient(BaseLLMClient):
             })
 
     async def _stream_simple(self, input: ILLMInput) -> AsyncGenerator[Dict[str, Any], None]:
-        """Handle simple streaming without tools or background tasks."""
-        # Build base context in OpenAI format first
-        messages = [
-            {"role": "system", "content": input.system_prompt},
-            {"role": "user", "content": input.user_message}
-        ]
-        
-        # Convert to OpenAI ResponseInputParam format  
+        """Handle simple streaming without tools or background tasks. Task 3.8: Updated to use multimodal messages."""
+        # Build base context (now supports images)
+        messages = self._create_openai_messages(input)
+
+        # Convert to OpenAI ResponseInputParam format
         response_input = self._convert_messages_to_response_input(messages)
         
         # Prepare arguments for responses.stream()
@@ -645,12 +682,9 @@ class OpenAIClient(BaseLLMClient):
             yield {"llm_response": None, "usage": accumulated_usage}
 
     async def _stream_with_functions(self, input: ILLMInput) -> AsyncGenerator[Dict[str, Any], None]:
-        """Handle complex streaming with tools and/or background tasks."""
-        # Build base context and prepare tools
-        messages = [
-            {"role": "system", "content": input.system_prompt},
-            {"role": "user", "content": input.user_message}
-        ]
+        """Handle complex streaming with tools and/or background tasks. Task 3.9: Updated to use multimodal messages."""
+        # Build base context (now supports images)
+        messages = self._create_openai_messages(input)
         
         # Prepare tools for OpenAI
         openai_tools = []

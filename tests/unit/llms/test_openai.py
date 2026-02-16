@@ -14,7 +14,6 @@ from typing import TypedDict
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 import functools
-import time
 
 from arshai.core.interfaces.illm import ILLMConfig, ILLMInput
 from arshai.llms.openai import OpenAIClient
@@ -291,7 +290,7 @@ class TestOpenAIClient:
             test_data["expected_patterns"], 
             test_data["min_matches"], 
             "simple_chat"
-        ), f"Not enough patterns matched in chat response"
+        ), "Not enough patterns matched in chat response"
         
         # Validate response length (should be comprehensive due to prompt)
         assert len(chat_text) > 150, f"Expected comprehensive response (>150 chars), got {len(chat_text)} chars"
@@ -341,7 +340,7 @@ class TestOpenAIClient:
             test_data["expected_patterns"], 
             test_data["min_matches"], 
             "simple_stream"
-        ), f"Not enough patterns matched in stream response"
+        ), "Not enough patterns matched in stream response"
         
         # Validate response length (should be comprehensive due to prompt)
         assert len(final_stream_text) > 150, f"Expected comprehensive response (>150 chars), got {len(final_stream_text)} chars"
@@ -383,7 +382,7 @@ class TestOpenAIClient:
             test_data["expected_patterns"], 
             test_data["min_matches"], 
             "structured_chat"
-        ), f"Not enough patterns matched in structured chat response"
+        ), "Not enough patterns matched in structured chat response"
         
         logger.info(f"✅ Structured chat test passed - Sentiment: {chat_result.sentiment}, Confidence: {chat_result.confidence}")
 
@@ -434,7 +433,7 @@ class TestOpenAIClient:
             test_data["expected_patterns"], 
             test_data["min_matches"], 
             "structured_stream"
-        ), f"Not enough patterns matched in structured stream response"
+        ), "Not enough patterns matched in structured stream response"
         
         logger.info(f"✅ Structured stream test passed - Sentiment: {final_stream_result['sentiment']}, Confidence: {final_stream_result['confidence']}, Stream chunks: {structured_chunks_received}")
     
@@ -475,9 +474,9 @@ class TestOpenAIClient:
             test_data["expected_patterns"], 
             test_data["min_matches"], 
             "tool_calling_chat"
-        ), f"Not enough patterns matched in chat tool response"
+        ), "Not enough patterns matched in chat tool response"
         
-        logger.info(f"✅ Tool calling chat test passed - Contains expected calculations")
+        logger.info("✅ Tool calling chat test passed - Contains expected calculations")
 
     @pytest.mark.asyncio
     @retry_on_rate_limit(max_retries=2, wait_seconds=60)
@@ -532,7 +531,7 @@ class TestOpenAIClient:
             test_data["expected_patterns"], 
             test_data["min_matches"], 
             "tool_calling_stream"
-        ), f"Not enough patterns matched in stream tool response"
+        ), "Not enough patterns matched in stream tool response"
         
         logger.info(f"✅ Tool calling stream test passed - Contains expected calculations, Stream chunks: {content_chunks_received}")
     
@@ -568,9 +567,9 @@ class TestOpenAIClient:
             test_data["expected_patterns"], 
             test_data["min_matches"], 
             "parallel_function_calling_chat"
-        ), f"Not enough patterns matched in parallel chat response"
+        ), "Not enough patterns matched in parallel chat response"
         
-        logger.info(f"✅ Parallel function calling chat test passed - Contains multiple calculation results")
+        logger.info("✅ Parallel function calling chat test passed - Contains multiple calculation results")
 
     @pytest.mark.asyncio
     @retry_on_rate_limit(max_retries=2, wait_seconds=60)
@@ -617,7 +616,7 @@ class TestOpenAIClient:
             test_data["expected_patterns"], 
             test_data["min_matches"], 
             "parallel_function_calling_stream"
-        ), f"Not enough patterns matched in parallel stream response"
+        ), "Not enough patterns matched in parallel stream response"
         
         logger.info(f"✅ Parallel function calling stream test passed - Contains multiple calculation results, Stream chunks: {content_chunks_received}")
     
@@ -767,7 +766,7 @@ class TestOpenAIClient:
         
         # Log streaming behavior for debugging
         if stream_chunks_count == 1:
-            logger.warning(f"Only 1 stream chunk received - this may be due to rate limiting or API behavior")
+            logger.warning("Only 1 stream chunk received - this may be due to rate limiting or API behavior")
         else:
             logger.info(f"Received {stream_chunks_count} stream chunks - proper streaming behavior")
         
@@ -776,6 +775,180 @@ class TestOpenAIClient:
             assert isinstance(final_usage["total_tokens"], int)
         
         logger.info(f"✅ Usage tracking test passed - Stream chunks: {stream_chunks_count}")
+
+    def test_convert_base64_to_multimodal_messages(self, client):
+        """Test conversion of base64 strings to OpenAI multimodal message format"""
+        import base64
+
+        # Sample 1x1 red pixel PNG
+        png_bytes = base64.b64decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=="
+        )
+        sample_image_raw = base64.b64encode(png_bytes).decode("utf-8")
+        sample_image_data_url = f"data:image/png;base64,{sample_image_raw}"
+
+        # Test with raw base64
+        input_raw = ILLMInput(
+            system_prompt="You are a vision assistant.",
+            user_message="Describe this image.",
+            images_base64=[sample_image_raw]
+        )
+        messages_raw = client._create_multimodal_messages(input_raw)
+
+        # Check structure: system message + user message with content array
+        assert len(messages_raw) == 2
+        assert messages_raw[0]["role"] == "system"
+        assert messages_raw[1]["role"] == "user"
+        assert isinstance(messages_raw[1]["content"], list)
+        assert any(item["type"] == "text" for item in messages_raw[1]["content"])
+        assert any(item["type"] == "image_url" for item in messages_raw[1]["content"])
+
+        # Test with data URL format
+        input_data_url = ILLMInput(
+            system_prompt="You are a vision assistant.",
+            user_message="Describe this image.",
+            images_base64=[sample_image_data_url]
+        )
+        messages_data_url = client._create_multimodal_messages(input_data_url)
+        assert len(messages_data_url) == 2
+        assert isinstance(messages_data_url[1]["content"], list)
+
+        # Test with multiple images
+        input_multi = ILLMInput(
+            system_prompt="You are a vision assistant.",
+            user_message="Compare these images.",
+            images_base64=[sample_image_raw, sample_image_data_url]
+        )
+        messages_multi = client._create_multimodal_messages(input_multi)
+        image_items = [item for item in messages_multi[1]["content"] if item["type"] == "image_url"]
+        assert len(image_items) == 2
+
+        logger.info("✅ Base64 to multimodal messages conversion test passed")
+
+    @pytest.mark.asyncio
+    @retry_on_rate_limit(max_retries=2, wait_seconds=60)
+    async def test_chat_with_single_image(self, client):
+        """Test chat with a single base64-encoded image"""
+        await asyncio.sleep(1)
+
+        import base64
+        png_bytes = base64.b64decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=="
+        )
+        sample_image = base64.b64encode(png_bytes).decode("utf-8")
+
+        input_data = ILLMInput(
+            system_prompt="You are a vision assistant. Analyze images and describe what you see in detail.",
+            user_message="What do you see in this image? Describe the color and any details.",
+            images_base64=[sample_image]
+        )
+
+        response = await client.chat(input_data)
+        assert isinstance(response, dict)
+        assert "llm_response" in response
+        response_text = response["llm_response"]
+        assert isinstance(response_text, str)
+        assert len(response_text) > 0
+        assert len(response_text) > 10, "Expected meaningful image description"
+
+        logger.info(f"✅ Chat with single image test passed - Response: {response_text[:100]}...")
+
+    @pytest.mark.asyncio
+    @retry_on_rate_limit(max_retries=2, wait_seconds=60)
+    async def test_stream_with_single_image(self, client):
+        """Test streaming with a single base64-encoded image"""
+        await asyncio.sleep(1)
+
+        import base64
+        png_bytes = base64.b64decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=="
+        )
+        sample_image = base64.b64encode(png_bytes).decode("utf-8")
+
+        input_data = ILLMInput(
+            system_prompt="You are a vision assistant. Analyze images and describe what you see in detail.",
+            user_message="What do you see in this image? Describe the color and any details.",
+            images_base64=[sample_image]
+        )
+
+        stream_chunks = []
+        final_text = ""
+        text_chunks_received = 0
+
+        async for chunk in client.stream(input_data):
+            stream_chunks.append(chunk)
+            if chunk.get("llm_response") and isinstance(chunk["llm_response"], str):
+                final_text = chunk["llm_response"]
+                text_chunks_received += 1
+
+        assert len(stream_chunks) > 0, "No stream chunks received"
+        assert text_chunks_received > 0, "No text chunks received"
+        assert len(final_text) > 0, "No final text received"
+        assert len(final_text) > 10, "Expected meaningful image description"
+
+        logger.info(f"✅ Stream with single image test passed - Response: {final_text[:100]}..., Chunks: {text_chunks_received}")
+
+    @pytest.mark.asyncio
+    @retry_on_rate_limit(max_retries=2, wait_seconds=60)
+    async def test_chat_with_multiple_images(self, client):
+        """Test chat with multiple base64-encoded images"""
+        await asyncio.sleep(1)
+
+        import base64
+        png_bytes = base64.b64decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=="
+        )
+        sample_image_1 = base64.b64encode(png_bytes).decode("utf-8")
+        sample_image_2 = f"data:image/png;base64,{sample_image_1}"
+
+        input_data = ILLMInput(
+            system_prompt="You are a vision assistant. Analyze all provided images and compare them.",
+            user_message="I'm providing you with two images. Compare them and describe any similarities or differences.",
+            images_base64=[sample_image_1, sample_image_2]
+        )
+
+        response = await client.chat(input_data)
+        assert isinstance(response, dict)
+        assert "llm_response" in response
+        response_text = response["llm_response"]
+        assert isinstance(response_text, str)
+        assert len(response_text) > 0
+        assert len(response_text) > 20, "Expected meaningful comparison of multiple images"
+
+        logger.info(f"✅ Chat with multiple images test passed - Response: {response_text[:100]}...")
+
+    @pytest.mark.asyncio
+    @retry_on_rate_limit(max_retries=2, wait_seconds=60)
+    async def test_chat_with_image_and_tools(self, client):
+        """Test chat with image input combined with tool calling"""
+        await asyncio.sleep(1)
+
+        import base64
+        png_bytes = base64.b64decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=="
+        )
+        sample_image = base64.b64encode(png_bytes).decode("utf-8")
+
+        def count_objects(count: int) -> str:
+            """Count the number of objects detected in the image."""
+            return f"Counted {count} object(s) in the image."
+
+        input_data = ILLMInput(
+            system_prompt="You are a vision assistant with object counting capabilities. Analyze the image and use the count_objects tool to report what you see.",
+            user_message="Analyze this image and count how many distinct objects or elements you can identify. Use the count_objects tool with your count.",
+            images_base64=[sample_image],
+            regular_functions={"count_objects": count_objects},
+            max_turns=5
+        )
+
+        response = await client.chat(input_data)
+        assert isinstance(response, dict)
+        assert "llm_response" in response
+        response_text = str(response["llm_response"])
+        assert len(response_text) > 0
+        assert len(response_text) > 10, "Expected meaningful response with tool usage"
+
+        logger.info(f"✅ Chat with image and tools test passed - Response: {response_text[:100]}...")
 
 
 # Run tests with: python -m pytest tests/unit/llms/test_azure_unified.py -v

@@ -8,6 +8,7 @@ implementation as mentioned in CLAUDE.md.
 
 import os
 import time
+import base64
 from typing import Dict, Any, TypeVar, Type, Union, AsyncGenerator, List, Callable
 from google.oauth2 import service_account
 import google.genai as genai
@@ -19,6 +20,7 @@ from google.genai.types import (
     SpeechConfig,
     Schema,
     AutomaticFunctionCallingConfig,
+    Part,
 )
 
 from arshai.core.interfaces.illm import ILLMConfig, ILLMInput
@@ -312,9 +314,55 @@ class GeminiClient(BaseLLMClient):
         except Exception as e:
             raise Exception(f"Client connection test failed: {str(e)}")
 
-    def _prepare_base_context(self, input: ILLMInput) -> str:
-        """Build base conversation context from system prompt and user message."""
-        return f"{input.system_prompt}\n\nUser: {input.user_message}"
+    def _convert_base64_to_parts(self, images_base64: List[str]) -> List[Part]:
+        """
+        Convert base64-encoded images to Gemini Part objects.
+
+        Handles both raw base64 strings and data URL format.
+        Tasks 2.1, 2.3, 2.4
+
+        Args:
+            images_base64: List of base64-encoded images
+
+        Returns:
+            List of Part objects suitable for Gemini API
+        """
+        parts = []
+
+        for img_data in images_base64:
+            # Strip data URL prefix if present (Task 2.3)
+            if img_data.startswith('data:'):
+                # Extract base64 data after "data:image/xxx;base64,"
+                img_data = img_data.split(',', 1)[1]
+
+            # Decode base64 and create Part (Task 2.4)
+            img_bytes = base64.b64decode(img_data)
+            parts.append(Part.from_bytes(data=img_bytes, mime_type="image/jpeg"))
+
+        return parts
+
+    def _prepare_base_context(self, input: ILLMInput) -> Union[str, List[Union[str, Part]]]:
+        """
+        Build base conversation context from system prompt, user message, and optional images.
+
+        Task 2.2: Updated to handle images_base64 - convert to Part objects
+
+        Returns:
+            - str if no images (backward compatible)
+            - List[Union[str, Part]] if images present (multimodal)
+        """
+        # Text-only (backward compatible)
+        if not input.images_base64:
+            return f"{input.system_prompt}\n\nUser: {input.user_message}"
+
+        # Multimodal: build contents list with text and images
+        contents = [f"{input.system_prompt}\n\nUser: {input.user_message}"]
+
+        # Convert and add images as Part objects
+        image_parts = self._convert_base64_to_parts(input.images_base64)
+        contents.extend(image_parts)
+
+        return contents
 
     def _convert_callables_to_provider_format(self, functions: Dict[str, Callable]) -> List[FunctionDeclaration]:
         """
@@ -492,12 +540,21 @@ class GeminiClient(BaseLLMClient):
     # ========================================================================
 
     async def _chat_simple(self, input: ILLMInput) -> Dict[str, Any]:
-        """Handle simple chat without tools or background tasks."""
-        # Build base context
-        contents = [self._prepare_base_context(input)]
-        
-        # Add structured output instructions if needed
-        if input.structure_type:
+        """Handle simple chat without tools or background tasks. Task 2.5: Updated to support images."""
+        # Build base context (can be string or list with images)
+        base_context = self._prepare_base_context(input)
+
+        # Normalize to list format
+        if isinstance(base_context, str):
+            contents = [base_context]
+        else:
+            contents = base_context
+
+        # Add structured output instructions if needed (only if text-only)
+        if input.structure_type and isinstance(base_context, str):
+            contents[0] += STRUCTURE_INSTRUCTIONS_TEMPLATE
+        elif input.structure_type and isinstance(base_context, list):
+            # For multimodal, append instructions to first text element
             contents[0] += STRUCTURE_INSTRUCTIONS_TEMPLATE
         
         # Generate content without tools
@@ -530,9 +587,15 @@ class GeminiClient(BaseLLMClient):
             return {"llm_response": "No response generated", "usage": usage}
 
     async def _chat_with_functions(self, input: ILLMInput) -> Dict[str, Any]:
-        """Handle complex chat with tools and/or background tasks."""
-        # Build base context and prepare tools
-        contents = [self._prepare_base_context(input)]
+        """Handle complex chat with tools and/or background tasks. Task 2.6: Updated to support images."""
+        # Build base context (can be string or list with images)
+        base_context = self._prepare_base_context(input)
+
+        # Normalize to list format
+        if isinstance(base_context, str):
+            contents = [base_context]
+        else:
+            contents = base_context
         
         # Prepare tools for Gemini
         gemini_tools = []
@@ -642,12 +705,20 @@ class GeminiClient(BaseLLMClient):
         }
 
     async def _stream_simple(self, input: ILLMInput) -> AsyncGenerator[Dict[str, Any], None]:
-        """Handle simple streaming without tools or background tasks."""
-        # Build base context
-        contents = [self._prepare_base_context(input)]
-        
+        """Handle simple streaming without tools or background tasks. Task 2.7: Updated to support images."""
+        # Build base context (can be string or list with images)
+        base_context = self._prepare_base_context(input)
+
+        # Normalize to list format
+        if isinstance(base_context, str):
+            contents = [base_context]
+        else:
+            contents = base_context
+
         # Add structured output instructions if needed
-        if input.structure_type:
+        if input.structure_type and isinstance(base_context, str):
+            contents[0] += STRUCTURE_INSTRUCTIONS_TEMPLATE
+        elif input.structure_type and isinstance(base_context, list):
             contents[0] += STRUCTURE_INSTRUCTIONS_TEMPLATE
         
         # Generate streaming content
@@ -689,9 +760,15 @@ class GeminiClient(BaseLLMClient):
         yield {"llm_response": None, "usage": accumulated_usage}
 
     async def _stream_with_functions(self, input: ILLMInput) -> AsyncGenerator[Dict[str, Any], None]:
-        """Handle complex streaming with tools and/or background tasks."""
-        # Build base context and prepare tools
-        contents = [self._prepare_base_context(input)]
+        """Handle complex streaming with tools and/or background tasks. Task 2.8: Updated to support images."""
+        # Build base context (can be string or list with images)
+        base_context = self._prepare_base_context(input)
+
+        # Normalize to list format
+        if isinstance(base_context, str):
+            contents = [base_context]
+        else:
+            contents = base_context
         
         # Prepare tools for Gemini
         gemini_tools = []

@@ -15,10 +15,19 @@ class ILLMInput(IDTO):
     Represents the input for the llm - Unified interface supporting all functionality
     """
     system_prompt: str = Field(description="""The system prompt can be thought of as the input or query that the model
-        uses to generate its response. The quality and specificity of the system prompt can have a significant impact 
-        on the relevance and accuracy of the model's response. Therefore, it is important to provide a clear and 
+        uses to generate its response. The quality and specificity of the system prompt can have a significant impact
+        on the relevance and accuracy of the model's response. Therefore, it is important to provide a clear and
         concise system prompt that accurately conveys the user's intended message or question.""")
     user_message: str = Field(description="the message of the user prompt")
+    images_base64: List[str] = Field(
+        default_factory=list,
+        description=(
+            "Base64-encoded images (JPEG, PNG, GIF, WebP). "
+            "Can be provided with or without data URL prefix (data:image/{type};base64,{data}). "
+            "Optional - defaults to empty list for text-only requests. "
+            "Universally supported across all providers (Gemini, OpenAI, Azure, OpenRouter)."
+        )
+    )
     regular_functions: Dict[str, Callable] = Field(default={}, description="list of regular callable functions for this message")
     background_tasks: Dict[str, Callable] = Field(default={}, description="list of background tasks for fire-and-forget execution")
     structure_type: Type[T] = Field(default=None, description="Output response")

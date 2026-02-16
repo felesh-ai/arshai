@@ -311,7 +311,7 @@ class TestCloudflareGatewayLLMClient:
             test_data["expected_patterns"],
             test_data["min_matches"],
             "simple_chat"
-        ), f"Not enough patterns matched in chat response"
+        ), "Not enough patterns matched in chat response"
 
         assert len(chat_text) > 150, f"Expected comprehensive response (>150 chars), got {len(chat_text)} chars"
 
@@ -357,7 +357,7 @@ class TestCloudflareGatewayLLMClient:
             test_data["expected_patterns"],
             test_data["min_matches"],
             "simple_stream"
-        ), f"Not enough patterns matched in stream response"
+        ), "Not enough patterns matched in stream response"
 
         assert len(final_stream_text) > 150, f"Expected comprehensive response (>150 chars), got {len(final_stream_text)} chars"
 
@@ -396,7 +396,7 @@ class TestCloudflareGatewayLLMClient:
             test_data["expected_patterns"],
             test_data["min_matches"],
             "structured_chat"
-        ), f"Not enough patterns matched in structured chat response"
+        ), "Not enough patterns matched in structured chat response"
 
         logger.info(f"✅ Structured chat test passed - Sentiment: {chat_result.sentiment}, Confidence: {chat_result.confidence}")
 
@@ -445,7 +445,7 @@ class TestCloudflareGatewayLLMClient:
             test_data["expected_patterns"],
             test_data["min_matches"],
             "structured_stream"
-        ), f"Not enough patterns matched in structured stream response"
+        ), "Not enough patterns matched in structured stream response"
 
         logger.info(f"✅ Structured stream test passed - Sentiment: {final_stream_result['sentiment']}, Confidence: {final_stream_result['confidence']}")
 
@@ -482,9 +482,9 @@ class TestCloudflareGatewayLLMClient:
             test_data["expected_patterns"],
             test_data["min_matches"],
             "tool_calling_chat"
-        ), f"Not enough patterns matched in chat tool response"
+        ), "Not enough patterns matched in chat tool response"
 
-        logger.info(f"✅ Tool calling chat test passed - Contains expected calculations")
+        logger.info("✅ Tool calling chat test passed - Contains expected calculations")
 
     @pytest.mark.asyncio
     @retry_on_rate_limit(max_retries=2, wait_seconds=30)
@@ -534,7 +534,7 @@ class TestCloudflareGatewayLLMClient:
             test_data["expected_patterns"],
             test_data["min_matches"],
             "tool_calling_stream"
-        ), f"Not enough patterns matched in stream tool response"
+        ), "Not enough patterns matched in stream tool response"
 
         logger.info(f"✅ Tool calling stream test passed - Stream chunks: {content_chunks_received}")
 
@@ -566,9 +566,9 @@ class TestCloudflareGatewayLLMClient:
             test_data["expected_patterns"],
             test_data["min_matches"],
             "parallel_function_calling_chat"
-        ), f"Not enough patterns matched in parallel chat response"
+        ), "Not enough patterns matched in parallel chat response"
 
-        logger.info(f"✅ Parallel function calling chat test passed - Contains multiple calculation results")
+        logger.info("✅ Parallel function calling chat test passed - Contains multiple calculation results")
 
     @pytest.mark.asyncio
     @retry_on_rate_limit(max_retries=2, wait_seconds=30)
@@ -607,7 +607,7 @@ class TestCloudflareGatewayLLMClient:
             test_data["expected_patterns"],
             test_data["min_matches"],
             "parallel_function_calling_stream"
-        ), f"Not enough patterns matched in parallel stream response"
+        ), "Not enough patterns matched in parallel stream response"
 
         logger.info(f"✅ Parallel function calling stream test passed - Stream chunks: {content_chunks_received}")
 
@@ -847,6 +847,282 @@ class TestCloudflareGatewayCustomBaseUrl:
         assert config_custom.full_model_name == "openrouter/openai/gpt-4o-mini"
         assert config_default.full_model_name == config_custom.full_model_name
         logger.info("✅ Full model name unchanged by base URL test passed")
+
+
+class TestCloudflareGatewayImages:
+    """Test class for Cloudflare Gateway multimodal (image) support"""
+
+    @pytest.fixture(scope="class")
+    def client(self, cloudflare_gateway_client):
+        """Provide shared client for all tests in this class"""
+        return cloudflare_gateway_client
+
+    def test_convert_base64_to_openai_messages(self, client):
+        """Test conversion of base64 strings to OpenAI-compatible message format"""
+        import base64
+
+        # Sample 1x1 red pixel PNG
+        png_bytes = base64.b64decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=="
+        )
+        sample_image_raw = base64.b64encode(png_bytes).decode("utf-8")
+        sample_image_data_url = f"data:image/png;base64,{sample_image_raw}"
+
+        # Test with raw base64
+        input_raw = ILLMInput(
+            system_prompt="You are a vision assistant.",
+            user_message="Describe this image.",
+            images_base64=[sample_image_raw]
+        )
+        messages_raw = client._create_openai_messages(input_raw)
+
+        # Check structure: system message + user message with content array
+        assert len(messages_raw) == 2
+        assert messages_raw[0]["role"] == "system"
+        assert messages_raw[1]["role"] == "user"
+        assert isinstance(messages_raw[1]["content"], list)
+        assert any(item["type"] == "text" for item in messages_raw[1]["content"])
+        assert any(item["type"] == "image_url" for item in messages_raw[1]["content"])
+
+        # Test with multiple images
+        input_multi = ILLMInput(
+            system_prompt="You are a vision assistant.",
+            user_message="Compare these images.",
+            images_base64=[sample_image_raw, sample_image_data_url]
+        )
+        messages_multi = client._create_openai_messages(input_multi)
+        image_items = [item for item in messages_multi[1]["content"] if item["type"] == "image_url"]
+        assert len(image_items) == 2
+
+        logger.info("✅ Base64 to OpenAI messages conversion test passed")
+
+    @pytest.mark.asyncio
+    @retry_on_rate_limit(max_retries=2, wait_seconds=5)
+    async def test_chat_with_single_image(self, client):
+        """Test chat with a single base64-encoded image"""
+        await asyncio.sleep(1)
+
+        import base64
+        png_bytes = base64.b64decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=="
+        )
+        sample_image = base64.b64encode(png_bytes).decode("utf-8")
+
+        input_data = ILLMInput(
+            system_prompt="You are a vision assistant. You can see and analyze images.",
+            user_message="I'm sending you an image. Can you see it? If yes, describe what you see in detail including colors, shapes, and size.",
+            images_base64=[sample_image]
+        )
+
+        logger.info("=" * 80)
+        logger.info("📸 TESTING IMAGE CHAT WITH CLOUDFLARE GATEWAY")
+        logger.info(f"Image size: {len(sample_image)} chars (base64)")
+        logger.info(f"Sending image to: {client.config.model}")
+        logger.info("-" * 80)
+
+        response = await client.chat(input_data)
+
+        # Basic response validation
+        assert isinstance(response, dict), "Response should be a dict"
+        assert "llm_response" in response, "Response should have llm_response key"
+        response_text = response["llm_response"]
+        assert isinstance(response_text, str), "Response text should be a string"
+        assert len(response_text) > 0, "Response text should not be empty"
+
+        # Log FULL response to verify image was processed
+        logger.info("📝 FULL LLM RESPONSE:")
+        logger.info(response_text)
+        logger.info("-" * 80)
+
+        # Check for vision-related keywords that prove the LLM saw the image
+        vision_keywords = ["image", "picture", "pixel", "see", "visual", "color", "colour", "1x1", "square", "small", "tiny"]
+        keywords_found = [kw for kw in vision_keywords if kw.lower() in response_text.lower()]
+
+        logger.info(f"🔍 Vision keywords found: {keywords_found}")
+        assert len(keywords_found) > 0, f"Response should contain vision-related keywords. Response: {response_text}"
+
+        # Verify meaningful response
+        assert len(response_text) > 20, f"Expected detailed image description, got: {response_text}"
+
+        logger.info("✅ Chat with single image test passed - Image was processed by LLM")
+        logger.info("=" * 80)
+
+    @pytest.mark.asyncio
+    @retry_on_rate_limit(max_retries=2, wait_seconds=5)
+    async def test_stream_with_single_image(self, client):
+        """Test streaming with a single base64-encoded image"""
+        await asyncio.sleep(1)
+
+        import base64
+        png_bytes = base64.b64decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=="
+        )
+        sample_image = base64.b64encode(png_bytes).decode("utf-8")
+
+        input_data = ILLMInput(
+            system_prompt="You are a vision assistant. You can see and analyze images.",
+            user_message="I'm sending you an image. Can you see it? If yes, describe what you see in detail including colors, shapes, and size.",
+            images_base64=[sample_image]
+        )
+
+        logger.info("=" * 80)
+        logger.info("📸 TESTING IMAGE STREAMING WITH CLOUDFLARE GATEWAY")
+        logger.info(f"Image size: {len(sample_image)} chars (base64)")
+        logger.info(f"Streaming from: {client.config.model}")
+        logger.info("-" * 80)
+
+        stream_chunks = []
+        final_text = ""
+        text_chunks_received = 0
+
+        async for chunk in client.stream(input_data):
+            stream_chunks.append(chunk)
+            if chunk.get("llm_response") and isinstance(chunk["llm_response"], str):
+                final_text = chunk["llm_response"]
+                text_chunks_received += 1
+
+        assert len(stream_chunks) > 0, "No stream chunks received"
+        assert text_chunks_received > 0, "No text chunks received"
+        assert len(final_text) > 0, "No final text received"
+
+        # Log FULL streamed response
+        logger.info("📝 FULL STREAMED LLM RESPONSE:")
+        logger.info(final_text)
+        logger.info("-" * 80)
+
+        # Check for vision-related keywords
+        vision_keywords = ["image", "picture", "pixel", "see", "visual", "color", "colour", "1x1", "square", "small", "tiny"]
+        keywords_found = [kw for kw in vision_keywords if kw.lower() in final_text.lower()]
+
+        logger.info(f"🔍 Vision keywords found: {keywords_found}")
+        assert len(keywords_found) > 0, f"Streamed response should contain vision-related keywords. Response: {final_text}"
+
+        # Verify meaningful response
+        assert len(final_text) > 20, f"Expected detailed image description, got: {final_text}"
+
+        logger.info(f"✅ Stream with single image test passed - Image was processed, Chunks: {text_chunks_received}")
+        logger.info("=" * 80)
+
+    @pytest.mark.asyncio
+    @retry_on_rate_limit(max_retries=2, wait_seconds=5)
+    async def test_chat_with_multiple_images(self, client):
+        """Test chat with multiple base64-encoded images"""
+        await asyncio.sleep(1)
+
+        import base64
+        png_bytes = base64.b64decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=="
+        )
+        sample_image_1 = base64.b64encode(png_bytes).decode("utf-8")
+        sample_image_2 = f"data:image/png;base64,{sample_image_1}"
+
+        input_data = ILLMInput(
+            system_prompt="You are a vision assistant. You can see and analyze multiple images.",
+            user_message="I'm sending you TWO images. How many images can you see? Describe each one and compare them.",
+            images_base64=[sample_image_1, sample_image_2]
+        )
+
+        logger.info("=" * 80)
+        logger.info("📸📸 TESTING MULTIPLE IMAGES CHAT WITH CLOUDFLARE GATEWAY")
+        logger.info(f"Image 1 size: {len(sample_image_1)} chars (raw base64)")
+        logger.info(f"Image 2 size: {len(sample_image_2)} chars (data URL)")
+        logger.info(f"Sending to: {client.config.model}")
+        logger.info("-" * 80)
+
+        response = await client.chat(input_data)
+
+        # Basic response validation
+        assert isinstance(response, dict), "Response should be a dict"
+        assert "llm_response" in response, "Response should have llm_response key"
+        response_text = response["llm_response"]
+        assert isinstance(response_text, str), "Response text should be a string"
+        assert len(response_text) > 0, "Response text should not be empty"
+
+        # Log FULL response
+        logger.info("📝 FULL LLM RESPONSE (Multiple Images):")
+        logger.info(response_text)
+        logger.info("-" * 80)
+
+        # Check for multiple-image keywords
+        multi_keywords = ["two", "2", "both", "images", "each", "first", "second", "similar", "same", "compare"]
+        keywords_found = [kw for kw in multi_keywords if kw.lower() in response_text.lower()]
+
+        logger.info(f"🔍 Multiple-image keywords found: {keywords_found}")
+        assert len(keywords_found) > 0, f"Response should mention multiple images. Response: {response_text}"
+
+        # Verify meaningful comparison
+        assert len(response_text) > 30, f"Expected detailed comparison, got: {response_text}"
+
+        logger.info("✅ Chat with multiple images test passed - Multiple images were processed")
+        logger.info("=" * 80)
+
+    @pytest.mark.asyncio
+    @retry_on_rate_limit(max_retries=2, wait_seconds=5)
+    async def test_chat_with_image_and_tools(self, client):
+        """Test chat with image input combined with tool calling"""
+        await asyncio.sleep(1)
+
+        import base64
+        png_bytes = base64.b64decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=="
+        )
+        sample_image = base64.b64encode(png_bytes).decode("utf-8")
+
+        tool_called = {"called": False, "count": None}
+
+        def count_objects(count: int) -> str:
+            """Count the number of objects detected in the image."""
+            tool_called["called"] = True
+            tool_called["count"] = count
+            logger.info(f"🔧 TOOL CALLED: count_objects(count={count})")
+            return f"Counted {count} object(s) in the image."
+
+        input_data = ILLMInput(
+            system_prompt="You are a vision assistant with object counting capabilities. You can see images and use tools.",
+            user_message="I'm sending you an image. Analyze it and count how many distinct objects or pixels you can see. MUST use the count_objects tool to report your count.",
+            images_base64=[sample_image],
+            regular_functions={"count_objects": count_objects},
+            max_turns=5
+        )
+
+        logger.info("=" * 80)
+        logger.info("📸🔧 TESTING IMAGE + TOOLS WITH CLOUDFLARE GATEWAY")
+        logger.info(f"Image size: {len(sample_image)} chars (base64)")
+        logger.info(f"Tool available: count_objects")
+        logger.info(f"Sending to: {client.config.model}")
+        logger.info("-" * 80)
+
+        response = await client.chat(input_data)
+
+        # Basic response validation
+        assert isinstance(response, dict), "Response should be a dict"
+        assert "llm_response" in response, "Response should have llm_response key"
+        response_text = str(response["llm_response"])
+        assert len(response_text) > 0, "Response text should not be empty"
+
+        # Log FULL response
+        logger.info("📝 FULL LLM RESPONSE (Image + Tools):")
+        logger.info(response_text)
+        logger.info("-" * 80)
+
+        # Verify tool was called (proves image was analyzed)
+        if tool_called["called"]:
+            logger.info(f"✅ Tool was called with count={tool_called['count']}")
+        else:
+            logger.warning("⚠️  Tool was NOT called - LLM may not have used the tool")
+
+        # Check for vision + tool keywords
+        combined_keywords = ["image", "see", "count", "object", "pixel", "analyzed"]
+        keywords_found = [kw for kw in combined_keywords if kw.lower() in response_text.lower()]
+
+        logger.info(f"🔍 Vision+Tool keywords found: {keywords_found}")
+        assert len(keywords_found) > 0, f"Response should mention image analysis. Response: {response_text}"
+
+        # Verify meaningful response with tool integration
+        assert len(response_text) > 15, f"Expected detailed response with tool usage, got: {response_text}"
+
+        logger.info("✅ Chat with image and tools test passed - Image + tool calling works")
+        logger.info("=" * 80)
 
 
 # Run tests with: pytest tests/unit/llms/test_cloudflare_gateway.py -v

@@ -8,12 +8,12 @@ and standardized patterns from the Arshai framework.
 import os
 import json
 import time
+import base64
 import inspect
-from typing import Dict, Any, TypeVar, Type, Union, AsyncGenerator, List, Callable
-import asyncio
+from typing import Dict, Any, TypeVar, Type, AsyncGenerator, List, Callable
 from openai import OpenAI
 
-from arshai.core.interfaces.illm import ILLMConfig, ILLMInput
+from arshai.core.interfaces.illm import ILLMInput
 from arshai.llms.base_llm_client import BaseLLMClient
 from arshai.llms.utils import (
     is_json_complete,
@@ -238,11 +238,43 @@ class OpenRouterClient(BaseLLMClient):
         }
 
     def _create_openai_messages(self, input: ILLMInput) -> List[Dict[str, Any]]:
-        """Create OpenAI-compatible messages from input."""
-        return [
-            {"role": "system", "content": input.system_prompt},
-            {"role": "user", "content": input.user_message}
+        """
+        Create OpenAI-compatible messages with images support.
+
+        Tasks 5.1-5.4: Build content array with text and image_url objects (OpenAI-compatible),
+        ensure data URL format for OpenRouter API, maintain backward compatibility.
+
+        Args:
+            input: ILLMInput with optional images_base64
+
+        Returns:
+            List of OpenAI-formatted messages with multimodal content
+        """
+        messages = [
+            {"role": "system", "content": input.system_prompt}
         ]
+
+        # Check for images_base64
+        if input.images_base64:
+            # Task 5.2: Build content array with text and image_url objects
+            content = [{"type": "text", "text": input.user_message}]
+
+            # Task 5.3: Ensure data URL format for OpenRouter API
+            for img_data in input.images_base64:
+                if not img_data.startswith('data:'):
+                    img_data = f"data:image/jpeg;base64,{img_data}"
+
+                content.append({
+                    "type": "image_url",
+                    "image_url": {"url": img_data}
+                })
+
+            messages.append({"role": "user", "content": content})
+        else:
+            # Task 5.4: Text-only path for backward compatibility
+            messages.append({"role": "user", "content": input.user_message})
+
+        return messages
 
     def _convert_callables_to_provider_format(self, functions: Dict[str, Callable]) -> List[Dict[str, Any]]:
         """
