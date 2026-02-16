@@ -1,6 +1,6 @@
 """Version information for arshai package."""
 
-__version__ = "1.8.0"
-__version_info__ = (1, 8, 0)
+__version__ = "1.9.0"
+__version_info__ = (1, 9, 0)
 __author__ = "Nima Nazarian"
 __email__ = "nimunzn@gmail.com"
