@@ -28,6 +28,15 @@ class ILLMInput(IDTO):
             "Universally supported across all providers (Gemini, OpenAI, Azure, OpenRouter)."
         )
     )
+    pdfs_base64: List[str] = Field(
+        default_factory=list,
+        description=(
+            "Base64-encoded PDF documents. "
+            "Can be provided with or without data URL prefix (data:application/pdf;base64,{data}). "
+            "Optional - defaults to empty list for non-PDF requests. "
+            "Passed natively to the model — caller is responsible for selecting a PDF-capable model."
+        )
+    )
     regular_functions: Dict[str, Callable] = Field(default={}, description="list of regular callable functions for this message")
     background_tasks: Dict[str, Callable] = Field(default={}, description="list of background tasks for fire-and-forget execution")
     structure_type: Type[T] = Field(default=None, description="Output response")

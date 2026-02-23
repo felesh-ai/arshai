@@ -209,26 +209,33 @@ class OpenAIClient(BaseLLMClient):
             {"role": "system", "content": input.system_prompt}
         ]
 
-        # Task 3.2: Check for images_base64
-        if input.images_base64:
-            # Task 3.3: Build content array with text type
+        # Check for images_base64 or pdfs_base64
+        if input.images_base64 or input.pdfs_base64:
+            # Build content array with text type
             content = [{"type": "text", "text": input.user_message}]
 
-            # Task 3.4: Add image_url objects (ensure data URL format)
+            # Add image_url objects (ensure data URL format)
             for img_data in input.images_base64:
-                # Ensure data URL format
                 if not img_data.startswith('data:'):
-                    # Assume JPEG if no prefix (most common)
                     img_data = f"data:image/jpeg;base64,{img_data}"
-
                 content.append({
                     "type": "image_url",
                     "image_url": {"url": img_data}
                 })
 
+            # Add PDF input_file objects
+            for pdf_data in input.pdfs_base64:
+                if not pdf_data.startswith('data:'):
+                    pdf_data = f"data:application/pdf;base64,{pdf_data}"
+                content.append({
+                    "type": "input_file",
+                    "filename": "document.pdf",
+                    "file_data": pdf_data
+                })
+
             messages.append({"role": "user", "content": content})
         else:
-            # Task 3.5: Text-only path for backward compatibility
+            # Text-only path for backward compatibility
             messages.append({"role": "user", "content": input.user_message})
 
         return messages

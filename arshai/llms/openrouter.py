@@ -254,24 +254,35 @@ class OpenRouterClient(BaseLLMClient):
             {"role": "system", "content": input.system_prompt}
         ]
 
-        # Check for images_base64
-        if input.images_base64:
-            # Task 5.2: Build content array with text and image_url objects
+        # Check for images_base64 or pdfs_base64
+        if input.images_base64 or input.pdfs_base64:
+            # Build content array with text and image_url objects
             content = [{"type": "text", "text": input.user_message}]
 
-            # Task 5.3: Ensure data URL format for OpenRouter API
+            # Ensure data URL format for OpenRouter API
             for img_data in input.images_base64:
                 if not img_data.startswith('data:'):
                     img_data = f"data:image/jpeg;base64,{img_data}"
-
                 content.append({
                     "type": "image_url",
                     "image_url": {"url": img_data}
                 })
 
+            # Add PDF file blocks (OpenRouter native format)
+            for pdf_data in input.pdfs_base64:
+                if not pdf_data.startswith('data:'):
+                    pdf_data = f"data:application/pdf;base64,{pdf_data}"
+                content.append({
+                    "type": "file",
+                    "file": {
+                        "filename": "document.pdf",
+                        "file_data": pdf_data
+                    }
+                })
+
             messages.append({"role": "user", "content": content})
         else:
-            # Task 5.4: Text-only path for backward compatibility
+            # Text-only path for backward compatibility
             messages.append({"role": "user", "content": input.user_message})
 
         return messages
@@ -512,11 +523,14 @@ class OpenRouterClient(BaseLLMClient):
         if input.structure_type:
             structure_function = self._create_structure_function_openai(input.structure_type)
             kwargs["tools"] = [structure_function]
-            
+
             # Add structure instructions to system prompt
             function_name = input.structure_type.__name__.lower()
             kwargs["messages"][0]["content"] += STRUCTURE_INSTRUCTIONS_TEMPLATE.format(function_name=function_name)
-        
+
+        if input.pdfs_base64:
+            kwargs["extra_body"] = {"plugins": [{"id": "file-parser", "pdf": {"engine": "native"}}]}
+
         # Make the API call
         response = self._client.chat.completions.create(**kwargs)
         
@@ -582,7 +596,10 @@ class OpenRouterClient(BaseLLMClient):
                     "max_tokens": self.config.max_tokens if self.config.max_tokens else None,
                     "tools": openai_tools if openai_tools else None,
                 }
-                
+
+                if input.pdfs_base64:
+                    kwargs["extra_body"] = {"plugins": [{"id": "file-parser", "pdf": {"engine": "native"}}]}
+
                 response = self._client.chat.completions.create(**kwargs)
                 self.logger.info(f"Response time: {time.time() - start_time:.2f}s")
                 
@@ -694,11 +711,14 @@ class OpenRouterClient(BaseLLMClient):
         if input.structure_type:
             structure_function = self._create_structure_function_openai(input.structure_type)
             kwargs["tools"] = [structure_function]
-            
+
             # Add structure instructions
             function_name = input.structure_type.__name__.lower()
             kwargs["messages"][0]["content"] += STRUCTURE_INSTRUCTIONS_TEMPLATE.format(function_name=function_name)
-        
+
+        if input.pdfs_base64:
+            kwargs["extra_body"] = {"plugins": [{"id": "file-parser", "pdf": {"engine": "native"}}]}
+
         # Track usage and collected data
         accumulated_usage = None
         collected_text = ""
@@ -802,7 +822,10 @@ class OpenRouterClient(BaseLLMClient):
                     "tools": openai_tools if openai_tools else None,
                     "stream": True,
                 }
-                
+
+                if input.pdfs_base64:
+                    kwargs["extra_body"] = {"plugins": [{"id": "file-parser", "pdf": {"engine": "native"}}]}
+
                 # Progressive streaming state management
                 streaming_state = StreamingExecutionState()
                 collected_text = ""

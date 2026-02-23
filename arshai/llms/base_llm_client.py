@@ -562,7 +562,7 @@ class BaseLLMClient(ILLM, ABC):
             yield {
                 "llm_response": None,
                 "error": str(e),
-                "usage": self._standardize_usage_metadata(None)
+                "usage": None
             }
 
 

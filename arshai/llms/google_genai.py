@@ -341,26 +341,35 @@ class GeminiClient(BaseLLMClient):
 
         return parts
 
+    def _convert_pdfs_to_parts(self, pdfs_base64: List[str]) -> List[Part]:
+        """Convert base64-encoded PDFs to Gemini Part objects (mime_type application/pdf)."""
+        parts = []
+        for pdf_data in pdfs_base64:
+            if pdf_data.startswith('data:'):
+                pdf_data = pdf_data.split(',', 1)[1]
+            pdf_bytes = base64.b64decode(pdf_data)
+            parts.append(Part.from_bytes(data=pdf_bytes, mime_type="application/pdf"))
+        return parts
+
     def _prepare_base_context(self, input: ILLMInput) -> Union[str, List[Union[str, Part]]]:
         """
-        Build base conversation context from system prompt, user message, and optional images.
-
-        Task 2.2: Updated to handle images_base64 - convert to Part objects
+        Build base conversation context from system prompt, user message, and optional images/PDFs.
 
         Returns:
-            - str if no images (backward compatible)
-            - List[Union[str, Part]] if images present (multimodal)
+            - str if no images or PDFs (backward compatible)
+            - List[Union[str, Part]] if images or PDFs present (multimodal)
         """
         # Text-only (backward compatible)
-        if not input.images_base64:
+        if not input.images_base64 and not input.pdfs_base64:
             return f"{input.system_prompt}\n\nUser: {input.user_message}"
 
-        # Multimodal: build contents list with text and images
+        # Multimodal: build contents list with text, images, and PDFs
         contents = [f"{input.system_prompt}\n\nUser: {input.user_message}"]
 
-        # Convert and add images as Part objects
-        image_parts = self._convert_base64_to_parts(input.images_base64)
-        contents.extend(image_parts)
+        if input.images_base64:
+            contents.extend(self._convert_base64_to_parts(input.images_base64))
+        if input.pdfs_base64:
+            contents.extend(self._convert_pdfs_to_parts(input.pdfs_base64))
 
         return contents
 

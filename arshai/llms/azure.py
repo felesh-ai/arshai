@@ -247,19 +247,28 @@ class AzureClient(BaseLLMClient):
             }
         ]
 
-        # Task 4.2: Check for images_base64
-        if input.images_base64:
-            # Task 4.3: Build content array with text and image_url types
+        # Check for images_base64 or pdfs_base64
+        if input.images_base64 or input.pdfs_base64:
+            # Build content array with text and image_url types
             content = [{"type": "text", "text": input.user_message}]
 
-            # Task 4.4: Ensure data URL format for Azure Responses API
+            # Ensure data URL format for Azure Responses API
             for img_data in input.images_base64:
                 if not img_data.startswith('data:'):
                     img_data = f"data:image/jpeg;base64,{img_data}"
-
                 content.append({
                     "type": "image_url",
                     "image_url": {"url": img_data}
+                })
+
+            # Add PDF input_file objects
+            for pdf_data in input.pdfs_base64:
+                if not pdf_data.startswith('data:'):
+                    pdf_data = f"data:application/pdf;base64,{pdf_data}"
+                content.append({
+                    "type": "input_file",
+                    "filename": "document.pdf",
+                    "file_data": pdf_data
                 })
 
             response_input.append({
@@ -268,7 +277,7 @@ class AzureClient(BaseLLMClient):
                 "content": content
             })
         else:
-            # Task 4.5: Text-only path for backward compatibility
+            # Text-only path for backward compatibility
             response_input.append({
                 "type": "message",
                 "role": "user",
