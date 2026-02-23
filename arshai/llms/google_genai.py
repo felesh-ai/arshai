@@ -694,13 +694,15 @@ class GeminiClient(BaseLLMClient):
             except Exception as e:
                 self.logger.error(f"Error in Gemini chat_with_functions turn {current_turn}: {str(e)}")
                 return {
-                    "llm_response": f"An error occurred: {str(e)}",
+                    "llm_response": None,
+                    "error": str(e),
                     "usage": accumulated_usage,
                 }
-        
+
         # Handle max turns reached
         return {
-            "llm_response": "Maximum number of function calling turns reached",
+            "llm_response": None,
+            "error": "Maximum number of function calling turns reached",
             "usage": accumulated_usage,
         }
 
@@ -922,16 +924,18 @@ class GeminiClient(BaseLLMClient):
             except Exception as e:
                 self.logger.error(f"Error in Gemini stream_with_functions turn {current_turn}: {str(e)}")
                 yield {
-                    "llm_response": f"An error occurred: {str(e)}",
+                    "llm_response": None,
+                    "error": str(e),
                     "usage": accumulated_usage,
                 }
                 return
-        
+
         # Handle max turns reached
         if current_turn >= input.max_turns:
             self.logger.warning(f"Maximum turns reached: {current_turn} >= {input.max_turns}")
             yield {
-                "llm_response": "Maximum number of function calling turns reached",
+                "llm_response": None,
+                "error": "Maximum number of function calling turns reached",
                 "usage": accumulated_usage,
             }
         else:

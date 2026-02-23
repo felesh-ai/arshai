@@ -690,9 +690,9 @@ class AIGatewayLLM(BaseLLMClient):
 
             except Exception as e:
                 self.logger.error(f"Error in chat_with_functions turn {current_turn}: {e}")
-                return {"llm_response": f"An error occurred: {e}", "usage": accumulated_usage}
+                return {"llm_response": None, "error": str(e), "usage": accumulated_usage}
 
-        return {"llm_response": "Maximum function calling turns reached", "usage": accumulated_usage}
+        return {"llm_response": None, "error": "Maximum function calling turns reached", "usage": accumulated_usage}
 
     def _add_function_results_to_messages(self, execution_result: Dict, messages: List[Dict]) -> None:
         """Add function execution results to messages."""
@@ -908,10 +908,10 @@ class AIGatewayLLM(BaseLLMClient):
 
             except Exception as e:
                 self.logger.error(f"Error in stream_with_functions turn {current_turn}: {e}")
-                yield {"llm_response": f"An error occurred: {e}", "usage": accumulated_usage}
+                yield {"llm_response": None, "error": str(e), "usage": accumulated_usage}
                 return
 
         if current_turn >= input.max_turns:
-            yield {"llm_response": "Maximum function calling turns reached", "usage": accumulated_usage}
+            yield {"llm_response": None, "error": "Maximum function calling turns reached", "usage": accumulated_usage}
         else:
             yield {"llm_response": None, "usage": accumulated_usage}

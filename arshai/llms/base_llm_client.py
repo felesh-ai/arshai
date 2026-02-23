@@ -360,7 +360,8 @@ class BaseLLMClient(ILLM, ABC):
                 self.logger.error(f"Error in {self._provider_name} chat: {e}")
                 self.logger.debug(traceback.format_exc())
                 return {
-                    "llm_response": f"An error occurred: {str(e)}", 
+                    "llm_response": None,
+                    "error": str(e),
                     "usage": {
                         "input_tokens": 0, "output_tokens": 0, "total_tokens": 0,
                         "thinking_tokens": 0, "tool_calling_tokens": 0,
@@ -376,7 +377,8 @@ class BaseLLMClient(ILLM, ABC):
                 self.logger.error(f"Error in {self._provider_name} chat: {e}")
                 self.logger.debug(traceback.format_exc())
                 return {
-                    "llm_response": f"An error occurred: {str(e)}", 
+                    "llm_response": None,
+                    "error": str(e),
                     "usage": {
                         "input_tokens": 0, "output_tokens": 0, "total_tokens": 0,
                         "thinking_tokens": 0, "tool_calling_tokens": 0,
@@ -416,7 +418,8 @@ class BaseLLMClient(ILLM, ABC):
             self.logger.error(f"Error in {self._provider_name} chat: {e}")
             self.logger.debug(traceback.format_exc())
             return {
-                "llm_response": f"An error occurred: {str(e)}", 
+                "llm_response": None,
+                "error": str(e),
                 "usage": {
                     "input_tokens": 0, "output_tokens": 0, "total_tokens": 0,
                     "thinking_tokens": 0, "tool_calling_tokens": 0,
@@ -494,7 +497,8 @@ class BaseLLMClient(ILLM, ABC):
                 self.logger.error(f"Error in {self._provider_name} stream: {e}")
                 self.logger.debug(traceback.format_exc())
                 yield {
-                    "llm_response": f"An error occurred: {str(e)}", 
+                    "llm_response": None,
+                    "error": str(e),
                     "usage": {
                         "input_tokens": 0, "output_tokens": 0, "total_tokens": 0,
                         "thinking_tokens": 0, "tool_calling_tokens": 0,
@@ -511,7 +515,8 @@ class BaseLLMClient(ILLM, ABC):
                 self.logger.error(f"Error in {self._provider_name} stream: {e}")
                 self.logger.debug(traceback.format_exc())
                 yield {
-                    "llm_response": f"An error occurred: {str(e)}", 
+                    "llm_response": None,
+                    "error": str(e),
                     "usage": {
                         "input_tokens": 0, "output_tokens": 0, "total_tokens": 0,
                         "thinking_tokens": 0, "tool_calling_tokens": 0,
@@ -555,7 +560,8 @@ class BaseLLMClient(ILLM, ABC):
             self.logger.error(f"Error in {self._provider_name} stream: {e}")
             self.logger.debug(traceback.format_exc())
             yield {
-                "llm_response": f"An error occurred: {str(e)}", 
+                "llm_response": None,
+                "error": str(e),
                 "usage": self._standardize_usage_metadata(None)
             }
 
@@ -584,11 +590,11 @@ class BaseLLMClient(ILLM, ABC):
         )
         
         result = await self.chat(input)
-        
+
         # For backward compatibility, some old code might expect string responses on error
-        if isinstance(result.get("llm_response"), str) and "error occurred" in result.get("llm_response", "").lower():
-            return result["llm_response"]
-            
+        if result.get("error"):
+            return result["error"]
+
         return result
 
     async def stream_with_tools(self, input: ILLMInput) -> AsyncGenerator[Dict[str, Any], None]:
@@ -630,11 +636,11 @@ class BaseLLMClient(ILLM, ABC):
         )
         
         result = await self.chat(input)
-        
+
         # For backward compatibility, some old code might expect string responses on error
-        if isinstance(result.get("llm_response"), str) and "error occurred" in result.get("llm_response", "").lower():
-            return result["llm_response"]
-            
+        if result.get("error"):
+            return result["error"]
+
         return result
 
     async def stream_completion(self, input: ILLMInput) -> AsyncGenerator[Dict[str, Any], None]:
