@@ -31,9 +31,11 @@ All LLM operations use ``ILLMInput`` to define the request:
 
    class ILLMInput(BaseModel):
        """Input data for LLM operations."""
-       
+
        system_prompt: str
        user_message: str
+       images_base64: List[str] = []
+       pdfs_base64: List[str] = []
        regular_functions: Dict[str, Callable] = {}
        background_tasks: Dict[str, Callable] = {}
        structure_type: Optional[Type] = None
@@ -47,6 +49,12 @@ Field Details:
 
 **user_message**
    The actual user input or query that the AI should respond to.
+
+**images_base64**
+   List of base64-encoded images to include with the request. Both raw base64 strings and ``data:image/*;base64,...`` data URLs are accepted. Defaults to an empty list. Requires a vision-capable model.
+
+**pdfs_base64**
+   List of base64-encoded PDF documents to include with the request. Both raw base64 strings and ``data:application/pdf;base64,...`` data URLs are accepted. Defaults to an empty list. The framework normalises the format per provider — caller is responsible for selecting a PDF-capable model.
 
 **regular_functions**
    Dictionary of Python functions the LLM can call during processing. Results are returned to the conversation for further processing.
@@ -230,6 +238,74 @@ When implementing new LLM clients:
 
 5. **Test Thoroughly**
    Use the standard test suite to ensure compatibility with the framework.
+
+Multimodal Support
+------------------
+
+``ILLMInput`` accepts images and PDFs alongside text. The framework normalises
+the content into the correct wire format for each provider automatically.
+
+**Images**:
+
+.. code-block:: python
+
+   import base64
+   from arshai.core.interfaces.illm import ILLMInput
+
+   with open("photo.jpg", "rb") as f:
+       img_b64 = base64.b64encode(f.read()).decode("utf-8")
+
+   input_data = ILLMInput(
+       system_prompt="You are a vision assistant.",
+       user_message="Describe this image.",
+       images_base64=[img_b64]
+   )
+
+**PDFs**:
+
+.. code-block:: python
+
+   with open("report.pdf", "rb") as f:
+       pdf_b64 = base64.b64encode(f.read()).decode("utf-8")
+
+   input_data = ILLMInput(
+       system_prompt="You are a document analyst.",
+       user_message="Summarise this PDF.",
+       pdfs_base64=[pdf_b64]
+   )
+
+**Combined images and PDFs**:
+
+.. code-block:: python
+
+   input_data = ILLMInput(
+       system_prompt="Analyse all provided content.",
+       user_message="Describe the image and summarise the document.",
+       images_base64=[img_b64],
+       pdfs_base64=[pdf_b64]
+   )
+
+Provider wire formats applied automatically:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 40 35
+
+   * - Provider
+     - PDF format
+     - Notes
+   * - Gemini
+     - ``Part.from_bytes(mime_type="application/pdf")``
+     - Native SDK
+   * - OpenAI / Azure
+     - ``input_file`` block (Responses API)
+     - Direct API
+   * - OpenRouter
+     - ``file`` block + ``plugins: native``
+     - No server-side parsing
+   * - AI Gateway / Cloudflare
+     - ``file`` block (Chat Completions)
+     - Any compatible gateway
 
 Usage Patterns
 --------------

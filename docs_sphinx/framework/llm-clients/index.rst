@@ -8,6 +8,7 @@ Layer 1 provides standardized access to different language model providers throu
    :caption: LLM Client Implementation
 
    interface-overview
+   multimodal
    openai-client
    azure-client
    google-gemini-client
@@ -27,7 +28,7 @@ LLM clients in Arshai follow these principles:
    You create and configure clients explicitly using ILLMConfig. No hidden settings or magic configuration.
 
 **Full Feature Support**
-   Clients support streaming, structured output, function calling, and background tasks across all providers.
+   Clients support streaming, structured output, function calling, background tasks, and multimodal input (images + PDFs) across all providers.
 
 **Provider Abstraction**
    Switch between providers by changing the client instance - your application code remains the same.
@@ -158,7 +159,9 @@ All clients implement the ``ILLM`` interface with these core methods:
 The ``ILLMInput`` contains:
 
 - ``system_prompt``: Instructions defining the AI's behavior
-- ``user_message``: The user's input message  
+- ``user_message``: The user's input message
+- ``images_base64``: List of base64-encoded images (raw or data URL)
+- ``pdfs_base64``: List of base64-encoded PDF documents (raw or data URL)
 - ``regular_functions``: Dict of functions the LLM can call
 - ``background_tasks``: Dict of fire-and-forget functions
 - ``structure_type``: Pydantic model for structured output
@@ -175,6 +178,7 @@ All LLM clients are tested with identical test scenarios to ensure consistent be
 - Background task execution
 - Streaming capabilities
 - Usage tracking
+- Multimodal input (images and PDFs)
 
 This comprehensive testing ensures that switching between providers won't break your application logic.
 
@@ -192,5 +196,6 @@ Next Steps
 ----------
 
 - :doc:`interface-overview` - Detailed interface documentation
-- :doc:`openai-client` - OpenAI-specific implementation details  
+- :doc:`multimodal` - Images and PDF support guide
+- :doc:`openai-client` - OpenAI-specific implementation details
 - :doc:`extending-llm-clients` - Adding support for new providers

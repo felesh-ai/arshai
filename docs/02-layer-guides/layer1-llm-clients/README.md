@@ -6,9 +6,10 @@ This guide explains how to use different LLM providers in the Arshai framework w
 
 Arshai provides a consistent API across all LLM providers with support for:
 - **Regular Functions**: Tools that return results to the conversation
-- **Background Tasks**: Fire-and-forget functions that run independently  
+- **Background Tasks**: Fire-and-forget functions that run independently
 - **Progressive Streaming**: Real-time function execution during streaming
 - **Structured Output**: Type-safe response formatting
+- **Multimodal Input**: Native images and PDF documents passed directly to the model
 
 ## Supported Providers
 
@@ -161,6 +162,107 @@ response = await client.chat(input_data)
 # Regular functions provide results to the conversation
 # Background tasks execute independently
 ```
+
+## Multimodal Support
+
+Arshai supports images and PDF documents natively across all providers. Pass base64-encoded content via `images_base64` and `pdfs_base64` on `ILLMInput` — the framework handles the correct wire format per provider automatically.
+
+### Images
+
+```python
+import base64
+from arshai.core.interfaces.illm import ILLMInput
+
+with open("photo.jpg", "rb") as f:
+    img_b64 = base64.b64encode(f.read()).decode("utf-8")
+
+input_data = ILLMInput(
+    system_prompt="You are a vision assistant.",
+    user_message="Describe what you see in this image.",
+    images_base64=[img_b64]   # raw base64 or data URL both accepted
+)
+
+response = await client.chat(input_data)
+print(response["llm_response"])
+```
+
+Multiple images are supported:
+
+```python
+images = []
+for path in ["photo1.jpg", "photo2.jpg"]:
+    with open(path, "rb") as f:
+        images.append(base64.b64encode(f.read()).decode("utf-8"))
+
+input_data = ILLMInput(
+    system_prompt="Compare these images.",
+    user_message="What are the key differences?",
+    images_base64=images
+)
+```
+
+### PDFs
+
+```python
+import base64
+from arshai.core.interfaces.illm import ILLMInput
+
+with open("report.pdf", "rb") as f:
+    pdf_b64 = base64.b64encode(f.read()).decode("utf-8")
+
+input_data = ILLMInput(
+    system_prompt="You are a document analyst.",
+    user_message="Summarise this PDF and list the key findings.",
+    pdfs_base64=[pdf_b64]   # raw base64 or data:application/pdf;base64,... both accepted
+)
+
+response = await client.chat(input_data)
+print(response["llm_response"])
+```
+
+### Images and PDFs Together
+
+```python
+input_data = ILLMInput(
+    system_prompt="Analyse all provided content.",
+    user_message="Describe the image and summarise the accompanying document.",
+    images_base64=[img_b64],
+    pdfs_base64=[pdf_b64]
+)
+```
+
+### Optional Utility Helpers
+
+```python
+from arshai.llms.utils.images import image_file_to_base64, image_url_to_base64
+from arshai.llms.utils.pdfs import pdf_file_to_base64, pdf_url_to_base64
+
+img = image_file_to_base64("photo.jpg")
+pdf = pdf_file_to_base64("report.pdf")
+pdf_from_url = pdf_url_to_base64("https://example.com/report.pdf")
+```
+
+> **Note**: Use a model that supports the modality you need. The framework passes content natively — it is the caller's responsibility to select a capable model.
+
+### Provider PDF Wire Formats
+
+The framework automatically uses the correct format per provider:
+
+| Provider | PDF format | Notes |
+|---|---|---|
+| Gemini | `Part.from_bytes(mime_type="application/pdf")` | Native SDK |
+| OpenAI / Azure | `input_file` block (Responses API) | Direct API |
+| OpenRouter | `file` block + `plugins: native` | No server-side parsing |
+| AI Gateway / Cloudflare | `file` block (Chat Completions) | Any compatible gateway |
+
+### Size Limits
+
+| Provider | Images | PDFs |
+|---|---|---|
+| Gemini | 20 MB inline | 20 MB inline |
+| OpenAI / Azure | ~4 MB | ~32 MB via Responses API |
+| OpenRouter | Varies by model | Varies by model |
+| AI Gateway | Varies by backend | Varies by backend |
 
 ## Streaming with Progressive Execution
 
