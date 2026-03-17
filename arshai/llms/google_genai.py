@@ -429,6 +429,14 @@ class GeminiClient(BaseLLMClient):
         # Start with base temperature from main config
         config_dict = {"temperature": self.config.temperature}
 
+        # Wire supported ILLMConfig sampling fields into Gemini config
+        if self.config.top_k is not None:
+            config_dict["top_k"] = self.config.top_k
+        if self.config.presence_penalty is not None:
+            config_dict["presence_penalty"] = self.config.presence_penalty
+        if self.config.frequency_penalty is not None:
+            config_dict["frequency_penalty"] = self.config.frequency_penalty
+
         # Process all model config parameters and convert nested dicts to proper classes
         for key, value in self.model_config.items():
             if key == "thinking_config" and isinstance(value, dict):

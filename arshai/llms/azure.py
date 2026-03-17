@@ -174,10 +174,43 @@ class AzureClient(BaseLLMClient):
     # PROVIDER-SPECIFIC HELPER METHODS
     # ========================================================================
 
+    def _build_sampling_kwargs(self, response_input: List[Dict[str, Any]], **overrides) -> Dict[str, Any]:
+        """Build the complete kwargs dict for responses.parse/stream from self.config."""
+        kwargs: Dict[str, Any] = {
+            "model": self.config.model,
+            "input": response_input,
+            "temperature": self.config.temperature,
+        }
+
+        if self.config.max_tokens is not None:
+            kwargs["max_output_tokens"] = self.config.max_tokens
+        if self.config.top_p is not None:
+            kwargs["top_p"] = self.config.top_p
+        if self.config.frequency_penalty is not None:
+            kwargs["frequency_penalty"] = self.config.frequency_penalty
+        if self.config.presence_penalty is not None:
+            kwargs["presence_penalty"] = self.config.presence_penalty
+
+        # Build extra_body: top_k, reasoning, and user-supplied extra_body keys
+        extra_body: Dict[str, Any] = {}
+        if self.config.top_k is not None:
+            extra_body["top_k"] = self.config.top_k
+        if self.config.reasoning_effort is not None:
+            extra_body["reasoning"] = {"effort": self.config.reasoning_effort}
+        elif self.config.reasoning_max_tokens is not None:
+            extra_body["reasoning"] = {"max_tokens": self.config.reasoning_max_tokens}
+        if self.config.extra_body:
+            extra_body.update(self.config.extra_body)
+        if extra_body:
+            kwargs["extra_body"] = extra_body
+
+        kwargs.update(overrides)
+        return kwargs
+
     def _extract_and_standardize_usage(self, response: Any) -> Dict[str, Any]:
         """
         Extract and standardize usage metadata from Azure OpenAI response.
-        
+
         Updated for accurate extraction based on 2025 Azure OpenAI Responses API format:
         - input_tokens/output_tokens (Responses API format)
         - reasoning_tokens from output_tokens_details -> thinking_tokens
@@ -501,14 +534,8 @@ class AzureClient(BaseLLMClient):
         """Handle simple chat without tools or background tasks. Task 4.6: Updated to use multimodal response input."""
         # Build base context in Azure format (now supports images)
         response_input = self._create_multimodal_response_input(input)
-        
-        # Prepare arguments for responses.parse()
-        kwargs = {
-            "model": self.config.model,
-            "input": response_input,
-            "temperature": self.config.temperature,
-            "max_output_tokens": self.config.max_tokens if self.config.max_tokens else None,
-        }
+
+        kwargs = self._build_sampling_kwargs(response_input)
         
         # Add text_format for structured output if needed
         if input.structure_type:
@@ -567,14 +594,7 @@ class AzureClient(BaseLLMClient):
             try:
                 start_time = time.time()
                 
-                # Prepare arguments for responses.parse()
-                kwargs = {
-                    "model": self.config.model,
-                    "temperature": self.config.temperature,
-                    "max_output_tokens": self.config.max_tokens if self.config.max_tokens else None,
-                    "tools": azure_tools if azure_tools else None,
-                    "input": response_input
-                }
+                kwargs = self._build_sampling_kwargs(response_input, tools=azure_tools if azure_tools else None)
                 
                 # Add text_format for structured output if needed
                 if input.structure_type:
@@ -671,13 +691,7 @@ class AzureClient(BaseLLMClient):
         # Build base context (now supports images)
         response_input = self._create_multimodal_response_input(input)
         
-        # Prepare arguments for responses.stream()
-        kwargs = {
-            "model": self.config.model,
-            "input": response_input,
-            "temperature": self.config.temperature,
-            "max_output_tokens": self.config.max_tokens if self.config.max_tokens else None,
-        }
+        kwargs = self._build_sampling_kwargs(response_input)
         
         # Add text_format for structured output if needed
         if input.structure_type:
@@ -742,15 +756,11 @@ class AzureClient(BaseLLMClient):
             has_regular_functions = False
             
             try:
-                # Prepare arguments for responses.stream()
-                kwargs = {
-                    "model": self.config.model,
-                    "temperature": self.config.temperature,
-                    "max_output_tokens": self.config.max_tokens if self.config.max_tokens else None,
-                    "tools": azure_tools if azure_tools else None,
-                    "parallel_tool_calls": True,
-                    "input": response_input
-                }
+                kwargs = self._build_sampling_kwargs(
+                    response_input,
+                    tools=azure_tools if azure_tools else None,
+                    parallel_tool_calls=True,
+                )
                 
                 # Add text_format for structured output if needed
                 if input.structure_type:

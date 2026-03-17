@@ -331,6 +331,39 @@ class AIGatewayLLM(BaseLLMClient):
     # HELPER METHODS
     # ========================================================================
 
+    def _build_sampling_kwargs(self, messages: List[Dict[str, Any]], **overrides) -> Dict[str, Any]:
+        """Build the complete kwargs dict for chat.completions.create from self.config."""
+        kwargs: Dict[str, Any] = {
+            "model": self.config.model,
+            "messages": messages,
+            "temperature": self.config.temperature,
+        }
+
+        if self.config.max_tokens is not None:
+            kwargs["max_tokens"] = self.config.max_tokens
+        if self.config.top_p is not None:
+            kwargs["top_p"] = self.config.top_p
+        if self.config.frequency_penalty is not None:
+            kwargs["frequency_penalty"] = self.config.frequency_penalty
+        if self.config.presence_penalty is not None:
+            kwargs["presence_penalty"] = self.config.presence_penalty
+
+        # Build extra_body: top_k, reasoning, and user-supplied extra_body keys
+        extra_body: Dict[str, Any] = {}
+        if self.config.top_k is not None:
+            extra_body["top_k"] = self.config.top_k
+        if self.config.reasoning_effort is not None:
+            extra_body["reasoning"] = {"effort": self.config.reasoning_effort}
+        elif self.config.reasoning_max_tokens is not None:
+            extra_body["reasoning"] = {"max_tokens": self.config.reasoning_max_tokens}
+        if self.config.extra_body:
+            extra_body.update(self.config.extra_body)
+        if extra_body:
+            kwargs["extra_body"] = extra_body
+
+        kwargs.update(overrides)
+        return kwargs
+
     def _extract_and_standardize_usage(self, response: Any) -> Dict[str, Any]:
         """Extract and standardize usage metadata from response."""
         if not hasattr(response, 'usage') or not response.usage:
@@ -595,12 +628,7 @@ class AIGatewayLLM(BaseLLMClient):
         """Handle simple chat without tools or background tasks."""
         messages = self._create_openai_messages(input)
 
-        kwargs = {
-            "model": self.config.model,
-            "messages": messages,
-            "temperature": self.config.temperature,
-            "max_tokens": self.config.max_tokens if self.config.max_tokens else None,
-        }
+        kwargs = self._build_sampling_kwargs(messages)
 
         if input.structure_type:
             structure_function = self._create_structure_function_openai(input.structure_type)
@@ -652,13 +680,7 @@ class AIGatewayLLM(BaseLLMClient):
             try:
                 start_time = time.time()
 
-                kwargs = {
-                    "model": self.config.model,
-                    "messages": messages,
-                    "temperature": self.config.temperature,
-                    "max_tokens": self.config.max_tokens if self.config.max_tokens else None,
-                    "tools": openai_tools if openai_tools else None,
-                }
+                kwargs = self._build_sampling_kwargs(messages, tools=openai_tools if openai_tools else None)
 
                 response = self._client.chat.completions.create(**kwargs)
                 self.logger.info(f"Response time: {time.time() - start_time:.2f}s")
@@ -730,13 +752,7 @@ class AIGatewayLLM(BaseLLMClient):
         """Handle simple streaming without tools."""
         messages = self._create_openai_messages(input)
 
-        kwargs = {
-            "model": self.config.model,
-            "messages": messages,
-            "temperature": self.config.temperature,
-            "max_tokens": self.config.max_tokens if self.config.max_tokens else None,
-            "stream": True,
-        }
+        kwargs = self._build_sampling_kwargs(messages, stream=True)
 
         if input.structure_type:
             structure_function = self._create_structure_function_openai(input.structure_type)
@@ -821,14 +837,7 @@ class AIGatewayLLM(BaseLLMClient):
             self.logger.info(f"Stream function calling turn: {current_turn}")
 
             try:
-                kwargs = {
-                    "model": self.config.model,
-                    "messages": messages,
-                    "temperature": self.config.temperature,
-                    "max_tokens": self.config.max_tokens if self.config.max_tokens else None,
-                    "tools": openai_tools if openai_tools else None,
-                    "stream": True,
-                }
+                kwargs = self._build_sampling_kwargs(messages, tools=openai_tools if openai_tools else None, stream=True)
 
                 streaming_state = StreamingExecutionState()
                 collected_text = ""

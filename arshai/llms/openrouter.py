@@ -182,6 +182,39 @@ class OpenRouterClient(BaseLLMClient):
     # PROVIDER-SPECIFIC HELPER METHODS
     # ========================================================================
 
+    def _build_sampling_kwargs(self, messages: List[Dict[str, Any]], **overrides) -> Dict[str, Any]:
+        """Build the complete kwargs dict for chat.completions.create from self.config."""
+        kwargs: Dict[str, Any] = {
+            "model": self.config.model,
+            "messages": messages,
+            "temperature": self.config.temperature,
+        }
+
+        if self.config.max_tokens is not None:
+            kwargs["max_tokens"] = self.config.max_tokens
+        if self.config.top_p is not None:
+            kwargs["top_p"] = self.config.top_p
+        if self.config.frequency_penalty is not None:
+            kwargs["frequency_penalty"] = self.config.frequency_penalty
+        if self.config.presence_penalty is not None:
+            kwargs["presence_penalty"] = self.config.presence_penalty
+
+        # Build extra_body: top_k, reasoning, and user-supplied extra_body keys
+        extra_body: Dict[str, Any] = {}
+        if self.config.top_k is not None:
+            extra_body["top_k"] = self.config.top_k
+        if self.config.reasoning_effort is not None:
+            extra_body["reasoning"] = {"effort": self.config.reasoning_effort}
+        elif self.config.reasoning_max_tokens is not None:
+            extra_body["reasoning"] = {"max_tokens": self.config.reasoning_max_tokens}
+        if self.config.extra_body:
+            extra_body.update(self.config.extra_body)
+        if extra_body:
+            kwargs["extra_body"] = extra_body
+
+        kwargs.update(overrides)
+        return kwargs
+
     def _extract_and_standardize_usage(self, response: Any) -> Dict[str, Any]:
         """
         Extract and standardize usage metadata from OpenRouter response.
@@ -510,15 +543,9 @@ class OpenRouterClient(BaseLLMClient):
     async def _chat_simple(self, input: ILLMInput) -> Dict[str, Any]:
         """Handle simple chat without tools or background tasks."""
         messages = self._create_openai_messages(input)
-        
-        # Prepare OpenAI request arguments
-        kwargs = {
-            "model": self.config.model,
-            "messages": messages,
-            "temperature": self.config.temperature,
-            "max_tokens": self.config.max_tokens if self.config.max_tokens else None,
-        }
-        
+
+        kwargs = self._build_sampling_kwargs(messages)
+
         # Add structure function if needed
         if input.structure_type:
             structure_function = self._create_structure_function_openai(input.structure_type)
@@ -529,7 +556,9 @@ class OpenRouterClient(BaseLLMClient):
             kwargs["messages"][0]["content"] += STRUCTURE_INSTRUCTIONS_TEMPLATE.format(function_name=function_name)
 
         if input.pdfs_base64:
-            kwargs["extra_body"] = {"plugins": [{"id": "file-parser", "pdf": {"engine": "native"}}]}
+            eb = kwargs.get("extra_body") or {}
+            eb["plugins"] = [{"id": "file-parser", "pdf": {"engine": "native"}}]
+            kwargs["extra_body"] = eb
 
         # Make the API call
         response = self._client.chat.completions.create(**kwargs)
@@ -588,17 +617,12 @@ class OpenRouterClient(BaseLLMClient):
             try:
                 start_time = time.time()
                 
-                # Prepare arguments for OpenAI
-                kwargs = {
-                    "model": self.config.model,
-                    "messages": messages,
-                    "temperature": self.config.temperature,
-                    "max_tokens": self.config.max_tokens if self.config.max_tokens else None,
-                    "tools": openai_tools if openai_tools else None,
-                }
+                kwargs = self._build_sampling_kwargs(messages, tools=openai_tools if openai_tools else None)
 
                 if input.pdfs_base64:
-                    kwargs["extra_body"] = {"plugins": [{"id": "file-parser", "pdf": {"engine": "native"}}]}
+                    eb = kwargs.get("extra_body") or {}
+                    eb["plugins"] = [{"id": "file-parser", "pdf": {"engine": "native"}}]
+                    kwargs["extra_body"] = eb
 
                 response = self._client.chat.completions.create(**kwargs)
                 self.logger.info(f"Response time: {time.time() - start_time:.2f}s")
@@ -697,16 +721,9 @@ class OpenRouterClient(BaseLLMClient):
     async def _stream_simple(self, input: ILLMInput) -> AsyncGenerator[Dict[str, Any], None]:
         """Handle simple streaming without tools or background tasks."""
         messages = self._create_openai_messages(input)
-        
-        # Prepare OpenAI request arguments
-        kwargs = {
-            "model": self.config.model,
-            "messages": messages,
-            "temperature": self.config.temperature,
-            "max_tokens": self.config.max_tokens if self.config.max_tokens else None,
-            "stream": True,
-        }
-        
+
+        kwargs = self._build_sampling_kwargs(messages, stream=True)
+
         # Add structure function if needed
         if input.structure_type:
             structure_function = self._create_structure_function_openai(input.structure_type)
@@ -717,7 +734,9 @@ class OpenRouterClient(BaseLLMClient):
             kwargs["messages"][0]["content"] += STRUCTURE_INSTRUCTIONS_TEMPLATE.format(function_name=function_name)
 
         if input.pdfs_base64:
-            kwargs["extra_body"] = {"plugins": [{"id": "file-parser", "pdf": {"engine": "native"}}]}
+            eb = kwargs.get("extra_body") or {}
+            eb["plugins"] = [{"id": "file-parser", "pdf": {"engine": "native"}}]
+            kwargs["extra_body"] = eb
 
         # Track usage and collected data
         accumulated_usage = None
@@ -813,18 +832,12 @@ class OpenRouterClient(BaseLLMClient):
         while current_turn < input.max_turns:
             self.logger.info(f"Stream function calling turn: {current_turn}")
             try:
-                # Prepare arguments for streaming
-                kwargs = {
-                    "model": self.config.model,
-                    "messages": messages,
-                    "temperature": self.config.temperature,
-                    "max_tokens": self.config.max_tokens if self.config.max_tokens else None,
-                    "tools": openai_tools if openai_tools else None,
-                    "stream": True,
-                }
+                kwargs = self._build_sampling_kwargs(messages, tools=openai_tools if openai_tools else None, stream=True)
 
                 if input.pdfs_base64:
-                    kwargs["extra_body"] = {"plugins": [{"id": "file-parser", "pdf": {"engine": "native"}}]}
+                    eb = kwargs.get("extra_body") or {}
+                    eb["plugins"] = [{"id": "file-parser", "pdf": {"engine": "native"}}]
+                    kwargs["extra_body"] = eb
 
                 # Progressive streaming state management
                 streaming_state = StreamingExecutionState()

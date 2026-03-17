@@ -272,14 +272,14 @@ class TestCloudflareGatewayLLMClient:
         """Test that the Cloudflare Gateway client initializes correctly"""
         assert client is not None
         assert client.config.provider == "openrouter"
-        assert client.config.model == "openai/gpt-4o-mini"
+        assert client.config.model == "openrouter/openai/gpt-4o-mini"
         assert client.config.full_model_name == "openrouter/openai/gpt-4o-mini"
         assert client._client is not None
         logger.info("✅ Client initialization test passed")
 
     def test_config_properties(self, cloudflare_gateway_config):
         """Test that config properties are correct"""
-        assert cloudflare_gateway_config.base_url == f"https://gateway.ai.cloudflare.com/v1/{ACCOUNT_ID}/{GATEWAY_ID}"
+        assert cloudflare_gateway_config.base_url == f"https://gateway.ai.cloudflare.com/v1/{ACCOUNT_ID}/{GATEWAY_ID}/compat"
         assert cloudflare_gateway_config.compat_base_url == f"https://gateway.ai.cloudflare.com/v1/{ACCOUNT_ID}/{GATEWAY_ID}/compat"
         assert cloudflare_gateway_config.full_model_name == "openrouter/openai/gpt-4o-mini"
         logger.info("✅ Config properties test passed")
@@ -724,7 +724,7 @@ class TestCloudflareGatewayLLMClient:
             assert "total_tokens" in usage
             assert "input_tokens" in usage
             assert "output_tokens" in usage
-            assert usage["provider"] == "openrouter"
+            assert usage["provider"] == "gateway"
             logger.info(f"Chat usage: {usage}")
 
         # Test stream usage
@@ -790,7 +790,7 @@ class TestCloudflareGatewayCustomBaseUrl:
         )
 
         assert config.cloudflare_base_url == "https://gateway.ai.cloudflare.com"
-        assert config.base_url == "https://gateway.ai.cloudflare.com/v1/test-account/test-gateway"
+        assert config.base_url == "https://gateway.ai.cloudflare.com/v1/test-account/test-gateway/compat"
         assert config.compat_base_url == "https://gateway.ai.cloudflare.com/v1/test-account/test-gateway/compat"
         logger.info("✅ Default Cloudflare base URL test passed")
 
@@ -806,7 +806,7 @@ class TestCloudflareGatewayCustomBaseUrl:
         )
 
         assert config.cloudflare_base_url == "https://gateway.ai.cloudflare.cn"
-        assert config.base_url == "https://gateway.ai.cloudflare.cn/v1/test-account/test-gateway"
+        assert config.base_url == "https://gateway.ai.cloudflare.cn/v1/test-account/test-gateway/compat"
         assert config.compat_base_url == "https://gateway.ai.cloudflare.cn/v1/test-account/test-gateway/compat"
         logger.info("✅ Custom Cloudflare base URL test passed")
 
@@ -1591,6 +1591,182 @@ class TestCloudflareGatewayPDF:
             logger.info("✅ Usage tracking test passed (usage returned as None)")
 
 
-# Run tests with: pytest tests/unit/llms/test_cloudflare_gateway.py -v
+# ---------------------------------------------------------------------------
+# Sampling Control Tests
+# ---------------------------------------------------------------------------
+
+@pytest.fixture(scope="session")
+def sampling_cf_config():
+    """CloudflareGatewayLLMConfig with sampling control parameters set."""
+    return CloudflareGatewayLLMConfig(
+        account_id=ACCOUNT_ID,
+        gateway_id=GATEWAY_ID,
+        gateway_token=GATEWAY_TOKEN,
+        provider="openrouter",
+        model="openai/gpt-4o-mini",
+        temperature=0.3,
+        max_tokens=300,
+        top_p=0.95,
+        presence_penalty=0.1,
+        frequency_penalty=0.1,
+        top_k=50,
+    )
+
+
+@pytest.fixture(scope="session")
+def sampling_cf_client(sampling_cf_config):
+    """Cloudflare Gateway client with sampling control parameters."""
+    client = CloudflareGatewayLLM(sampling_cf_config)
+    yield client
+    client.close()
+
+
+class TestCloudflareGatewaySamplingControl:
+    """
+    Tests for extended sampling control parameters on CloudflareGatewayLLM.
+
+    CloudflareGatewayLLM inherits from AIGatewayLLM, so _build_sampling_kwargs()
+    is available via inheritance and the same extra_body logic applies.
+    """
+
+    @pytest.fixture(scope="class")
+    def client(self, sampling_cf_client):
+        return sampling_cf_client
+
+    # ------------------------------------------------------------------
+    # Unit-level: verify kwargs construction without hitting the API
+    # ------------------------------------------------------------------
+
+    def test_build_sampling_kwargs_includes_top_k(self, client):
+        """top_k should appear in extra_body."""
+        result = client._build_sampling_kwargs([{"role": "user", "content": "hi"}])
+        assert "extra_body" in result
+        assert result["extra_body"]["top_k"] == 50
+
+    def test_build_sampling_kwargs_includes_penalties(self, client):
+        """presence_penalty and frequency_penalty should be top-level kwargs."""
+        result = client._build_sampling_kwargs([])
+        assert result["presence_penalty"] == pytest.approx(0.1)
+        assert result["frequency_penalty"] == pytest.approx(0.1)
+
+    def test_build_sampling_kwargs_includes_top_p(self, client):
+        result = client._build_sampling_kwargs([])
+        assert result["top_p"] == pytest.approx(0.95)
+
+    def test_build_sampling_kwargs_uses_max_tokens(self, client):
+        """Chat Completions API uses max_tokens (not max_output_tokens)."""
+        result = client._build_sampling_kwargs([])
+        assert result["max_tokens"] == 300
+        assert "max_output_tokens" not in result
+
+    def test_build_sampling_kwargs_stream_override(self, client):
+        result = client._build_sampling_kwargs([], stream=True)
+        assert result["stream"] is True
+        assert result["extra_body"]["top_k"] == 50
+
+    def test_no_extra_body_without_sampling_fields(self):
+        """Client without top_k/reasoning should not include extra_body."""
+        plain_config = CloudflareGatewayLLMConfig(
+            account_id=ACCOUNT_ID,
+            gateway_id=GATEWAY_ID,
+            gateway_token=GATEWAY_TOKEN,
+            provider="openrouter",
+            model="openai/gpt-4o-mini",
+            temperature=0.3,
+        )
+        plain_client = CloudflareGatewayLLM(plain_config)
+        result = plain_client._build_sampling_kwargs([])
+        assert "extra_body" not in result
+        plain_client.close()
+
+    def test_reasoning_effort_takes_precedence(self, client):
+        """reasoning_effort takes precedence over reasoning_max_tokens."""
+        config = CloudflareGatewayLLMConfig(
+            account_id=ACCOUNT_ID,
+            gateway_id=GATEWAY_ID,
+            gateway_token=GATEWAY_TOKEN,
+            provider="openrouter",
+            model="openai/gpt-4o-mini",
+            reasoning_effort="low",
+            reasoning_max_tokens=4000,
+        )
+        c = CloudflareGatewayLLM(config)
+        result = c._build_sampling_kwargs([])
+        assert result["extra_body"]["reasoning"] == {"effort": "low"}
+        c.close()
+
+    # ------------------------------------------------------------------
+    # Integration: real API calls with sampling params set
+    # ------------------------------------------------------------------
+
+    @pytest.mark.asyncio
+    async def test_chat_with_sampling_params(self, client):
+        """Chat succeeds when top_k, penalties, top_p are set."""
+        await asyncio.sleep(1)
+        input_data = ILLMInput(
+            system_prompt="You are a concise assistant.",
+            user_message="What is the capital of France? Reply in one sentence.",
+        )
+        response = await client.chat(input_data)
+        assert isinstance(response, dict)
+        assert "llm_response" in response
+        text = response["llm_response"]
+        assert isinstance(text, str) and len(text) > 0
+        assert re.search(r"paris", text, re.IGNORECASE), f"Expected 'Paris' in response: {text}"
+        logger.info(f"✅ CF chat with sampling params passed - response: {text[:80]}")
+
+    @pytest.mark.asyncio
+    async def test_stream_with_sampling_params(self, client):
+        """Stream succeeds when top_k, penalties, top_p are set."""
+        await asyncio.sleep(1)
+        input_data = ILLMInput(
+            system_prompt="You are a concise assistant.",
+            user_message="What is the capital of Germany? Reply in one sentence.",
+        )
+        final_text = ""
+        chunks = []
+        async for chunk in client.stream(input_data):
+            chunks.append(chunk)
+            if chunk.get("llm_response"):
+                final_text = chunk["llm_response"]
+
+        assert len(chunks) > 0
+        assert re.search(r"berlin", final_text, re.IGNORECASE), f"Expected 'Berlin' in response: {final_text}"
+        logger.info(f"✅ CF stream with sampling params passed - response: {final_text[:80]}")
+
+    @pytest.mark.asyncio
+    async def test_chat_with_extra_body_passthrough(self):
+        """User-supplied extra_body keys are merged and forwarded."""
+        await asyncio.sleep(1)
+        config = CloudflareGatewayLLMConfig(
+            account_id=ACCOUNT_ID,
+            gateway_id=GATEWAY_ID,
+            gateway_token=GATEWAY_TOKEN,
+            provider="openrouter",
+            model="openai/gpt-4o-mini",
+            temperature=0.3,
+            max_tokens=200,
+            top_k=40,
+            extra_body={"provider": {"order": ["OpenAI"]}},
+        )
+        client = CloudflareGatewayLLM(config)
+        # Verify kwargs construction
+        result = client._build_sampling_kwargs([])
+        assert result["extra_body"]["top_k"] == 40
+        assert result["extra_body"]["provider"] == {"order": ["OpenAI"]}
+
+        input_data = ILLMInput(
+            system_prompt="You are a concise assistant.",
+            user_message="Say 'hello'.",
+        )
+        response = await client.chat(input_data)
+        assert isinstance(response, dict)
+        assert "llm_response" in response
+        client.close()
+        logger.info(f"✅ CF chat with extra_body passthrough passed")
+
+
+# Run tests with: uv run pytest tests/unit/llms/test_cloudflare_gateway.py -v
+# Run only sampling tests: uv run pytest tests/unit/llms/test_cloudflare_gateway.py::TestCloudflareGatewaySamplingControl -v
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])

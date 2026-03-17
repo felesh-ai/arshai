@@ -68,6 +68,10 @@ class ILLMConfig(IDTO):
     top_p: Optional[float] = None
     frequency_penalty: Optional[float] = None
     presence_penalty: Optional[float] = None
+    top_k: Optional[int] = None
+    reasoning_max_tokens: Optional[int] = None
+    reasoning_effort: Optional[str] = None
+    extra_body: Optional[Dict[str, Any]] = None
 
 class ILLM(Protocol):
     """Protocol class for LLM providers - Updated to match BaseLLMClient implementation"""
