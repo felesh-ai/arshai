@@ -629,6 +629,8 @@ class AIGatewayLLM(BaseLLMClient):
         messages = self._create_openai_messages(input)
 
         kwargs = self._build_sampling_kwargs(messages)
+        if input.extra_headers:
+            kwargs["extra_headers"] = input.extra_headers
 
         if input.structure_type:
             structure_function = self._create_structure_function_openai(input.structure_type)
@@ -681,6 +683,8 @@ class AIGatewayLLM(BaseLLMClient):
                 start_time = time.time()
 
                 kwargs = self._build_sampling_kwargs(messages, tools=openai_tools if openai_tools else None)
+                if input.extra_headers:
+                    kwargs["extra_headers"] = input.extra_headers
 
                 response = self._client.chat.completions.create(**kwargs)
                 self.logger.info(f"Response time: {time.time() - start_time:.2f}s")
@@ -753,6 +757,8 @@ class AIGatewayLLM(BaseLLMClient):
         messages = self._create_openai_messages(input)
 
         kwargs = self._build_sampling_kwargs(messages, stream=True)
+        if input.extra_headers:
+            kwargs["extra_headers"] = input.extra_headers
 
         if input.structure_type:
             structure_function = self._create_structure_function_openai(input.structure_type)
@@ -838,6 +844,8 @@ class AIGatewayLLM(BaseLLMClient):
 
             try:
                 kwargs = self._build_sampling_kwargs(messages, tools=openai_tools if openai_tools else None, stream=True)
+                if input.extra_headers:
+                    kwargs["extra_headers"] = input.extra_headers
 
                 streaming_state = StreamingExecutionState()
                 collected_text = ""

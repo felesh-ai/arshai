@@ -41,6 +41,14 @@ class ILLMInput(IDTO):
     background_tasks: Dict[str, Callable] = Field(default={}, description="list of background tasks for fire-and-forget execution")
     structure_type: Type[T] = Field(default=None, description="Output response")
     max_turns: int = Field(default=10, description="Times that llm can call tools")
+    extra_headers: Optional[Dict[str, str]] = Field(
+        default=None,
+        description=(
+            "Per-call HTTP headers to forward to the underlying gateway/provider. "
+            "Useful for request-scoped identity (e.g. X-Auth-User), trace IDs, or tenant tokens. "
+            "Merged on top of any default_headers configured on the client; only set when needed."
+        ),
+    )
 
     @model_validator(mode='before')
     @classmethod
