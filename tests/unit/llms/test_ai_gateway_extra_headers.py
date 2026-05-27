@@ -53,7 +53,21 @@ def _build_client_with_mock(monkeypatch, capture: dict) -> AIGatewayLLM:
         capture["kwargs"] = kwargs
         return fake_response
 
+    # Simple-chat path uses .with_raw_response.create(...).parse() so the
+    # gateway's X-Upstream-Request-ID response header can be captured; the
+    # streaming and function-calling paths still use the plain .create(...).
+    # Patch both surfaces so this fixture serves all three flavors of test.
+    fake_raw = SimpleNamespace(
+        headers={},
+        parse=lambda: fake_response,
+    )
+
+    def fake_with_raw_create(**kwargs):
+        capture["kwargs"] = kwargs
+        return fake_raw
+
     llm._client.chat.completions.create = fake_create
+    llm._client.chat.completions.with_raw_response.create = fake_with_raw_create
     return llm
 
 
