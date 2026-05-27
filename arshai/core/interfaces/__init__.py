@@ -20,6 +20,7 @@ from .idocument import Document
 
 # Other interfaces
 from .iembedding import IEmbedding
+from .imultimodal_embedding import IMultimodalEmbedding, MultimodalInput
 from .ivector_db_client import IVectorDBClient
 from .idto import IDTO, IStreamDTO
 from .ireranker import IReranker, IRerankInput
@@ -39,7 +40,8 @@ __all__ = [
     # Document
     "Document",
     # Other
-    "IEmbedding", "IVectorDBClient", "IDTO", "IStreamDTO",
+    "IEmbedding", "IMultimodalEmbedding", "MultimodalInput",
+    "IVectorDBClient", "IDTO", "IStreamDTO",
     # Reranker
     "IReranker", "IRerankInput",
     # Web Search
