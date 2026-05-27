@@ -21,6 +21,7 @@ from .idocument import Document
 # Other interfaces
 from .iembedding import IEmbedding
 from .imultimodal_embedding import IMultimodalEmbedding, MultimodalInput
+from .ispeech_transcriber import ISpeechTranscriber
 from .ivector_db_client import IVectorDBClient
 from .idto import IDTO, IStreamDTO
 from .ireranker import IReranker, IRerankInput
@@ -41,6 +42,7 @@ __all__ = [
     "Document",
     # Other
     "IEmbedding", "IMultimodalEmbedding", "MultimodalInput",
+    "ISpeechTranscriber",
     "IVectorDBClient", "IDTO", "IStreamDTO",
     # Reranker
     "IReranker", "IRerankInput",
