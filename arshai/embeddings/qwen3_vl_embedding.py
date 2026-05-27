@@ -17,12 +17,19 @@ churn for every future caller and matches the project's expectation that
 the swap is reversible.
 """
 
+import asyncio
+import logging
 import os
-from typing import Optional
+import uuid
+from pathlib import Path
+from typing import Any, List, Optional
 
 from pydantic import Field, field_validator
 
 from arshai.core.interfaces.iembedding import EmbeddingConfig
+from arshai.core.interfaces.imultimodal_embedding import MultimodalInput
+
+logger = logging.getLogger(__name__)
 
 
 class TongyiVisionEmbeddingConfig(EmbeddingConfig):
@@ -95,3 +102,91 @@ class TongyiVisionEmbeddingConfig(EmbeddingConfig):
     @classmethod
     def _gateway_token_env_fallback(cls, v: Optional[str]) -> Optional[str]:
         return v if v is not None else os.environ.get("GATEWAY_TOKEN")
+
+
+class TongyiVisionEmbedding:
+    """Gateway-fronted Tongyi vision embedding client.
+
+    Implements ``IMultimodalEmbedding`` for the AI Gateway's
+    ``/v1/multimodal-embeddings`` endpoint. This class is built up across
+    Tasks 2.4 / 2.5: input resolution lives here; the async ``embed`` /
+    ``embed_fused`` methods land in 2.5.
+
+    Dependencies are injected, not constructed:
+
+    * ``s3_client``: boto3-shaped client used to stage ``video_path`` inputs
+      to ``config.staging_bucket`` and mint signed GET URLs. Required even
+      when no caller currently uses ``video_path`` — keeps construction
+      uniform and the resolution path testable.
+    * ``http_client``: optional ``httpx.AsyncClient``. ``None`` means the
+      implementation will own its own client (created lazily in Task 2.5).
+    """
+
+    def __init__(
+        self,
+        config: TongyiVisionEmbeddingConfig,
+        s3_client: Any,
+        http_client: Optional[Any] = None,
+    ) -> None:
+        self.config = config
+        self._s3 = s3_client
+        self._http = http_client
+
+    @property
+    def dimension(self) -> int:
+        return self.config.dimension
+
+    async def _resolve_items(
+        self, items: List[MultimodalInput]
+    ) -> List[MultimodalInput]:
+        """Return a list parallel to ``items`` with ``video_path`` inputs
+        resolved to signed ``video_url`` references.
+
+        Items whose only modality fields are passthrough types (``text``,
+        ``image_base64``, ``image_url``, ``video_url``) are returned
+        unchanged. The s3 client is invoked exactly once per ``video_path``.
+        """
+        resolved: List[MultimodalInput] = []
+        for item in items:
+            if item.video_path is None:
+                resolved.append(item)
+                continue
+
+            if not self.config.staging_bucket:
+                raise ValueError(
+                    "TongyiVisionEmbedding received a video_path input but "
+                    "config.staging_bucket is not set."
+                )
+
+            key = self._make_staging_key(item.video_path)
+            await asyncio.to_thread(
+                self._s3.upload_file,
+                item.video_path,
+                self.config.staging_bucket,
+                key,
+            )
+            signed_url: str = await asyncio.to_thread(
+                self._s3.generate_presigned_url,
+                "get_object",
+                Params={"Bucket": self.config.staging_bucket, "Key": key},
+                ExpiresIn=self.config.staging_url_ttl_seconds,
+            )
+
+            # Build a new immutable item: keep every other modality field,
+            # swap video_path → video_url. IDTO sets validate_assignment so
+            # constructing afresh is the safe path.
+            resolved.append(
+                MultimodalInput(
+                    text=item.text,
+                    image_base64=item.image_base64,
+                    image_url=item.image_url,
+                    video_url=signed_url,
+                    video_path=None,
+                )
+            )
+        return resolved
+
+    @staticmethod
+    def _make_staging_key(path: str) -> str:
+        suffix = Path(path).suffix or ".bin"
+        return f"video-rag-staging/{uuid.uuid4().hex}{suffix}"
