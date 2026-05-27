@@ -357,6 +357,85 @@ async def load_image_async(path: str) -> str:
 
 3. **No Framework Validation**: The framework doesn't validate base64 content, image format, or MIME types. Providers handle validation and return clear errors if issues occur.
 
+## Multimodal Embedding & ASR
+
+A separate surface from "images in chat input" (above): the framework also
+exposes interfaces for **multimodal embedding** and **speech transcription**,
+intended for retrieval / forensic-search use cases rather than conversational
+prompting.
+
+### Interfaces
+
+- `IMultimodalEmbedding` (in `arshai/core/interfaces/imultimodal_embedding.py`)
+  — `embed(items)` returns one vector per item; `embed_fused(item)` collapses
+  multiple modalities of a single item into one vector. Input items are
+  `MultimodalInput` DTOs: any of `text` / `image_base64` / `image_url` /
+  `video_url` / `video_path` (at least one required).
+- `ISpeechTranscriber` (in `arshai/core/interfaces/ispeech_transcriber.py`)
+  — `transcribe(audio, language=None, response_format="json", hints=None)`
+  where `audio` is an externally-fetchable URL. **Inline audio bytes are
+  not supported** by design: callers stage to object storage and pass a
+  signed URL.
+
+### v1 implementations (gateway-fronted)
+
+Both v1 clients route through the **AI Gateway** (control-plane service) and
+share a credentials pattern: `gateway_base_url` / `gateway_token` fall back
+to the `GATEWAY_BASE_URL` / `GATEWAY_TOKEN` environment variables.
+
+- `TongyiVisionEmbedding` (in `arshai/embeddings/qwen3_vl_embedding.py`,
+  exported from `arshai.embeddings`) — calls
+  `POST /v1/multimodal-embeddings`. Backed by `tongyi-embedding-vision-plus`
+  (1152-d native, truncated to 1024-d via Matryoshka prefix — verified
+  `cosine=1.000000` against direct 1024-d output). Batches under
+  `asyncio.Semaphore(max_concurrency)`; retries on `{429, 502, 503, 504}`
+  with `Retry-After` honor; surfaces every batch's `upstream_request_id`.
+  `video_path` inputs are uploaded to `config.staging_bucket` and
+  substituted with a signed GET URL before the upstream call.
+- `Qwen3ASR` (in `arshai/llms/qwen_asr.py`) — calls
+  `POST /v1/audio/transcriptions` (URL-driven JSON; see AI-Gateway ADR 0007).
+  Backed by `qwen3-asr-flash`. `segments` is always empty (upstream returns
+  one transcript chunk). `hints` are dropped silently for v1.
+
+### Where the upstream id flows
+
+Both clients surface the AI Gateway's `X-Upstream-Request-ID` (header or
+response field) into their return dicts:
+
+- `IMultimodalEmbedding.embed()` → `"upstream_request_ids": List[str]` (one
+  per batch).
+- `IMultimodalEmbedding.embed_fused()` → scalar `"upstream_request_id": str`.
+- `ISpeechTranscriber.transcribe()` → scalar `"upstream_request_id": str`.
+
+For LLM chat, the same id is now also surfaced via `AIGatewayLLM`'s
+non-streaming `_chat_simple` path — it lands in the `usage` dict as
+`upstream_request_id` (alongside the existing `request_id`). The streaming
+path and the multi-turn function-calling loop don't surface it yet;
+extending those is a follow-up if/when callers need it.
+
+### Usage example
+
+```python
+import os
+from arshai.embeddings import TongyiVisionEmbedding, TongyiVisionEmbeddingConfig
+from arshai.core.interfaces.imultimodal_embedding import MultimodalInput
+import boto3
+
+cfg = TongyiVisionEmbeddingConfig(
+    model_name="tongyi-embedding-vision-plus",
+    staging_bucket="video-rag-staging",
+)  # gateway_base_url + gateway_token from env
+
+client = TongyiVisionEmbedding(cfg, s3_client=boto3.client("s3"))
+
+out = await client.embed([
+    MultimodalInput(text="a person entering a vehicle"),
+    MultimodalInput(image_url="https://r2.example/frame.jpg"),
+])
+vectors = out["dense"]  # List[List[float]], one per input
+upstream_ids = out["upstream_request_ids"]  # one per batch
+```
+
 ## LLM Client Architecture Standards
 
 ### Reference Implementation: Google Gemini Client
