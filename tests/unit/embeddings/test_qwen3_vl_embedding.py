@@ -4,12 +4,17 @@ Per Phase 2 Tasks 2.3 (config) and 2.4 (input resolution) of the forensic
 video-RAG plan (`core/video_rag/plans/2026-05-21-forensic-video-rag.md`).
 """
 
+import json
 from unittest.mock import MagicMock
 
+import httpx
 import pytest
 
 from arshai.core.interfaces.iembedding import EmbeddingConfig
-from arshai.core.interfaces.imultimodal_embedding import MultimodalInput
+from arshai.core.interfaces.imultimodal_embedding import (
+    IMultimodalEmbedding,
+    MultimodalInput,
+)
 from arshai.embeddings.qwen3_vl_embedding import (
     TongyiVisionEmbedding,
     TongyiVisionEmbeddingConfig,
@@ -235,3 +240,219 @@ class TestResolveItems:
         assert out[2].video_url == "https://signed/url"
         # Only one upload — for the video_path item.
         assert s3.upload_file.call_count == 1
+
+
+# ---------------------------------------------------------------------------
+# Task 2.5 — _post / _embed_batch / embed / embed_fused
+# ---------------------------------------------------------------------------
+
+
+def _ok_response(n: int, upstream_id: str = "req-1", dimension: int = 4) -> httpx.Response:
+    body = {
+        "object": "list",
+        "data": [
+            {"object": "embedding", "embedding": [float(i)] * dimension, "index": i}
+            for i in range(n)
+        ],
+        "model": "tongyi-embedding-vision-plus",
+        "usage": {"prompt_tokens": 0, "total_tokens": 0},
+        "upstream_request_id": upstream_id,
+    }
+    return httpx.Response(200, json=body)
+
+
+def _make_embedding_client(
+    transport: httpx.MockTransport,
+    *,
+    batch_limit: int = 10,
+    max_concurrency: int = 4,
+    dimension: int = 4,
+) -> TongyiVisionEmbedding:
+    cfg = TongyiVisionEmbeddingConfig(
+        gateway_base_url="https://gw.example",
+        gateway_token="t",
+        model_name="tongyi-embedding-vision-plus",
+        dimension=dimension,
+        batch_limit=batch_limit,
+        max_concurrency=max_concurrency,
+    )
+    http = httpx.AsyncClient(transport=transport, base_url="https://gw.example")
+    return TongyiVisionEmbedding(cfg, s3_client=MagicMock(), http_client=http)
+
+
+class TestProtocolCompliance:
+    def test_is_imultimodal_embedding(self):
+        cfg = TongyiVisionEmbeddingConfig(
+            gateway_base_url="https://x", gateway_token="t"
+        )
+        c = TongyiVisionEmbedding(cfg, s3_client=MagicMock())
+        assert isinstance(c, IMultimodalEmbedding)
+
+
+class TestEmbedSingleBatch:
+    @pytest.mark.asyncio
+    async def test_single_batch_returns_one_vector_per_item(self):
+        captured: list[httpx.Request] = []
+
+        def handler(req: httpx.Request) -> httpx.Response:
+            captured.append(req)
+            return _ok_response(n=2)
+
+        c = _make_embedding_client(httpx.MockTransport(handler))
+        items = [MultimodalInput(text="a"), MultimodalInput(text="b")]
+        out = await c.embed(items)
+
+        assert "dense" in out
+        assert len(out["dense"]) == 2
+        assert all(len(v) == c.dimension for v in out["dense"])
+        assert out["upstream_request_ids"] == ["req-1"]
+
+        # Request inspection — one call, well-formed body.
+        assert len(captured) == 1
+        body = json.loads(captured[0].content)
+        assert body["model"] == "tongyi-embedding-vision-plus"
+        assert body["enable_fusion"] is False
+        assert body["dimension"] == c.dimension
+        assert [item["text"] for item in body["input"]] == ["a", "b"]
+        # Authorization header.
+        assert captured[0].headers["authorization"] == "Bearer t"
+
+    @pytest.mark.asyncio
+    async def test_chunks_into_multiple_batches(self):
+        call_count = {"n": 0}
+
+        def handler(req: httpx.Request) -> httpx.Response:
+            call_count["n"] += 1
+            body = json.loads(req.content)
+            n = len(body["input"])
+            return _ok_response(n=n, upstream_id=f"req-{call_count['n']}")
+
+        c = _make_embedding_client(httpx.MockTransport(handler), batch_limit=3)
+        items = [MultimodalInput(text=f"t-{i}") for i in range(7)]
+        out = await c.embed(items)
+
+        # 3 + 3 + 1 = 3 batches.
+        assert call_count["n"] == 3
+        assert len(out["dense"]) == 7
+        assert sorted(out["upstream_request_ids"]) == ["req-1", "req-2", "req-3"]
+
+    @pytest.mark.asyncio
+    async def test_strips_none_modality_fields_from_payload(self):
+        captured: list[dict] = []
+
+        def handler(req: httpx.Request) -> httpx.Response:
+            captured.append(json.loads(req.content))
+            return _ok_response(n=1)
+
+        c = _make_embedding_client(httpx.MockTransport(handler))
+        await c.embed([MultimodalInput(image_url="https://x/y.jpg")])
+
+        item = captured[0]["input"][0]
+        assert item == {"image_url": "https://x/y.jpg"}
+
+    @pytest.mark.asyncio
+    async def test_image_base64_without_url_raises(self):
+        c = _make_embedding_client(httpx.MockTransport(lambda r: _ok_response(0)))
+        with pytest.raises(NotImplementedError, match="image_base64"):
+            await c.embed([MultimodalInput(image_base64="aGVsbG8=")])
+
+
+class TestEmbedFused:
+    @pytest.mark.asyncio
+    async def test_embed_fused_single_call_flat_vector(self):
+        captured: list[dict] = []
+
+        def handler(req: httpx.Request) -> httpx.Response:
+            captured.append(json.loads(req.content))
+            return _ok_response(n=1, upstream_id="fused-req")
+
+        c = _make_embedding_client(httpx.MockTransport(handler))
+        out = await c.embed_fused(
+            MultimodalInput(text="caption", image_url="https://x/y.jpg")
+        )
+
+        assert len(captured) == 1
+        assert captured[0]["enable_fusion"] is True
+        assert isinstance(out["dense"], list)
+        assert all(isinstance(v, (int, float)) for v in out["dense"])
+        assert len(out["dense"]) == c.dimension
+        assert out["upstream_request_id"] == "fused-req"
+
+
+class TestRetry:
+    @pytest.mark.asyncio
+    async def test_retries_on_429_then_succeeds(self, monkeypatch):
+        # No real sleep.
+        monkeypatch.setattr(
+            "arshai.embeddings.qwen3_vl_embedding.asyncio.sleep",
+            lambda _: _AwaitableNone(),
+        )
+        attempts = {"n": 0}
+
+        def handler(req: httpx.Request) -> httpx.Response:
+            attempts["n"] += 1
+            if attempts["n"] == 1:
+                return httpx.Response(429, headers={"Retry-After": "2"}, text="slow down")
+            return _ok_response(n=1)
+
+        c = _make_embedding_client(httpx.MockTransport(handler))
+        out = await c.embed([MultimodalInput(text="a")])
+        assert attempts["n"] == 2
+        assert len(out["dense"]) == 1
+
+    @pytest.mark.asyncio
+    async def test_retries_through_502_503_504(self, monkeypatch):
+        monkeypatch.setattr(
+            "arshai.embeddings.qwen3_vl_embedding.asyncio.sleep",
+            lambda _: _AwaitableNone(),
+        )
+        statuses = iter([502, 503, 504, 200])
+
+        def handler(req: httpx.Request) -> httpx.Response:
+            s = next(statuses)
+            if s == 200:
+                return _ok_response(n=1)
+            return httpx.Response(s, text="upstream")
+
+        c = _make_embedding_client(httpx.MockTransport(handler))
+        out = await c.embed([MultimodalInput(text="a")])
+        assert len(out["dense"]) == 1
+
+    @pytest.mark.asyncio
+    async def test_gives_up_after_4_attempts(self, monkeypatch):
+        monkeypatch.setattr(
+            "arshai.embeddings.qwen3_vl_embedding.asyncio.sleep",
+            lambda _: _AwaitableNone(),
+        )
+        attempts = {"n": 0}
+
+        def handler(req: httpx.Request) -> httpx.Response:
+            attempts["n"] += 1
+            return httpx.Response(503, text="still down")
+
+        c = _make_embedding_client(httpx.MockTransport(handler))
+        with pytest.raises(httpx.HTTPStatusError):
+            await c.embed([MultimodalInput(text="a")])
+        assert attempts["n"] == 4
+
+    @pytest.mark.asyncio
+    async def test_non_retryable_4xx_raises_immediately(self, monkeypatch):
+        attempts = {"n": 0}
+
+        def handler(req: httpx.Request) -> httpx.Response:
+            attempts["n"] += 1
+            return httpx.Response(400, json={"error": "bad input"})
+
+        c = _make_embedding_client(httpx.MockTransport(handler))
+        with pytest.raises(httpx.HTTPStatusError):
+            await c.embed([MultimodalInput(text="a")])
+        assert attempts["n"] == 1
+
+
+class _AwaitableNone:
+    """Tiny shim to make a sync function awaitable for asyncio.sleep patching."""
+
+    def __await__(self):
+        if False:
+            yield
+        return None
