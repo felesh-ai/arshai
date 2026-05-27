@@ -364,14 +364,28 @@ class AIGatewayLLM(BaseLLMClient):
         kwargs.update(overrides)
         return kwargs
 
-    def _extract_and_standardize_usage(self, response: Any) -> Dict[str, Any]:
-        """Extract and standardize usage metadata from response."""
+    def _extract_and_standardize_usage(
+        self,
+        response: Any,
+        *,
+        upstream_request_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Extract and standardize usage metadata from response.
+
+        ``upstream_request_id`` is the value of the gateway's
+        ``X-Upstream-Request-ID`` response header (when wired via
+        ``.with_raw_response`` at the call site). Surfaced in the returned
+        dict so callers can correlate gateway-side activity to the
+        underlying provider's traces — used by the forensic video-RAG
+        pipeline's audit chain.
+        """
         if not hasattr(response, 'usage') or not response.usage:
             return {
                 "input_tokens": 0, "output_tokens": 0, "total_tokens": 0,
                 "thinking_tokens": 0, "tool_calling_tokens": 0,
                 "provider": "gateway", "model": self.config.model,
-                "request_id": getattr(response, 'id', None)
+                "request_id": getattr(response, 'id', None),
+                "upstream_request_id": upstream_request_id,
             }
 
         usage = response.usage
@@ -394,7 +408,8 @@ class AIGatewayLLM(BaseLLMClient):
             "tool_calling_tokens": 0,
             "provider": "gateway",
             "model": self.config.model,
-            "request_id": getattr(response, 'id', None)
+            "request_id": getattr(response, 'id', None),
+            "upstream_request_id": upstream_request_id,
         }
 
     def _create_openai_messages(self, input: ILLMInput) -> List[Dict[str, Any]]:
@@ -638,8 +653,15 @@ class AIGatewayLLM(BaseLLMClient):
             function_name = input.structure_type.__name__.lower()
             kwargs["messages"][0]["content"] += STRUCTURE_INSTRUCTIONS_TEMPLATE.format(function_name=function_name)
 
-        response = self._client.chat.completions.create(**kwargs)
-        usage = self._extract_and_standardize_usage(response)
+        # Use with_raw_response to capture the gateway's X-Upstream-Request-ID
+        # header. .parse() yields the same ChatCompletion object the plain
+        # .create() would return; the surrounding code path is unchanged.
+        raw = self._client.chat.completions.with_raw_response.create(**kwargs)
+        upstream_id = raw.headers.get("X-Upstream-Request-ID")
+        response = raw.parse()
+        usage = self._extract_and_standardize_usage(
+            response, upstream_request_id=upstream_id
+        )
 
         if input.structure_type:
             tool_calls = self._extract_function_calls_from_response(response)
