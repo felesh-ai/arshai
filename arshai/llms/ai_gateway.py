@@ -698,8 +698,15 @@ class AIGatewayLLM(BaseLLMClient):
         # .create() would return; the surrounding code path is unchanged.
         raw = await self._client.chat.completions.with_raw_response.create(**kwargs)
         upstream_id = raw.headers.get("X-Upstream-Request-ID")
-        # AsyncAPIResponse.parse is a coroutine, unlike its sync counterpart.
-        response = await raw.parse()
+        # .parse() is sync or async depending on the installed openai SDK, and
+        # BOTH are in range for this package (`openai = "^1.0.0"`). On 1.x,
+        # .with_raw_response hands back a LegacyAPIResponse whose .parse() is
+        # synchronous; on 2.x it is an AsyncAPIResponse whose .parse() is a
+        # coroutine. Awaiting unconditionally raises "object ChatCompletion
+        # can't be used in 'await' expression" on every 1.x deployment, so
+        # check the returned object rather than assuming a major version.
+        parsed = raw.parse()
+        response = await parsed if inspect.isawaitable(parsed) else parsed
         usage = self._extract_and_standardize_usage(
             response, upstream_request_id=upstream_id
         )
