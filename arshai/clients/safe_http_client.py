@@ -142,27 +142,47 @@ class SafeHttpClientFactory:
                 raise
     
     @staticmethod
-    def _get_safe_timeout_config(httpx_version: str) -> Any:
-        """Get httpx.Timeout configuration compatible with version"""
+    def _get_safe_timeout_config(httpx_version: str, read_timeout: Optional[float] = None) -> Any:
+        """Get httpx.Timeout configuration compatible with version.
+
+        Args:
+            httpx_version: Installed httpx version, for compatibility branching
+            read_timeout: How long to wait for the model's response, in
+                seconds. Defaults to 60.0 when not given.
+
+        Only the READ phase is configurable. Connect, write and pool keep their
+        safe defaults on purpose: a caller setting a timeout is saying how long
+        it will wait for the model to answer, not how long to wait for a TCP
+        handshake or a free pool slot. Collapsing all four into one number
+        makes a slow model indistinguishable from an unreachable gateway.
+
+        Note that this bounds ONE attempt. The OpenAI client applies its own
+        `max_retries` (default 3) on top, so the worst-case wall time a caller
+        can experience is roughly `(max_retries + 1) * read_timeout`. Size the
+        two together.
+        """
+        read = 60.0 if read_timeout is None else read_timeout
         try:
             import httpx
             
             # Try detailed timeout configuration
             return httpx.Timeout(
                 connect=10.0,  # Connection timeout
-                read=60.0,     # Read timeout (important for streaming)
+                read=read,     # Read timeout (important for streaming)
                 write=10.0,    # Write timeout
                 pool=5.0       # Pool acquisition timeout
             )
         except Exception as e:
             logger.warning(f"Could not create detailed Timeout config: {e}")
-            # Fallback to simple timeout
+            # Fallback to simple timeout. The caller's read budget still wins
+            # over the built-in default — losing it here is how a configured
+            # timeout silently stops applying.
             try:
                 import httpx
-                return httpx.Timeout(30.0)
+                return httpx.Timeout(read)
             except Exception:
                 # Final fallback - return simple number
-                return 30.0
+                return read
     
     @staticmethod
     def _get_additional_httpx_config(httpx_version: str) -> Dict[str, Any]:
@@ -594,6 +614,144 @@ class SafeHttpClientFactory:
             )
         except Exception as e:
             logger.error(f"Minimal client creation failed: {e}")
+            raise
+
+    # ========================================================================
+    # ASYNC COUNTERPARTS
+    #
+    # The sync builders above stay for callers that genuinely want a blocking
+    # client. Anything invoked from an async method must use these instead: an
+    # `OpenAI` client called from a coroutine blocks the whole event loop for
+    # the duration of the request, which stalls every other task in the
+    # process — not just the caller.
+    # ========================================================================
+
+    @staticmethod
+    def create_async_openai_client(
+        api_key: str, read_timeout: Optional[float] = None, **kwargs
+    ) -> Any:
+        """Create an AsyncOpenAI client with safe configuration.
+
+        Async counterpart of :meth:`create_openai_client`, with the same
+        three-strategy degradation: optimized pooling, then standard limits,
+        then a minimal client.
+
+        Args:
+            api_key: OpenAI API key
+            read_timeout: Per-attempt response timeout in seconds; see
+                :meth:`_get_safe_timeout_config`. Defaults to 60.0.
+            **kwargs: Additional arguments passed to the AsyncOpenAI client
+
+        Returns:
+            Configured AsyncOpenAI client instance
+
+        Raises:
+            ValueError: If no strategy can produce a client
+        """
+        strategies = (
+            SafeHttpClientFactory._create_optimized_async_openai_client,
+            SafeHttpClientFactory._create_standard_async_openai_client,
+            SafeHttpClientFactory._create_minimal_async_openai_client,
+        )
+
+        last_error = None
+        for strategy in strategies:
+            try:
+                client = strategy(api_key, read_timeout=read_timeout, **kwargs)
+                logger.info(f"Created AsyncOpenAI client via {strategy.__name__}")
+                return client
+            except Exception as e:
+                last_error = e
+                logger.warning(f"{strategy.__name__} failed: {e}")
+
+        logger.error(f"All AsyncOpenAI client configurations failed: {last_error}")
+        raise ValueError(f"Cannot initialize AsyncOpenAI client: {last_error}")
+
+    @staticmethod
+    def _create_optimized_async_openai_client(
+        api_key: str, read_timeout: Optional[float] = None, **kwargs
+    ) -> Any:
+        """High performance async configuration with connection pooling"""
+        try:
+            import httpx
+            httpx_version = getattr(httpx, '__version__', '0.0.0')
+
+            limits_config = SafeHttpClientFactory._get_safe_limits_config(httpx_version)
+            timeout_config = SafeHttpClientFactory._get_safe_timeout_config(
+                httpx_version, read_timeout=read_timeout
+            )
+            additional_config = SafeHttpClientFactory._get_additional_httpx_config(httpx_version)
+
+            safe_http_client = httpx.AsyncClient(
+                limits=limits_config,
+                timeout=timeout_config,
+                verify=True,  # SSL verification enabled for security
+                **additional_config
+            )
+
+            from openai import AsyncOpenAI
+            openai_version = SafeHttpClientFactory._get_package_version('openai')
+            openai_config = SafeHttpClientFactory._get_openai_client_config(openai_version)
+
+            client_kwargs = {
+                'api_key': api_key,
+                'http_client': safe_http_client,
+                **openai_config,
+                **kwargs
+            }
+
+            return AsyncOpenAI(**client_kwargs)
+
+        except ImportError as e:
+            logger.warning(f"Required packages not available: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Optimized async client creation failed: {e}")
+            raise
+
+    @staticmethod
+    def _create_standard_async_openai_client(
+        api_key: str, read_timeout: Optional[float] = None, **kwargs
+    ) -> Any:
+        """Standard async configuration with moderate limits"""
+        try:
+            import httpx
+            from openai import AsyncOpenAI
+
+            safe_http_client = httpx.AsyncClient(
+                limits=httpx.Limits(
+                    max_connections=50,
+                    max_keepalive_connections=25
+                ),
+                timeout=httpx.Timeout(30.0 if read_timeout is None else read_timeout),
+                verify=True  # SSL verification enabled for security
+            )
+
+            return AsyncOpenAI(
+                api_key=api_key,
+                http_client=safe_http_client,
+                max_retries=2,
+                **kwargs
+            )
+        except Exception as e:
+            logger.error(f"Standard async client creation failed: {e}")
+            raise
+
+    @staticmethod
+    def _create_minimal_async_openai_client(
+        api_key: str, read_timeout: Optional[float] = None, **kwargs
+    ) -> Any:
+        """Minimal async configuration - just basic timeout"""
+        try:
+            from openai import AsyncOpenAI
+            return AsyncOpenAI(
+                api_key=api_key,
+                timeout=30.0 if read_timeout is None else read_timeout,
+                max_retries=1,
+                **kwargs
+            )
+        except Exception as e:
+            logger.error(f"Minimal async client creation failed: {e}")
             raise
 
 

@@ -11,7 +11,9 @@ import time
 import base64
 import inspect
 from typing import Dict, Any, TypeVar, Type, AsyncGenerator, List, Callable
-from openai import OpenAI
+import asyncio
+
+from openai import AsyncOpenAI
 
 from arshai.core.interfaces.illm import ILLMInput
 from arshai.llms.base_llm_client import BaseLLMClient
@@ -59,19 +61,48 @@ class OpenRouterClient(BaseLLMClient):
     
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Async context manager exit - cleanup connections."""
-        self.close()
+        await self.aclose()
         return False
     
     def close(self):
-        """Close the OpenRouter client and cleanup connections."""
+        """Best-effort close. ``aclose`` is the accurate path — prefer it.
+
+        The transport is an ``httpx.AsyncClient``, which has no synchronous
+        close, and this method is reachable from ``__del__``, which cannot
+        await. Inside a running loop the teardown is scheduled as a task; with
+        no loop there is nothing safe to do, because ``asyncio.run`` during
+        interpreter shutdown can fail on an already-dismantled loop policy.
+        Leaving the sockets to the OS at that point is harmless — the process
+        is exiting anyway.
+
+        The task is created against the captured client, NOT ``self.aclose``:
+        handing a finalizer's ``self`` to a pending task resurrects an object
+        the interpreter has already begun collecting.
+        """
+        client = getattr(self, "_client", None)
+        if client is None:
+            return
+
         try:
-            # Close the underlying httpx client if it exists
-            if hasattr(self._client, '_client') and hasattr(self._client._client, 'close'):
-                self._client._client.close()
-                self.logger.info("Closed OpenRouter httpx client")
-            elif hasattr(self._client, 'close'):
-                self._client.close()
-                self.logger.info("Closed OpenRouter client")
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            return
+
+        try:
+            loop.create_task(client.close())
+        except Exception:
+            # A finalizer must never raise, and no logging contract survives
+            # interpreter teardown.
+            pass
+
+    async def aclose(self) -> None:
+        """Close the async transport, awaiting it properly."""
+        client = getattr(self, "_client", None)
+        if client is None:
+            return
+        try:
+            await client.close()
+            self.logger.info("Closed OpenRouter client")
         except Exception as e:
             self.logger.warning(f"Error closing OpenRouter client: {e}")
     
@@ -115,14 +146,14 @@ class OpenRouterClient(BaseLLMClient):
             timeout_config = SafeHttpClientFactory._get_safe_timeout_config(httpx_version)
             additional_config = SafeHttpClientFactory._get_additional_httpx_config(httpx_version)
             
-            safe_http_client = httpx.Client(
+            safe_http_client = httpx.AsyncClient(
                 limits=limits_config,
                 timeout=timeout_config,
                 **additional_config
             )
             
             # Create OpenRouter client with safe HTTP client
-            client = OpenAI(
+            client = AsyncOpenAI(
                 api_key=api_key,
                 base_url=base_url,
                 default_headers={
@@ -139,7 +170,7 @@ class OpenRouterClient(BaseLLMClient):
         except ImportError as e:
             self.logger.warning(f"Safe HTTP client factory not available: {e}, using default OpenRouter client")
             # Fallback to original implementation
-            return OpenAI(
+            return AsyncOpenAI(
                 api_key=api_key,
                 base_url=base_url,
                 default_headers={
@@ -156,7 +187,7 @@ class OpenRouterClient(BaseLLMClient):
             self.logger.info("Using fallback OpenRouter client configuration")
             try:
                 # At least try to set a timeout for basic safety
-                return OpenAI(
+                return AsyncOpenAI(
                     api_key=api_key,
                     base_url=base_url,
                     default_headers={
@@ -169,7 +200,7 @@ class OpenRouterClient(BaseLLMClient):
             except Exception as fallback_error:
                 self.logger.error(f"Fallback OpenRouter client also failed: {fallback_error}")
                 # Last resort - basic client
-                return OpenAI(
+                return AsyncOpenAI(
                     api_key=api_key,
                     base_url=base_url,
                     default_headers={
@@ -561,7 +592,7 @@ class OpenRouterClient(BaseLLMClient):
             kwargs["extra_body"] = eb
 
         # Make the API call
-        response = self._client.chat.completions.create(**kwargs)
+        response = await self._client.chat.completions.create(**kwargs)
         
         # Process usage metadata
         usage = self._extract_and_standardize_usage(response)
@@ -624,7 +655,7 @@ class OpenRouterClient(BaseLLMClient):
                     eb["plugins"] = [{"id": "file-parser", "pdf": {"engine": "native"}}]
                     kwargs["extra_body"] = eb
 
-                response = self._client.chat.completions.create(**kwargs)
+                response = await self._client.chat.completions.create(**kwargs)
                 self.logger.info(f"Response time: {time.time() - start_time:.2f}s")
                 
                 # Process usage metadata using framework standardization
@@ -744,7 +775,8 @@ class OpenRouterClient(BaseLLMClient):
         collected_tool_calls = []
         
         # Process streaming response
-        for chunk in self._client.chat.completions.create(**kwargs):
+        stream = await self._client.chat.completions.create(**kwargs)
+        async for chunk in stream:
             # Handle usage data if available
             if hasattr(chunk, 'usage') and chunk.usage is not None:
                 current_usage = self._extract_and_standardize_usage(chunk)
@@ -849,7 +881,8 @@ class OpenRouterClient(BaseLLMClient):
                 self.logger.debug(f"Starting progressive stream processing for turn {current_turn}")
                 
                 # Process streaming response with progressive function execution
-                for chunk in self._client.chat.completions.create(**kwargs):
+                stream = await self._client.chat.completions.create(**kwargs)
+                async for chunk in stream:
                     chunk_count += 1
                     # Handle usage metadata
                     if hasattr(chunk, 'usage') and chunk.usage is not None:

@@ -10,7 +10,9 @@ import json
 import time
 import inspect
 from typing import Dict, Any, TypeVar, AsyncGenerator, List, Callable
-from openai import OpenAI
+import asyncio
+
+from openai import AsyncOpenAI
 from openai.types.responses import ParsedResponse
 
 from arshai.core.interfaces.illm import ILLMInput
@@ -59,19 +61,48 @@ class OpenAIClient(BaseLLMClient):
     
     async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> bool:
         """Async context manager exit - cleanup connections."""
-        self.close()
+        await self.aclose()
         return False
     
     def close(self) -> None:
-        """Close the OpenAI client and cleanup connections."""
+        """Best-effort close. ``aclose`` is the accurate path — prefer it.
+
+        The transport is an ``httpx.AsyncClient``, which has no synchronous
+        close, and this method is reachable from ``__del__``, which cannot
+        await. Inside a running loop the teardown is scheduled as a task; with
+        no loop there is nothing safe to do, because ``asyncio.run`` during
+        interpreter shutdown can fail on an already-dismantled loop policy.
+        Leaving the sockets to the OS at that point is harmless — the process
+        is exiting anyway.
+
+        The task is created against the captured client, NOT ``self.aclose``:
+        handing a finalizer's ``self`` to a pending task resurrects an object
+        the interpreter has already begun collecting.
+        """
+        client = getattr(self, "_client", None)
+        if client is None:
+            return
+
         try:
-            # Close the underlying httpx client if it exists
-            if hasattr(self._client, '_client') and hasattr(self._client._client, 'close'):
-                self._client._client.close()
-                self.logger.info("Closed OpenAI httpx client")
-            elif hasattr(self._client, 'close'):
-                self._client.close()
-                self.logger.info("Closed OpenAI client")
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            return
+
+        try:
+            loop.create_task(client.close())
+        except Exception:
+            # A finalizer must never raise, and no logging contract survives
+            # interpreter teardown.
+            pass
+
+    async def aclose(self) -> None:
+        """Close the async transport, awaiting it properly."""
+        client = getattr(self, "_client", None)
+        if client is None:
+            return
+        try:
+            await client.close()
+            self.logger.info("Closed OpenAI client")
         except Exception as e:
             self.logger.warning(f"Error closing OpenAI client: {e}")
     
@@ -103,9 +134,9 @@ class OpenAIClient(BaseLLMClient):
             self.logger.info("Creating OpenAI client with safe HTTP configuration")
             # Pass base_url if provided
             if base_url:
-                client = SafeHttpClientFactory.create_openai_client(api_key=api_key, base_url=base_url)
+                client = SafeHttpClientFactory.create_async_openai_client(api_key=api_key, base_url=base_url)
             else:
-                client = SafeHttpClientFactory.create_openai_client(api_key=api_key)
+                client = SafeHttpClientFactory.create_async_openai_client(api_key=api_key)
             
             self.logger.info("OpenAI client created successfully with safe configuration")
             return client
@@ -116,7 +147,7 @@ class OpenAIClient(BaseLLMClient):
             client_kwargs = {"api_key": api_key}
             if base_url:
                 client_kwargs["base_url"] = base_url
-            return OpenAI(**client_kwargs)
+            return AsyncOpenAI(**client_kwargs)
         
         except Exception as e:
             self.logger.error(f"Failed to create safe OpenAI client: {e}")
@@ -127,14 +158,14 @@ class OpenAIClient(BaseLLMClient):
                 client_kwargs = {"api_key": api_key, "timeout": 30.0}
                 if base_url:
                     client_kwargs["base_url"] = base_url
-                return OpenAI(**client_kwargs)
+                return AsyncOpenAI(**client_kwargs)
             except Exception as fallback_error:
                 self.logger.error(f"Fallback client also failed: {fallback_error}")
                 # Last resort - basic client
                 client_kwargs = {"api_key": api_key}
                 if base_url:
                     client_kwargs["base_url"] = base_url
-                return OpenAI(**client_kwargs)
+                return AsyncOpenAI(**client_kwargs)
 
     # ========================================================================
     # PROVIDER-SPECIFIC HELPER METHODS
@@ -484,7 +515,7 @@ class OpenAIClient(BaseLLMClient):
             # Add structure instructions to system prompt  
             response_input[0]["content"] += STRUCTURE_INSTRUCTIONS_TEMPLATE
         
-        response: ParsedResponse = self._client.responses.parse(**kwargs)
+        response: ParsedResponse = await self._client.responses.parse(**kwargs)
         
         # Process usage metadata
         usage = self._extract_and_standardize_usage(response)
@@ -546,7 +577,7 @@ class OpenAIClient(BaseLLMClient):
                     # Add structure instructions to system prompt
                     response_input[0]["content"] += STRUCTURE_INSTRUCTIONS_TEMPLATE
                 
-                response = self._client.responses.parse(**kwargs)
+                response = await self._client.responses.parse(**kwargs)
                 self.logger.info(f"Response time: {time.time() - start_time:.2f}s")
                 
                 # Process usage metadata using framework standardization
@@ -676,12 +707,12 @@ class OpenAIClient(BaseLLMClient):
             response_input[0]["content"] += STRUCTURE_INSTRUCTIONS_TEMPLATE
         
         # Use proper ResponseStreamManager pattern
-        with self._client.responses.stream(**kwargs) as stream:
+        async with self._client.responses.stream(**kwargs) as stream:
             accumulated_usage = None
             collected_text = ""
             
             # Process streaming events
-            for event in stream:
+            async for event in stream:
                 if hasattr(event, "response") and hasattr(event.response, "usage") and event.response.usage:
                     # Usage from ResponseIncompleteEvent or ResponseCompletedEvent
                     current_usage = self._extract_and_standardize_usage(event.response)
@@ -747,7 +778,7 @@ class OpenAIClient(BaseLLMClient):
                     response_input[0]["content"] += STRUCTURE_INSTRUCTIONS_TEMPLATE
                 
                 # Generate streaming content with tools using responses API
-                with self._client.responses.stream(**kwargs) as stream:
+                async with self._client.responses.stream(**kwargs) as stream:
                     
                     # Progressive streaming state management
                     streaming_state = StreamingExecutionState()
@@ -759,7 +790,7 @@ class OpenAIClient(BaseLLMClient):
                     self.logger.debug(f"Starting progressive stream processing for turn {current_turn}")
 
                     # Process streaming response events with progressive function execution
-                    for event in stream:
+                    async for event in stream:
                         chunk_count += 1                        
                         # Handle usage metadata from response completion events
                         if hasattr(event, "response") and hasattr(event.response, "usage") and event.response.usage:

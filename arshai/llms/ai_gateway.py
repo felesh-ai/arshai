@@ -21,7 +21,9 @@ import inspect
 from typing import Dict, Any, TypeVar, AsyncGenerator, List, Callable, Optional
 from pydantic import Field, field_validator
 
-from openai import OpenAI
+import asyncio
+
+from openai import AsyncOpenAI
 
 from arshai.core.interfaces.illm import ILLMConfig, ILLMInput
 from arshai.llms.base_llm_client import BaseLLMClient
@@ -234,14 +236,44 @@ class AIGatewayLLM(BaseLLMClient):
         self.close()
 
     def close(self) -> None:
-        """Close the client and cleanup connections."""
+        """Best-effort close. ``aclose`` is the accurate path — prefer it.
+
+        The transport is an ``httpx.AsyncClient``, which has no synchronous
+        close, and this method is reachable from ``__del__``, which cannot
+        await. Inside a running loop the teardown is scheduled as a task; with
+        no loop there is nothing safe to do, because ``asyncio.run`` during
+        interpreter shutdown can fail on an already-dismantled loop policy.
+        Leaving the sockets to the OS at that point is harmless — the process
+        is exiting anyway.
+
+        The task is created against the captured client, NOT ``self.aclose``:
+        handing a finalizer's ``self`` to a pending task resurrects an object
+        the interpreter has already begun collecting.
+        """
+        client = getattr(self, "_client", None)
+        if client is None:
+            return
+
         try:
-            if hasattr(self._client, '_client') and hasattr(self._client._client, 'close'):
-                self._client._client.close()
-                self.logger.info("Closed gateway httpx client")
-            elif hasattr(self._client, 'close'):
-                self._client.close()
-                self.logger.info("Closed gateway client")
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            return
+
+        try:
+            loop.create_task(client.close())
+        except Exception:
+            # A finalizer must never raise, and no logging contract survives
+            # interpreter teardown.
+            pass
+
+    async def aclose(self) -> None:
+        """Close the async transport, awaiting it properly."""
+        client = getattr(self, "_client", None)
+        if client is None:
+            return
+        try:
+            await client.close()
+            self.logger.info("Closed gateway client")
         except Exception as e:
             self.logger.warning(f"Error closing gateway client: {e}")
 
@@ -269,10 +301,18 @@ class AIGatewayLLM(BaseLLMClient):
             httpx_version = getattr(httpx, '__version__', '0.0.0')
 
             limits_config = SafeHttpClientFactory._get_safe_limits_config(httpx_version)
-            timeout_config = SafeHttpClientFactory._get_safe_timeout_config(httpx_version)
+            # config.timeout has to reach the transport. Passing http_client
+            # WITHOUT it is what made this setting inert: httpx owns the
+            # deadline once a custom client is supplied, so the configured
+            # value was silently replaced by the factory's 60s default. A
+            # service setting a 15s budget got 60s, and two attempts of that
+            # is what outran CRM's liveness probe.
+            timeout_config = SafeHttpClientFactory._get_safe_timeout_config(
+                httpx_version, read_timeout=self.config.timeout
+            )
             additional_config = SafeHttpClientFactory._get_additional_httpx_config(httpx_version)
 
-            safe_http_client = httpx.Client(
+            safe_http_client = httpx.AsyncClient(
                 limits=limits_config,
                 timeout=timeout_config,
                 **additional_config
@@ -294,7 +334,7 @@ class AIGatewayLLM(BaseLLMClient):
             if self.config.project:
                 client_kwargs["project"] = self.config.project
 
-            client = OpenAI(**client_kwargs)
+            client = AsyncOpenAI(**client_kwargs)
 
             self.logger.info("Gateway client initialized successfully")
             return client
@@ -313,7 +353,7 @@ class AIGatewayLLM(BaseLLMClient):
             if self.config.project:
                 client_kwargs["project"] = self.config.project
 
-            return OpenAI(**client_kwargs)
+            return AsyncOpenAI(**client_kwargs)
 
         except Exception as e:
             self.logger.error(f"Failed to create gateway client: {e}")
@@ -325,7 +365,7 @@ class AIGatewayLLM(BaseLLMClient):
                 "timeout": self.config.timeout,
                 "max_retries": self.config.max_retries,
             }
-            return OpenAI(**client_kwargs)
+            return AsyncOpenAI(**client_kwargs)
 
     # ========================================================================
     # HELPER METHODS
@@ -656,9 +696,10 @@ class AIGatewayLLM(BaseLLMClient):
         # Use with_raw_response to capture the gateway's X-Upstream-Request-ID
         # header. .parse() yields the same ChatCompletion object the plain
         # .create() would return; the surrounding code path is unchanged.
-        raw = self._client.chat.completions.with_raw_response.create(**kwargs)
+        raw = await self._client.chat.completions.with_raw_response.create(**kwargs)
         upstream_id = raw.headers.get("X-Upstream-Request-ID")
-        response = raw.parse()
+        # AsyncAPIResponse.parse is a coroutine, unlike its sync counterpart.
+        response = await raw.parse()
         usage = self._extract_and_standardize_usage(
             response, upstream_request_id=upstream_id
         )
@@ -708,7 +749,7 @@ class AIGatewayLLM(BaseLLMClient):
                 if input.extra_headers:
                     kwargs["extra_headers"] = input.extra_headers
 
-                response = self._client.chat.completions.create(**kwargs)
+                response = await self._client.chat.completions.create(**kwargs)
                 self.logger.info(f"Response time: {time.time() - start_time:.2f}s")
 
                 if hasattr(response, "usage") and response.usage:
@@ -792,7 +833,8 @@ class AIGatewayLLM(BaseLLMClient):
         collected_text = ""
         collected_tool_calls = []
 
-        for chunk in self._client.chat.completions.create(**kwargs):
+        stream = await self._client.chat.completions.create(**kwargs)
+        async for chunk in stream:
             if hasattr(chunk, 'usage') and chunk.usage is not None:
                 current_usage = self._extract_and_standardize_usage(chunk)
                 accumulated_usage = self._accumulate_usage_safely(current_usage, accumulated_usage)
@@ -873,7 +915,8 @@ class AIGatewayLLM(BaseLLMClient):
                 collected_text = ""
                 tool_calls_in_progress = {}
 
-                for chunk in self._client.chat.completions.create(**kwargs):
+                stream = await self._client.chat.completions.create(**kwargs)
+                async for chunk in stream:
                     if hasattr(chunk, 'usage') and chunk.usage is not None:
                         current_usage = self._extract_and_standardize_usage(chunk)
                         accumulated_usage = self._accumulate_usage_safely(current_usage, accumulated_usage)

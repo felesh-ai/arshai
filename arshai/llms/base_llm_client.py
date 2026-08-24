@@ -286,8 +286,24 @@ class BaseLLMClient(ILLM, ABC):
 
     @abstractmethod
     def close(self):
-        """Close any open connections or resources."""
+        """Close any open connections or resources.
+
+        Stays synchronous because it is reachable from ``__del__`` and
+        ``__exit__``, neither of which can await. Providers backed by an async
+        transport implement this as best-effort and put the real teardown in
+        ``aclose``.
+        """
         pass
+
+    async def aclose(self) -> None:
+        """Close connections from async context — the accurate path.
+
+        Default delegates to ``close`` so providers holding a synchronous
+        transport need no change. Providers on an async transport override
+        this and actually await the close; ``close`` alone cannot, which is
+        the whole reason this method exists.
+        """
+        self.close()
 
     # ========================================================================
     # FRAMEWORK METHODS - Standard implementation for all providers
@@ -918,7 +934,9 @@ class BaseLLMClient(ILLM, ABC):
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        self.close()
+        # Async exit can await, so it gets the accurate teardown rather than
+        # the best-effort one __exit__ is stuck with.
+        await self.aclose()
         return False
 
     def __del__(self):
