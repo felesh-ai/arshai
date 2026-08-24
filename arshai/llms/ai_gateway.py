@@ -301,7 +301,15 @@ class AIGatewayLLM(BaseLLMClient):
             httpx_version = getattr(httpx, '__version__', '0.0.0')
 
             limits_config = SafeHttpClientFactory._get_safe_limits_config(httpx_version)
-            timeout_config = SafeHttpClientFactory._get_safe_timeout_config(httpx_version)
+            # config.timeout has to reach the transport. Passing http_client
+            # WITHOUT it is what made this setting inert: httpx owns the
+            # deadline once a custom client is supplied, so the configured
+            # value was silently replaced by the factory's 60s default. A
+            # service setting a 15s budget got 60s, and two attempts of that
+            # is what outran CRM's liveness probe.
+            timeout_config = SafeHttpClientFactory._get_safe_timeout_config(
+                httpx_version, read_timeout=self.config.timeout
+            )
             additional_config = SafeHttpClientFactory._get_additional_httpx_config(httpx_version)
 
             safe_http_client = httpx.AsyncClient(
