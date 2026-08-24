@@ -575,7 +575,7 @@ class GeminiClient(BaseLLMClient):
             contents[0] += STRUCTURE_INSTRUCTIONS_TEMPLATE
         
         # Generate content without tools
-        response = self._client.models.generate_content(
+        response = await self._client.aio.models.generate_content(
             model=self.config.model,
             contents=contents,
             config=self._create_generation_config(input.structure_type),
@@ -643,7 +643,7 @@ class GeminiClient(BaseLLMClient):
                 tools = [Tool(function_declarations=gemini_tools)] if gemini_tools else None
                 
                 # Generate content with tools (manual mode - no automatic execution)
-                response = self._client.models.generate_content(
+                response = await self._client.aio.models.generate_content(
                     model=self.config.model,
                     contents=contents,
                     config=self._create_generation_config(input.structure_type, tools),
@@ -741,7 +741,7 @@ class GeminiClient(BaseLLMClient):
             contents[0] += STRUCTURE_INSTRUCTIONS_TEMPLATE
         
         # Generate streaming content
-        stream = self._client.models.generate_content_stream(
+        stream = await self._client.aio.models.generate_content_stream(
             model=self.config.model,
             contents=contents,
             config=self._create_generation_config(input.structure_type),
@@ -750,7 +750,7 @@ class GeminiClient(BaseLLMClient):
         accumulated_usage = None
         collected_text = ""
 
-        for chunk in stream:
+        async for chunk in stream:
             # Process usage metadata safely
             if hasattr(chunk, "usage_metadata") and chunk.usage_metadata:
                 current_usage = self._extract_and_standardize_usage(chunk)
@@ -816,7 +816,7 @@ class GeminiClient(BaseLLMClient):
                 tools = [Tool(function_declarations=gemini_tools)] if gemini_tools else None
                 
                 # Generate streaming content with tools (manual mode)
-                stream = self._client.models.generate_content_stream(
+                stream = await self._client.aio.models.generate_content_stream(
                     model=self.config.model,
                     contents=contents,
                     config=self._create_generation_config(input.structure_type, tools),
@@ -832,7 +832,7 @@ class GeminiClient(BaseLLMClient):
                 self.logger.debug(f"Starting progressive stream processing for turn {current_turn}")
 
                 # Process streaming response with progressive function execution
-                for chunk in stream:
+                async for chunk in stream:
                     chunk_count += 1
                     
                     # Handle usage metadata

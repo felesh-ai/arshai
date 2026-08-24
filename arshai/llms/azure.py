@@ -11,7 +11,9 @@ import time
 import base64
 import inspect
 from typing import Dict, Any, TypeVar, Type, Union, AsyncGenerator, List, Callable
-from openai import AzureOpenAI
+import asyncio
+
+from openai import AsyncAzureOpenAI
 from openai.types.responses import ParsedResponse
 
 from arshai.core.interfaces.illm import ILLMConfig, ILLMInput
@@ -83,19 +85,48 @@ class AzureClient(BaseLLMClient):
     
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Async context manager exit - cleanup connections."""
-        self.close()
+        await self.aclose()
         return False
     
     def close(self):
-        """Close the Azure OpenAI client and cleanup connections."""
+        """Best-effort close. ``aclose`` is the accurate path — prefer it.
+
+        The transport is an ``httpx.AsyncClient``, which has no synchronous
+        close, and this method is reachable from ``__del__``, which cannot
+        await. Inside a running loop the teardown is scheduled as a task; with
+        no loop there is nothing safe to do, because ``asyncio.run`` during
+        interpreter shutdown can fail on an already-dismantled loop policy.
+        Leaving the sockets to the OS at that point is harmless — the process
+        is exiting anyway.
+
+        The task is created against the captured client, NOT ``self.aclose``:
+        handing a finalizer's ``self`` to a pending task resurrects an object
+        the interpreter has already begun collecting.
+        """
+        client = getattr(self, "_client", None)
+        if client is None:
+            return
+
         try:
-            # Close the underlying httpx client if it exists
-            if hasattr(self._client, '_client') and hasattr(self._client._client, 'close'):
-                self._client._client.close()
-                self.logger.info("Closed Azure OpenAI httpx client")
-            elif hasattr(self._client, 'close'):
-                self._client.close()
-                self.logger.info("Closed Azure OpenAI client")
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            return
+
+        try:
+            loop.create_task(client.close())
+        except Exception:
+            # A finalizer must never raise, and no logging contract survives
+            # interpreter teardown.
+            pass
+
+    async def aclose(self) -> None:
+        """Close the async transport, awaiting it properly."""
+        client = getattr(self, "_client", None)
+        if client is None:
+            return
+        try:
+            await client.close()
+            self.logger.info("Closed Azure OpenAI client")
         except Exception as e:
             self.logger.warning(f"Error closing Azure OpenAI client: {e}")
     
@@ -124,7 +155,7 @@ class AzureClient(BaseLLMClient):
             timeout_config = SafeHttpClientFactory._get_safe_timeout_config(httpx_version)
             additional_config = SafeHttpClientFactory._get_additional_httpx_config(httpx_version)
             
-            safe_http_client = httpx.Client(
+            safe_http_client = httpx.AsyncClient(
                 limits=limits_config,
                 timeout=timeout_config,
                 **additional_config
@@ -132,7 +163,7 @@ class AzureClient(BaseLLMClient):
             
             # Try to create Azure client with safe HTTP client
             try:
-                client = AzureOpenAI(
+                client = AsyncAzureOpenAI(
                     azure_deployment=self.azure_deployment,
                     api_version=self.api_version,
                     http_client=safe_http_client,
@@ -146,7 +177,7 @@ class AzureClient(BaseLLMClient):
                     # Close the unused httpx client
                     safe_http_client.close()
                     # Fallback to basic Azure client
-                    return AzureOpenAI(
+                    return AsyncAzureOpenAI(
                         azure_deployment=self.azure_deployment,
                         api_version=self.api_version
                     )
@@ -156,7 +187,7 @@ class AzureClient(BaseLLMClient):
         except ImportError as e:
             self.logger.warning(f"Safe HTTP client factory not available: {e}, using default Azure client")
             # Fallback to original implementation
-            return AzureOpenAI(
+            return AsyncAzureOpenAI(
                 azure_deployment=self.azure_deployment,
                 api_version=self.api_version
             )
@@ -165,7 +196,7 @@ class AzureClient(BaseLLMClient):
             self.logger.error(f"Failed to create safe Azure OpenAI client: {e}")
             # Final fallback to ensure system keeps working
             self.logger.info("Using fallback Azure OpenAI client configuration")
-            return AzureOpenAI(
+            return AsyncAzureOpenAI(
                 azure_deployment=self.azure_deployment,
                 api_version=self.api_version
             )
@@ -543,7 +574,7 @@ class AzureClient(BaseLLMClient):
             # Add structure instructions to system prompt  
             response_input[0]["content"] += STRUCTURE_INSTRUCTIONS_TEMPLATE
         
-        response: ParsedResponse = self._client.responses.parse(**kwargs)
+        response: ParsedResponse = await self._client.responses.parse(**kwargs)
         
         # Process usage metadata
         usage = self._extract_and_standardize_usage(response)
@@ -602,7 +633,7 @@ class AzureClient(BaseLLMClient):
                     # Add structure instructions to system prompt
                     response_input[0]["content"] += STRUCTURE_INSTRUCTIONS_TEMPLATE
                 
-                response = self._client.responses.parse(**kwargs)
+                response = await self._client.responses.parse(**kwargs)
                 self.logger.info(f"Response time: {time.time() - start_time:.2f}s")
                 
                 # Process usage metadata using framework standardization
@@ -701,12 +732,12 @@ class AzureClient(BaseLLMClient):
             response_input[0]["content"] += STRUCTURE_INSTRUCTIONS_TEMPLATE
         
         # Use proper ResponseStreamManager pattern
-        with self._client.responses.stream(**kwargs) as stream:
+        async with self._client.responses.stream(**kwargs) as stream:
             accumulated_usage = None
             collected_text = ""
             
             # Process streaming events
-            for event in stream:
+            async for event in stream:
                 if hasattr(event, "response") and hasattr(event.response, "usage") and event.response.usage:
                     # Usage from ResponseIncompleteEvent or ResponseCompletedEvent
                     current_usage = self._extract_and_standardize_usage(event.response)
@@ -770,7 +801,7 @@ class AzureClient(BaseLLMClient):
                     response_input[0]["content"] += STRUCTURE_INSTRUCTIONS_TEMPLATE
                 
                 # Generate streaming content with tools using responses API
-                with self._client.responses.stream(**kwargs) as stream:
+                async with self._client.responses.stream(**kwargs) as stream:
                     
                     # Progressive streaming state management
                     streaming_state = StreamingExecutionState()
@@ -782,7 +813,7 @@ class AzureClient(BaseLLMClient):
                     self.logger.debug(f"Starting progressive stream processing for turn {current_turn}")
 
                     # Process streaming response events with progressive function execution
-                    for event in stream:
+                    async for event in stream:
                         chunk_count += 1                        
                         # Handle usage metadata from response completion events
                         if hasattr(event, "response") and hasattr(event.response, "usage") and event.response.usage:
