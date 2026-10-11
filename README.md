@@ -329,6 +329,8 @@ class CustomerServiceAgent(BaseAgent):
 
 ### 🔧 **Comprehensive Tool Ecosystem**
 
+- **Decision models**: `arshai.systemone.SystemOneClient` — generic System One decision-wire client (closed questions in, probabilities out; e.g. TypeSafe Jev via an AI gateway)
+
 #### **Built-in Tools**
 - **Web Search**: SearxNG integration with connection pooling
   - Multiple search engines aggregation
