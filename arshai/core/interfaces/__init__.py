@@ -26,6 +26,7 @@ from .ivector_db_client import IVectorDBClient
 from .idto import IDTO, IStreamDTO
 from .ireranker import IReranker, IRerankInput
 from .iwebsearch import IWebSearchClient, IWebSearchResult, IWebSearchConfig
+from .idecision import IDecisionModel, IDecisionResult
 from .inotification import INotificationState, INotificationAttempt
 
 # All available interfaces
@@ -46,6 +47,8 @@ __all__ = [
     "IVectorDBClient", "IDTO", "IStreamDTO",
     # Reranker
     "IReranker", "IRerankInput",
+    # Decision models
+    "IDecisionModel", "IDecisionResult",
     # Web Search
     "IWebSearchClient", "IWebSearchResult", "IWebSearchConfig",
     # Notification
